@@ -29,9 +29,9 @@ const SongCard = ({ song }: SongCardProps) => {
 
   const isCurrent = currentSong?.id === song.id;
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
     if (isCurrent) {
-      togglePlay();
+      togglePlay(e);
     } else {
       const youtubeId = song.id;
       setSong(song, youtubeId);
