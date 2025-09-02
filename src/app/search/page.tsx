@@ -8,6 +8,7 @@ import { SongPlayerEngine } from "./_components/song-player-engine";
 import { SongPlayerBar } from "./_components/song-player-bar";
 import { searchSong } from "./_actions";
 
+export const dynamic = "force-dynamic";
 type SearchPageProps = {
   searchParams: Promise<{
     q?: string;

@@ -35,8 +35,8 @@ const SearchSongForm = () => {
         router.push(`/search?q=${encodeQueryParam(query)}`);
       });
     } catch (error) {
-      toast.error("Failed to search music");
-      console.error("Error fetching music:", error);
+      toast.error("Something went wrong while searching");
+      console.error("Search navigation error:", error);
     }
   };
 
