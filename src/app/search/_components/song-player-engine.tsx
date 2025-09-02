@@ -36,7 +36,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
   const currentSongRef = useRef<Song | null>(null);
   const modeRef = useRef(mode);
   const isPlayingRef = useRef(isPlaying);
-  const lastTimeRef = useRef(0); // keeps track of last played time
+  const lastTimeRef = useRef(0);
 
   useEffect(() => {
     currentSongRef.current = currentSong;
@@ -64,7 +64,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     if (!playerRef.current) return;
 
     switch (event.data) {
-      case -1: // unstarted
+      case -1:
         setIsLoading(true);
         break;
       case 1: {
@@ -111,7 +111,6 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
           return;
         }
 
-        // normal next
         if (currentIndex !== -1 && currentIndex < songs.length - 1) {
           const nextSong = songs[currentIndex + 1];
           setSong(nextSong, nextSong.id);
@@ -123,9 +122,8 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     }
   };
 
-  // Create a stable host outside React, and create/destroy the player there.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useLayoutEffect(() => {
-    // 1) Create host once and append to <body>
     if (!hostRef.current) {
       const host = document.createElement("div");
       host.id = "yt-audio-host";
@@ -140,7 +138,6 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
       hostRef.current = host;
     }
 
-    // 2) Create player once
     if (!playerRef.current && hostRef.current) {
       const player = youtubePlayer(hostRef.current, {
         width: 0,
@@ -150,7 +147,6 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
           controls: 0,
           rel: 0,
           playsinline: 1,
-          // helps with CORS + iframe API in some Next setups
           origin: window.location.origin,
         },
       });
@@ -159,11 +155,11 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
       playerRef.current = player;
     }
 
-    // 3) Cleanup on true unmount
     return () => {
       clearProgressTimer();
       try {
-        playerRef.current?.off?.("stateChange", handlePlayerStateChange);
+        // @ts-expect-error
+        playerRef.current?.off("stateChange", handlePlayerStateChange);
       } catch {}
       try {
         playerRef.current?.destroy?.();
@@ -177,10 +173,9 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
       }
       hostRef.current = null;
     };
-    // empty deps: run once; strict mode will double-invoke in dev but this pattern is fine
   }, []);
 
-  // Drive progress polling
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useEffect(() => {
     clearProgressTimer();
 
@@ -197,7 +192,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     return clearProgressTimer;
   }, [isPlaying, setProgress]);
 
-  // Load a new video when youtubeId changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useEffect(() => {
     if (!playerRef.current || !youtubeId) return;
 
@@ -206,6 +201,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     playerRef.current.loadVideoById(youtubeId);
   }, [youtubeId, setIsLoading, setProgress]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useEffect(() => {
     clearProgressTimer();
 
@@ -215,11 +211,8 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
         try {
           const t = await playerRef.current?.getCurrentTime();
           if (t != null) {
-            // setProgress(t);
-            // lastTimeRef.current = t; // <--- save last time here
-            lastTimeRef.current = t; // always track latest
+            lastTimeRef.current = t;
 
-            // throttle React updates
             const now = Date.now();
             if (now - lastProgressUpdate > 500) {
               setProgress(t);
@@ -235,6 +228,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     return clearProgressTimer;
   }, [isPlaying, setProgress]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useEffect(() => {
     if (!playerRef.current) return;
 
@@ -254,84 +248,6 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
       document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
-  // // Try to auto-resume playback when tab regains focus
-  // useEffect(() => {
-  //   if (!playerRef.current) return;
-  //
-  //   let lastTime = 0;
-  //
-  //   // keep last known time updated
-  //   const syncTime = async () => {
-  //     try {
-  //       const t = await playerRef.current?.getCurrentTime();
-  //       if (typeof t === "number" && !Number.isNaN(t)) {
-  //         lastTime = t;
-  //       }
-  //     } catch {}
-  //   };
-  //   const timeInterval = setInterval(syncTime, 1000);
-  //
-  //   const handleVisibility = async () => {
-  //     if (document.hidden) {
-  //       await syncTime();
-  //       if (isPlayingRef.current) {
-  //         setTimeout(async () => {
-  //           try {
-  //             await playerRef.current?.seekTo(lastTime, true);
-  //             await playerRef.current?.playVideo();
-  //           } catch (err) {
-  //             console.warn("Autoplay blocked or failed resume:", err);
-  //           }
-  //         }, 200); // shorter delay feels more instant
-  //       }
-  //     }
-  //   };
-  //
-  //   document.addEventListener("visibilitychange", handleVisibility);
-  //
-  //   return () => {
-  //     clearInterval(timeInterval);
-  //     document.removeEventListener("visibilitychange", handleVisibility);
-  //   };
-  // }, []);
 
-  // // Sync Media Session API
-  useEffect(() => {
-    if (!("mediaSession" in navigator) || !currentSong) return;
-
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: currentSong.title,
-      artist: "Unknown Artist",
-      album: "Moodifyr",
-      artwork: [
-        { src: currentSong.thumbnail, sizes: "512x512", type: "image/png" },
-      ],
-    });
-
-    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-
-    navigator.mediaSession.setActionHandler("play", () => {
-      playerRef.current?.playVideo();
-    });
-    navigator.mediaSession.setActionHandler("pause", () => {
-      playerRef.current?.pauseVideo();
-    });
-    navigator.mediaSession.setActionHandler("nexttrack", () => {
-      const idx = songs.findIndex((s) => s.id === currentSong.id);
-      if (idx !== -1 && idx < songs.length - 1) {
-        const next = songs[idx + 1];
-        setSong(next, next.id);
-      }
-    });
-    navigator.mediaSession.setActionHandler("previoustrack", () => {
-      const idx = songs.findIndex((s) => s.id === currentSong.id);
-      if (idx > 0) {
-        const prev = songs[idx - 1];
-        setSong(prev, prev.id);
-      }
-    });
-  }, [currentSong, isPlaying, songs, setSong]);
-
-  // We don’t render anything—player lives in document.body
   return null;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useRef, useState } from "react";
-import type YoutubePlayer from "youtube-player";
+import type youtubePlayer from "youtube-player";
 import type { SongPlayerMode } from "@/app/search/_types";
 
 type Song = {
@@ -25,7 +25,7 @@ type SongPlayerContextType = {
   progress: number;
   setDuration: React.Dispatch<React.SetStateAction<number>>;
   duration: number;
-  playerRef: React.RefObject<ReturnType<typeof YoutubePlayer> | null>;
+  playerRef: React.RefObject<ReturnType<typeof youtubePlayer> | null>;
   mode: SongPlayerMode;
   setMode: React.Dispatch<
     React.SetStateAction<"normal" | "shuffle" | "repeat">
@@ -47,7 +47,7 @@ export function SongPlayerProvider({
   const [duration, setDuration] = useState(0);
   const [mode, setMode] = useState<"normal" | "shuffle" | "repeat">("normal");
 
-  const playerRef = useRef<ReturnType<typeof YoutubePlayer> | null>(null);
+  const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
 
   const setSong = (song: Song, id: string) => {
     setCurrentSong(song);
