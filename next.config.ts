@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // reactStrictMode: false,
   devIndicators: false,
   allowedDevOrigins: ["192.168.1.40"],
   // allowedDevOrigins: ["local-origin.dev", "*.local-origin.dev"],

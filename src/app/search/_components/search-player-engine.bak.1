@@ -229,7 +229,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
         } catch (err) {
           console.warn("Error getting current time:", err);
         }
-      }, 100);
+      }, 1000);
     }
 
     return clearProgressTimer;
