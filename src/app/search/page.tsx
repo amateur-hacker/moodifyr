@@ -27,9 +27,7 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
     <SongPlayerProvider>
       <div className="p-4">
         <div className="w-full space-y-5 mx-auto max-w-3xl">
-          <Suspense fallback={<div>Loading...</div>}>
-            <SearchSongForm />
-          </Suspense>
+          <SearchSongForm />
 
           {result?.success && (
             <Suspense
