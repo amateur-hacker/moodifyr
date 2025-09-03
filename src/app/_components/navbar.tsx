@@ -5,6 +5,7 @@ import { SignInButton } from "@/app/_components/signin-button";
 import { UserMenu } from "@/app/_components/user-menu";
 import { FloatSearchSongForm } from "@/app/_components/float-search-song-form";
 
+export const dynamic = "force-dynamic";
 const Navbar = async () => {
   const session = await getServerSession();
 
