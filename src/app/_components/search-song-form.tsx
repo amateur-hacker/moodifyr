@@ -61,6 +61,8 @@ const SearchSongForm = () => {
             type="search"
             onChange={handleChange}
             value={query}
+            autoComplete="off"
+            spellCheck="false"
           />
           {query && !!query.length && (
             <button

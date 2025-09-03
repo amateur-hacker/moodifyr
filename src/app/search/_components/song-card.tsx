@@ -41,14 +41,12 @@ const SongCard = ({ song }: SongCardProps) => {
 
   return (
     <Card
-      className={cn(
-        "flex flex-row items-center gap-2.5 sm:gap-5 p-0 border-0 shadow-none rounded-none",
-      )}
+      className="flex flex-row items-center gap-2.5 sm:gap-5 p-0 border-0 shadow-none rounded-none cursor-pointer group"
+      onClick={handleClick}
     >
       <button
         type="button"
-        className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] group cursor-pointer"
-        onClick={handleClick}
+        className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer"
       >
         <Image
           src={song.thumbnail}
@@ -85,13 +83,15 @@ const SongCard = ({ song }: SongCardProps) => {
           {song.duration.timestamp}
         </Typography>
       </div>
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             size="icon"
             variant="ghost"
-            className="cursor-pointer ml-auto"
+            className={cn(
+              "cursor-pointer ml-auto transition-all duration-200 group-hover:opacity-100 data-[state=open]:opacity-100 ",
+              isCurrent ? "opacity-100" : "opacity-0",
+            )}
             aria-label="Open dropdown menu"
           >
             <EllipsisVertical size={16} aria-hidden="true" />
