@@ -4,6 +4,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { FloatSearchBarProvider } from "./_context/float-search-bar-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,10 +33,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
-        <NextTopLoader color={"var(--primary)"} showSpinner={false} />
-        <Toaster closeButton richColors position="top-center" />
-        {children}
+        <FloatSearchBarProvider>
+          <Navbar />
+          <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+          <Toaster closeButton richColors position="top-center" />
+          {children}
+        </FloatSearchBarProvider>
       </body>
     </html>
   );

@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, useTransition, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-import { Search, X } from "lucide-react";
+import { ChevronLeft, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { TopLoader } from "@/components/top-loader";
@@ -12,14 +12,20 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { encodeQueryParam } from "@/utils/url";
+import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
+import { mergeRefs } from "@mantine/hooks";
 
-const SearchSongForm = () => {
+type SearchSongFormProps = {
+  inputRef?: React.Ref<HTMLInputElement>;
+};
+const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
+  const { close } = useFloatSearchBar();
   const searchParams = useSearchParams();
   const querySearchParam = searchParams.get("q") || "";
   const [query, setQuery] = useState(querySearchParam);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const localInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -29,7 +35,7 @@ const SearchSongForm = () => {
     e.preventDefault();
 
     try {
-      inputRef.current?.blur();
+      localInputRef.current?.blur();
       startTransition(() => {
         if (!query) return router.push("/search");
         router.push(`/search?q=${encodeQueryParam(query)}`);
@@ -42,19 +48,28 @@ const SearchSongForm = () => {
 
   const handleClear = () => {
     setQuery("");
-    inputRef.current?.focus();
+    localInputRef.current?.focus();
     // router.push("/search");
   };
+
+  const mergeInputRefs = mergeRefs(localInputRef, inputRef);
 
   return (
     <>
       <TopLoader isLoading={isPending} />
       <form className="w-full flex" onSubmit={handleSearch}>
         <div className="relative w-full bg-background rounded-s-md rounded-e-md">
+          <button
+            className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer block sm:hidden z-20"
+            onClick={close}
+            type="button"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
           <Input
-            ref={inputRef}
+            ref={mergeInputRefs}
             className={cn(
-              "sticky inset-x-0 top-0 pe-10 rounded-none",
+              "sticky inset-x-0 top-0 ps-8 sm:ps-3 pe-8 rounded-none z-10",
               "rounded-s-md focus-visible:ring-[1px]",
             )}
             placeholder="Search for song..."
@@ -68,7 +83,7 @@ const SearchSongForm = () => {
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer hover:bg-ctp-base/40 p-1.5 rounded-full"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer hover:bg-background/40 p-1.5 rounded-full z-20"
               aria-label="Clear search"
             >
               <X size={16} strokeWidth={2} />

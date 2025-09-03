@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisIcon, EllipsisVertical, Pause, Play } from "lucide-react";
+import { EllipsisVertical, Pause, Play } from "lucide-react";
 import Image from "next/image";
 import { useSongPlayer } from "@/app/search/_context/song-player-context";
 import { Button } from "@/components/ui/button";
@@ -90,7 +90,7 @@ const SongCard = ({ song }: SongCardProps) => {
             variant="ghost"
             className={cn(
               "cursor-pointer ml-auto transition-all duration-200 group-hover:opacity-100 data-[state=open]:opacity-100 ",
-              isCurrent ? "opacity-100" : "opacity-0",
+              isCurrent ? "opacity-100" : "opacity-100 sm:opacity-0",
             )}
             aria-label="Open dropdown menu"
           >
