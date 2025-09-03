@@ -1,6 +1,6 @@
-import { auth } from "@/lib/auth";
 import type { User as SessionUser } from "better-auth";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
 type ExecuteQueryArgs<T> = {
   queryFn: ({ sessionUser }: { sessionUser?: SessionUser }) => Promise<T>;

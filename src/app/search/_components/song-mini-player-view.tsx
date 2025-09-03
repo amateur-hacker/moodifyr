@@ -39,7 +39,7 @@ const SongMiniPlayerView = ({
 
   return (
     <Card
-      className="p-4 bg-ctp-mantle/90 backdrop-blur-md border-0 border-t h-full rounded-none relative flex-row justify-between"
+      className="p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none relative flex-row justify-between"
       onClick={toggleFullScreen}
     >
       <motion.div

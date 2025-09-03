@@ -50,7 +50,7 @@ const SearchSongForm = () => {
     <>
       <TopLoader isLoading={isPending} />
       <form className="w-full flex" onSubmit={handleSearch}>
-        <div className="relative w-full">
+        <div className="relative w-full bg-background rounded-s-md rounded-e-md">
           <Input
             ref={inputRef}
             className={cn(
@@ -77,7 +77,7 @@ const SearchSongForm = () => {
           variant="ghost"
           className={cn(
             "rounded-none",
-            "flex h-9 w-9 items-center justify-center rounded-e-md bg-ctp-mantle text-muted-foreground/80 transition-colors hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 hover:bg-ctp-mantle-500 cursor-pointer border-border border focus-visible:ring-[1px]",
+            "flex h-9 w-9 items-center justify-center rounded-e-md bg-background text-muted-foreground/80 transition-colors hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 hover:bg-ctp-mantle-500 cursor-pointer border-border border focus-visible:ring-[1px]",
           )}
           aria-label="Submit search"
           type="submit"

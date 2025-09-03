@@ -9,6 +9,7 @@ import {
   SkipForward,
 } from "lucide-react";
 import Image from "next/image";
+import type { Song } from "@/app/search/_types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -19,7 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/utils/cn";
-import type { Song } from "@/app/search/_types";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat";
 type SongFullscreenPlayerViewProps = {
@@ -70,7 +70,7 @@ const SongFullscreenPlayerView = ({
   return (
     <Card
       className={cn(
-        "p-4 bg-ctp-mantle/90 backdrop-blur-md border-0 border-t h-full rounded-none justify-center",
+        "p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none justify-center",
         `${isFullScreen ? "rounded-none border-0" : "rounded-b-none"}`,
       )}
     >

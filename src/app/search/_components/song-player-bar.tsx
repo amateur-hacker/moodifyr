@@ -92,7 +92,6 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
 
   const toggleFullScreen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log("mini progress disabled");
     if (!isFullScreen) {
       setShowMiniProgress(false);
     }
@@ -141,16 +140,11 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
       ref={ref}
       className="fixed bottom-0 left-0 right-0 z-50"
       initial={false}
-      animate={
-        isFullScreen
-          ? { height: "100%", borderRadius: 0 }
-          : { height: "auto", borderRadius: "0.25rem" }
-      }
+      animate={isFullScreen ? { height: "100%" } : { height: "auto" }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onAnimationComplete={() => {
         if (!isFullScreen) {
           setShowMiniProgress(true);
-          console.log("mini progress enabled");
         }
       }}
     >

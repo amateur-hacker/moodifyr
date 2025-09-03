@@ -1,14 +1,13 @@
 import { Suspense } from "react";
-
+import { searchSong } from "@/app/search/_actions";
 import { SearchSongForm } from "@/app/search/_components/search-song-form";
 import { SongCardLoader } from "@/app/search/_components/song-card-loader";
 import { SongList } from "@/app/search/_components/song-list";
-import { SongPlayerProvider } from "./_context/song-player-context";
-import { SongPlayerEngine } from "./_components/song-player-engine";
-import { SongPlayerBar } from "./_components/song-player-bar";
-import { searchSong } from "./_actions";
+import { SongPlayerBar } from "@/app/search/_components/song-player-bar";
+import { SongPlayerEngine } from "@/app/search/_components/song-player-engine";
+import { SongPlayerProvider } from "@/app/search/_context/song-player-context";
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 type SearchPageProps = {
   searchParams: Promise<{
     q?: string;
@@ -27,7 +26,7 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
     <SongPlayerProvider>
       <div className="p-4">
         <div className="w-full space-y-5 mx-auto max-w-3xl">
-          <SearchSongForm />
+          {/* <SearchSongForm /> */}
 
           {result?.success && (
             <Suspense

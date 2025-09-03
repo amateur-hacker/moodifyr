@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Navbar from "@/app/_components/navbar";
 import NextTopLoader from "nextjs-toploader";
+import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 

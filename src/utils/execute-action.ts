@@ -1,9 +1,8 @@
+import type { User as SessionUser } from "better-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
-
+import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { getErrorMessage } from "@/utils/get-error-message";
-import type { User as SessionUser } from "better-auth";
-import { headers } from "next/headers";
 
 type ExecuteActionArgs<T> = {
   actionFn: ({ sessionUser }: { sessionUser?: SessionUser }) => Promise<T>;
