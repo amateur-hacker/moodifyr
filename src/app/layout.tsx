@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     "Create mood-based playlists, track your listening habits, and discover how music shapes your focus, feelings, and daily vibe.",
 };
 
+export const dynamic = "force-dynamic";
 export default function RootLayout({
   children,
 }: Readonly<{

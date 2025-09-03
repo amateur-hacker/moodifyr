@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { getServerSession } from "@/app/_actions";
+import { FloatSearchSongForm } from "@/app/_components/float-search-song-form";
 import { SearchSongForm } from "@/app/_components/search-song-form";
 import { SignInButton } from "@/app/_components/signin-button";
 import { UserMenu } from "@/app/_components/user-menu";
-import { FloatSearchSongForm } from "@/app/_components/float-search-song-form";
 
-export const dynamic = "force-dynamic";
 const Navbar = async () => {
   const session = await getServerSession();
 
