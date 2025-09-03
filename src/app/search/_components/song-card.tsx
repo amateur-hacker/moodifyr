@@ -42,61 +42,66 @@ const SongCard = ({ song }: SongCardProps) => {
   return (
     <Card
       className={cn(
-        "flex flex-col gap-2.5 sm:flex-row p-0 sm:items-center sm:gap-5 border-0 shadow-none rounded-none",
+        "flex flex-row items-center gap-2.5 sm:gap-5 p-0 border-0 shadow-none rounded-none",
       )}
     >
-      <div className="flex w-full items-center gap-2.5">
-        <button
-          type="button"
-          className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer"
-          onClick={handleClick}
+      <button
+        type="button"
+        className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] group cursor-pointer"
+        onClick={handleClick}
+      >
+        <Image
+          src={song.thumbnail}
+          alt={song.title}
+          fill
+          className="rounded-md border object-cover shadow-lg transition-all duration-200 ease-out group-hover:brightness-[0.8]"
+        />
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
+            isCurrent
+              ? "bg-black/40 group-hover:bg-black/50 opacity-100"
+              : "opacity-0 group-hover:opacity-100 bg-black/40",
+          )}
         >
-          <Image
-            src={song.thumbnail}
-            alt={song.title}
-            fill
-            className="rounded-md border object-cover shadow-lg transition-all duration-200 ease-out group-hover:brightness-[0.8]"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/50 rounded-md">
-            {isCurrent ? (
-              isLoading ? (
-                <div className="h-6 w-6 animate-spin rounded-full border-white border-b-2" />
-              ) : isPlaying ? (
-                <Pause size={36} />
-              ) : (
-                <Play size={36} />
-              )
+          {isCurrent ? (
+            isLoading ? (
+              <div className="h-6 w-6 animate-spin rounded-full border-white border-b-2" />
+            ) : isPlaying ? (
+              <Pause size={36} />
             ) : (
               <Play size={36} />
-            )}
-          </div>
-        </button>
-        <div className="flex flex-col justify-center gap-2.5">
-          <Typography variant="body-small" className="line-clamp-1">
-            {song.title}
-          </Typography>
-          <Typography variant="small" className="text-muted-foreground">
-            {song.duration.timestamp}
-          </Typography>
+            )
+          ) : (
+            <Play size={36} />
+          )}
         </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="cursor-pointer ml-auto"
-              aria-label="Open dropdown menu"
-            >
-              <EllipsisVertical size={16} aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem>Option 1</DropdownMenuItem>
-            <DropdownMenuItem>Option 2</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      </button>
+      <div className="flex flex-col justify-center gap-2.5">
+        <Typography variant="body-small" className="line-clamp-1">
+          {song.title}
+        </Typography>
+        <Typography variant="small" className="text-muted-foreground">
+          {song.duration.timestamp}
+        </Typography>
       </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="cursor-pointer ml-auto"
+            aria-label="Open dropdown menu"
+          >
+            <EllipsisVertical size={16} aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem>Option 1</DropdownMenuItem>
+          <DropdownMenuItem>Option 2</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </Card>
   );
 };
