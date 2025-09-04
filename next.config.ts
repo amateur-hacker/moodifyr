@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   // reactStrictMode: false,
   devIndicators: false,
   allowedDevOrigins: ["192.168.1.40"],
-  serverExternalPackages: ["cheerio", "yt-search"],
   // transpilePackages: ["yt-search"],
   // allowedDevOrigins: ["local-origin.dev", "*.local-origin.dev"],
   images: {

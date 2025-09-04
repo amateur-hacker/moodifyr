@@ -1,41 +1,88 @@
 "use client";
 
-import { mergeRefs } from "@mantine/hooks";
+import { mergeRefs, useClickOutside } from "@mantine/hooks";
 import { ChevronLeft, Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
 import { TopLoader } from "@/components/top-loader";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton"; // ✅ import shadcn skeleton
 import { encodeQueryParam } from "@/utils/url";
+import {
+  getSongSearchHistory,
+  removeSongSearchHistory,
+  trackSongSearchHistory,
+} from "../search/_actions";
 
 type SearchSongFormProps = {
   inputRef?: React.Ref<HTMLInputElement>;
 };
+
 const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
   const { close } = useFloatSearchBar();
   const searchParams = useSearchParams();
   const querySearchParam = searchParams.get("q") || "";
+
   const [query, setQuery] = useState(querySearchParam);
   const [isPending, startTransition] = useTransition();
+  const [history, setHistory] = useState<{ id: string; query: string }[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  const shouldOpen = isInputFocused && query.length === 0;
+
   const router = useRouter();
-  const localInputRef = useRef<HTMLInputElement>(null);
+
+  const [localInput, setLocalInput] = useState<HTMLInputElement | null>(null);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+
+  useClickOutside(() => setIsInputFocused(false), null, [
+    localInput,
+    contentEl,
+  ]);
+
+  useEffect(() => {
+    if (!shouldOpen) return;
+
+    setLoadingHistory(true);
+
+    // const timer = setTimeout(() => {
+    //   getSongSearchHistory({ page: 1, limit: 10 })
+    //     .then((res) => setHistory(res ?? []))
+    //     .finally(() => setLoadingHistory(false));
+    // }, 3000); // ⏱ wait 3 seconds before fetching
+    //
+    // return () => clearTimeout(timer); // cleanup on unmount/re-render
+
+    getSongSearchHistory({ page: 1, limit: 10 })
+      .then((res) => setHistory(res ?? []))
+      .finally(() => setLoadingHistory(false));
+  }, [shouldOpen]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
   };
 
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
+    e?.preventDefault();
     try {
-      localInputRef.current?.blur();
+      localInput?.blur();
+      if (query?.length) {
+        trackSongSearchHistory({ query });
+      }
       startTransition(() => {
-        if (!query) return router.push("/search");
-        router.push(`/search?q=${encodeQueryParam(query)}`);
+        if (!query?.length) router.push("/search");
+        else router.push(`/search?q=${encodeQueryParam(query)}`);
       });
     } catch (error) {
       toast.error("Something went wrong while searching");
@@ -45,11 +92,44 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const handleClear = () => {
     setQuery("");
-    localInputRef.current?.focus();
-    // router.push("/search");
+    localInput?.focus();
   };
 
-  const mergeInputRefs = mergeRefs(localInputRef, inputRef);
+  const handleRemoveHistory = async (id: string) => {
+    setHistory((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, query: "Removed" } : item,
+      ),
+    );
+    const res = await removeSongSearchHistory({ id });
+    if (!res?.success) toast.error("Failed to remove search history");
+  };
+
+  const handleSelectHistory = async (text: string) => {
+    if (text === "Removed") return;
+    setQuery(text);
+    try {
+      localInput?.blur();
+      startTransition(() => {
+        if (!text?.length) router.push("/search");
+        else router.push(`/search?q=${encodeQueryParam(text)}`);
+      });
+    } catch (error) {
+      toast.error("Something went wrong while searching");
+      console.error("Search navigation error:", error);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown" && shouldOpen) {
+      e.preventDefault();
+      queueMicrotask(() => {
+        const firstItem =
+          contentEl?.querySelector<HTMLDivElement>('[role="menuitem"]');
+        firstItem?.focus();
+      });
+    }
+  };
 
   return (
     <>
@@ -63,17 +143,96 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
           >
             <ChevronLeft className="size-5" />
           </button>
+
           <Input
-            ref={mergeInputRefs}
+            ref={mergeRefs(setLocalInput, inputRef)}
             className="sticky inset-x-0 top-0 pl-8 pr-8 sm:pl-3 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
+            onFocus={() => setIsInputFocused(true)}
+            onKeyDown={handleKeyDown}
             value={query}
             autoComplete="off"
             spellCheck="false"
           />
-          {query && !!query.length && (
+
+          <DropdownMenu open={shouldOpen} modal={false}>
+            <DropdownMenuTrigger asChild>
+              <div
+                aria-hidden
+                className="absolute inset-0 pointer-events-none"
+              />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              ref={setContentEl}
+              align="start"
+              className="w-[var(--radix-dropdown-menu-trigger-width)] p-0"
+              // @ts-expect-error shadcn typing mismatch
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+              {loadingHistory ? (
+                // ✅ Skeleton placeholders while fetching
+                <>
+                  <DropdownMenuItem disabled>
+                    <Skeleton className="h-4 w-40" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    <Skeleton className="h-4 w-32" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    <Skeleton className="h-4 w-24" />
+                  </DropdownMenuItem>
+                </>
+              ) : history.length === 0 ? (
+                <DropdownMenuItem disabled>No history</DropdownMenuItem>
+              ) : (
+                history.map((item, idx) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    className="flex justify-between items-center cursor-pointer"
+                    // onPointerLeave={(event) => event.preventDefault()}
+                    // onPointerMove={(event) => event.preventDefault()}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleSelectHistory(item.query);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        const items = Array.from(
+                          contentEl?.querySelectorAll<HTMLElement>(
+                            '[role="menuitem"]',
+                          ) || [],
+                        );
+                        if (idx > 0) {
+                          items[idx - 1]?.focus();
+                        } else {
+                          localInput?.focus();
+                        }
+                      }
+                    }}
+                  >
+                    <span>{item.query}</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveHistory(item.id);
+                      }}
+                      className="ml-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {query && (
             <button
               type="button"
               onClick={handleClear}
@@ -84,6 +243,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
             </button>
           )}
         </div>
+
         <Button
           variant="ghost"
           className="flex h-9 w-9 items-center justify-center rounded-none rounded-e-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border focus-visible:ring-[1px]"

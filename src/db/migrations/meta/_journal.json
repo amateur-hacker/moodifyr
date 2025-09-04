@@ -15,6 +15,13 @@
       "when": 1756974888403,
       "tag": "0001_yummy_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1756981407674,
+      "tag": "0002_illegal_justin_hammer",
+      "breakpoints": true
     }
   ]
 }

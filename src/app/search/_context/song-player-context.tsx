@@ -3,6 +3,7 @@
 import { createContext, useContext, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
 import type { SongPlayerMode } from "@/app/search/_types";
+import { trackSongPlayHistory } from "../_actions";
 
 type Song = {
   id: string;
@@ -49,10 +50,12 @@ export function SongPlayerProvider({
 
   const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
 
-  const setSong = (song: Song, id: string) => {
+  const setSong = async (song: Song, id: string) => {
     setCurrentSong(song);
     setYoutubeId(id);
     setIsPlaying(true);
+
+    await trackSongPlayHistory({ song });
   };
 
   const togglePlay = async (e: React.MouseEvent) => {
