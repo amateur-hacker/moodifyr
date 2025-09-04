@@ -1,19 +1,16 @@
 "use client";
 
-import type React from "react";
-import { useState, useTransition, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-
-import { ChevronLeft, Search, X } from "lucide-react";
-import { toast } from "sonner";
-
-import { TopLoader } from "@/components/top-loader";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { encodeQueryParam } from "@/utils/url";
-import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
 import { mergeRefs } from "@mantine/hooks";
+import { ChevronLeft, Search, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import type React from "react";
+import { useRef, useState, useTransition } from "react";
+import { toast } from "sonner";
+import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
+import { TopLoader } from "@/components/top-loader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { encodeQueryParam } from "@/utils/url";
 
 type SearchSongFormProps = {
   inputRef?: React.Ref<HTMLInputElement>;
@@ -68,10 +65,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
           </button>
           <Input
             ref={mergeInputRefs}
-            className={cn(
-              "sticky inset-x-0 top-0 ps-8 sm:ps-3 pe-8 rounded-none z-10",
-              "rounded-s-md focus-visible:ring-[1px]",
-            )}
+            className="sticky inset-x-0 top-0 pl-8 pr-8 sm:pl-3 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
@@ -83,19 +77,16 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer hover:bg-background/40 p-1.5 rounded-full z-20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer z-20"
               aria-label="Clear search"
             >
-              <X size={16} strokeWidth={2} />
+              <X className="size-5" />
             </button>
           )}
         </div>
         <Button
           variant="ghost"
-          className={cn(
-            "rounded-none",
-            "flex h-9 w-9 items-center justify-center rounded-e-md bg-background text-muted-foreground/80 transition-colors hover:text-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 hover:bg-ctp-mantle-500 cursor-pointer border-border border focus-visible:ring-[1px]",
-          )}
+          className="flex h-9 w-9 items-center justify-center rounded-none rounded-e-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border focus-visible:ring-[1px]"
           aria-label="Submit search"
           type="submit"
           disabled={isPending}

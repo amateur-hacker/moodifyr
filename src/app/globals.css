@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@catppuccin/tailwindcss/mocha.css";
 
 :root {
   --background: oklch(0.1797 0.0043 308.1928);
@@ -35,9 +34,6 @@
   --sidebar-accent-foreground: oklch(0.8109 0 0);
   --sidebar-border: oklch(0.252 0 0);
   --sidebar-ring: oklch(0.7214 0.1337 49.9802);
-  --font-sans: Geist Mono, ui-monospace, monospace;
-  --font-serif: serif;
-  --font-mono: Geist Mono, ui-monospace, monospace;
   --radius: 0.75rem;
   --shadow-2xs: 0px 1px 4px 0px hsl(0 0% 0% / 0.03);
   --shadow-xs: 0px 1px 4px 0px hsl(0 0% 0% / 0.03);
@@ -90,9 +86,9 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
-  --font-serif: var(--font-serif);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, sans-serif;
+  --font-serif: var(--font-lora-serif), ui-serif, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -116,12 +112,77 @@
   --tracking-widest: calc(var(--tracking-normal) + 0.1em);
 }
 
+@custom-variant has-hover (@media (hover: hover));
+@custom-variant no-hover (@media (hover: none));
+@custom-variant hover-never {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+}
+@custom-variant group-hover-never {
+  @media (hover: hover) {
+    .group:hover & {
+      @slot;
+    }
+  }
+}
+@custom-variant peer-hover-never {
+  @media (hover: hover) {
+    .peer:hover ~ & {
+      @slot;
+    }
+  }
+}
+@custom-variant hover-always {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  @media (hover: none) {
+    /* biome-ignore lint/style/noDescendingSpecificity: <don't want this rule> */
+    & {
+      @slot;
+    }
+  }
+}
+@custom-variant group-hover-always {
+  @media (hover: hover) {
+    .group:hover & {
+      @slot;
+    }
+  }
+  @media (hover: none) {
+    /* biome-ignore lint/style/noDescendingSpecificity: <don't want this rule> */
+    & {
+      @slot;
+    }
+  }
+}
+@custom-variant peer-hover-always {
+  @media (hover: hover) {
+    .peer:hover & {
+      @slot;
+    }
+  }
+  @media (hover: none) {
+    /* biome-ignore lint/style/noDescendingSpecificity: <don't want this rule> */
+    & {
+      @slot;
+    }
+  }
+}
+@custom-variant firefox (:-moz-any(&));
+@custom-variant chrome (@supports (-webkit-appearance: none) and (not (-moz-appearance: none)));
+
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/50 m-0 p-0 box-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
 /* For Chrome, Safari, Edge */

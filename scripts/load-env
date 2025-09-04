@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 if [ "${NODE_ENV:-development}" = "production" ]; then
-  dotenv -e .env.local -e .env -- "$@"
+  dotenv -e .env -- "$@"
 else
-  dotenv -e .env.local -- "$@"
+  dotenv -e .env.local -e .env -- "$@"
 fi

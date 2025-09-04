@@ -69,10 +69,7 @@ const SongFullscreenPlayerView = ({
 
   return (
     <Card
-      className={cn(
-        "p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none justify-center",
-        `${isFullScreen ? "rounded-none border-0" : "rounded-b-none"}`,
-      )}
+      className={`p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none justify-center ${isFullScreen ? "rounded-none border-0" : "rounded-b-none"}`}
     >
       <Button
         variant="ghost"

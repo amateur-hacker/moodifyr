@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Lora } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,6 +16,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const loraSerif = Lora({
+  variable: "--font-lora-serif",
+  subsets: ["latin"],
+});
+
+const fonts = [geistSans, geistMono, loraSerif];
+const fontsVariable = fonts.map((font) => font.variable).join(" ");
+
 export const metadata: Metadata = {
   title: "Moodifyr | Music That Matches Your Mood",
   description:
@@ -30,9 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${fontsVariable} antialiased`}>
         <FloatSearchBarProvider>
           <Navbar />
           <NextTopLoader color={"var(--primary)"} showSpinner={false} />

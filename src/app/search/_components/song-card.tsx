@@ -97,7 +97,7 @@ const SongCard = ({ song }: SongCardProps) => {
             <EllipsisVertical size={16} aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
           <DropdownMenuItem>Option 1</DropdownMenuItem>
           <DropdownMenuItem>Option 2</DropdownMenuItem>
         </DropdownMenuContent>

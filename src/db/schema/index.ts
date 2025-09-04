@@ -7,4 +7,6 @@ export {
   users,
   usersRelations,
   verifications,
-} from "./auth";
+} from "@/db/schema/auth";
+
+export { songPlayHistory, songSearchHistory } from "@/db/schema/song";
