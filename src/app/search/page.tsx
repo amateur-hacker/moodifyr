@@ -3,8 +3,8 @@ import {
   getSongPlayHistory,
   getSongSearchHistory,
   searchSong,
+  getAIRecommendedSongNames,
 } from "@/app/search/_actions";
-// import { SearchSongForm } from "@/app/search/_components/search-song-form";
 import { SongCardLoader } from "@/app/search/_components/song-card-loader";
 import { SongList } from "@/app/search/_components/song-list";
 import { SongPlayerBar } from "@/app/search/_components/song-player-bar";
@@ -23,15 +23,17 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
 
   // if (!searchQuery && !id) return;
   const result = await searchSong({ query: searchQuery, id });
+  // console.log(
+  //   await getAIRecommendedSongNames({ query: searchQuery as string }),
+  // );
 
-  const [songPlayHistoryResults, songSearchesHistoryResults] =
-    await Promise.all([
-      getSongPlayHistory({ page: 1, limit: 20 }),
-      getSongSearchHistory({ page: 1, limit: 5 }),
-    ]);
-
-  console.log("songPlayHistory Results:", songPlayHistoryResults);
-  console.log("songSearchHistory Results:", songSearchesHistoryResults);
+  // const [songPlayHistoryResults, songSearchesHistoryResults] =
+  //   await Promise.all([
+  //     getSongPlayHistory({ page: 1, limit: 20 }),
+  //     getSongSearchHistory({ page: 1, limit: 5 }),
+  //   ]);
+  // console.log("songPlayHistory Results:", songPlayHistoryResults);
+  // console.log("songSearchHistory Results:", songSearchesHistoryResults);
   // if (!result?.success) return;
 
   return (

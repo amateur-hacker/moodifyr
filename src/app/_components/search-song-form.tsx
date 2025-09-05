@@ -73,6 +73,13 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     setQuery(e.target.value);
   };
 
+  const navigateWithQuery = (q: string) => {
+    startTransition(() => {
+      if (!q?.length) router.push("/search");
+      else router.push(`/search?q=${encodeQueryParam(q)}`);
+    });
+  };
+
   const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     try {
@@ -80,10 +87,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
       if (query?.length) {
         trackSongSearchHistory({ query });
       }
-      startTransition(() => {
-        if (!query?.length) router.push("/search");
-        else router.push(`/search?q=${encodeQueryParam(query)}`);
-      });
+      navigateWithQuery(query);
     } catch (error) {
       toast.error("Something went wrong while searching");
       console.error("Search navigation error:", error);
@@ -110,10 +114,8 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     setQuery(text);
     try {
       localInput?.blur();
-      startTransition(() => {
-        if (!text?.length) router.push("/search");
-        else router.push(`/search?q=${encodeQueryParam(text)}`);
-      });
+      navigateWithQuery(text);
+      await trackSongSearchHistory({ query: text });
     } catch (error) {
       toast.error("Something went wrong while searching");
       console.error("Search navigation error:", error);
@@ -173,20 +175,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
               onOpenAutoFocus={(e) => e.preventDefault()}
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              {loadingHistory ? (
-                // ✅ Skeleton placeholders while fetching
-                <>
-                  <DropdownMenuItem disabled>
-                    <Skeleton className="h-4 w-40" />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled>
-                    <Skeleton className="h-4 w-32" />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled>
-                    <Skeleton className="h-4 w-24" />
-                  </DropdownMenuItem>
-                </>
-              ) : history.length === 0 ? (
+              {history.length === 0 && !loadingHistory ? (
                 <DropdownMenuItem disabled>No history</DropdownMenuItem>
               ) : (
                 history.map((item, idx) => (

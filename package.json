@@ -41,6 +41,7 @@
     "drizzle-orm": "^0.44.5",
     "drizzle-zod": "^0.8.3",
     "geist": "^1.4.2",
+    "groq-sdk": "^0.32.0",
     "lucide-react": "^0.542.0",
     "motion": "^12.23.12",
     "next": "15.5.2",

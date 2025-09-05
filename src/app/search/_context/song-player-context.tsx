@@ -2,8 +2,8 @@
 
 import { createContext, useContext, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
+import { trackSongPlayHistory } from "@/app/search/_actions";
 import type { SongPlayerMode } from "@/app/search/_types";
-import { trackSongPlayHistory } from "../_actions";
 
 type Song = {
   id: string;

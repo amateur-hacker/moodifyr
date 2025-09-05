@@ -6,7 +6,6 @@ import config from "$/drizzle.config";
 const { Pool } = pg;
 
 import { env } from "@/lib/env";
-console.log(env.DATABASE_URL);
 
 const pool = new Pool({
   connectionString: env.DATABASE_URL,

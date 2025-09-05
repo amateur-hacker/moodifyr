@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
-import { cn } from "@/utils/cn";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat";
 type SongFullscreenPlayerViewProps = {
@@ -157,7 +156,7 @@ const SongFullscreenPlayerView = ({
             variant="ghost"
             size="icon"
             onClick={handleNext}
-            disabled={currentIndex === songs.length - 1}
+            /// disabled={currentIndex === songs.length - 1}
             className="cursor-pointer size-10"
           >
             <SkipForward className="size-5" />

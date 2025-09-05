@@ -1,20 +1,20 @@
 "use server";
 
 import { and, desc, eq } from "drizzle-orm";
+import { Groq } from "groq-sdk";
 import type { Song } from "@/app/search/_types";
 import { db } from "@/db";
 import { songPlayHistory, songSearchHistory } from "@/db/schema";
 import { env } from "@/lib/env";
 import { executeAction } from "@/utils/execute-action";
 import { executeApi } from "@/utils/execute-api";
+import { executeFn } from "@/utils/execute-fn";
 import { executeQuery } from "@/utils/execute-query";
 import { encodeQueryParam } from "@/utils/url";
 
-type SearchSongArgs = {
-  query?: string;
-  id?: string;
-};
-const searchSong = async ({ query, id }: SearchSongArgs) => {
+const groq = new Groq({ apiKey: env.GROQ_API_KEY });
+
+const searchSong = async ({ query, id }: { query?: string; id?: string }) => {
   if ((!query && !id) || (query && id)) {
     return null;
   }
@@ -56,13 +56,51 @@ const trackSongPlayHistory = ({ song }: { song: Song }) => {
   });
 };
 
+// const trackSongSearchHistory = ({ query }: { query: string }) => {
+//   return executeAction({
+//     actionFn: async ({ sessionUser }) => {
+//       if (!sessionUser?.id) return;
+//
+//       // remove old history if exists
+//       await db
+//         .delete(songSearchHistory)
+//         .where(and(
+//           eq(songSearchHistory.userId, sessionUser.id),
+//           eq(songSearchHistory.query, query)
+//         ));
+//
+//       // insert new at "top" (since createdAt is newer)
+//       await db.insert(songSearchHistory).values({
+//         userId: sessionUser.id,
+//         query,
+//       });
+//     },
+//     isProtected: true,
+//     clientSuccessMessage: "Search history tracked successfully.",
+//     serverErrorMessage: "trackSearchHistory",
+//   });
+// };
+
 const trackSongSearchHistory = ({ query }: { query: string }) => {
   return executeAction({
-    actionFn: async ({ sessionUser }) =>
+    actionFn: async ({ sessionUser }) => {
+      if (!sessionUser?.id) return;
+
+      await db
+        .delete(songSearchHistory)
+        .where(
+          and(
+            eq(songSearchHistory.userId, sessionUser.id),
+            eq(songSearchHistory.query, query),
+          ),
+        );
+
+      // insert new at "top" (since createdAt is newer)
       await db.insert(songSearchHistory).values({
-        userId: sessionUser?.id as string,
+        userId: sessionUser.id,
         query,
-      }),
+      });
+    },
     isProtected: true,
     clientSuccessMessage: "Search history tracked successfully.",
     serverErrorMessage: "trackSearchHistory",
@@ -170,6 +208,75 @@ const removeSongSearchHistory = ({ id }: { id: string }) => {
   });
 };
 
+const getAIRecommendedSongNames = async ({ query }: { query: string }) => {
+  if (!query?.length) return null;
+
+  const parseResponse = (content: string): string[] =>
+    content
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^\d+\.\s*/, ""));
+  return executeFn({
+    fn: async () => {
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content:
+              "Based on a YouTube song title or search query, recommend at least 20 songs that closely match the style, mood, or genre. Provide the recommendations only as a numbered list of song titles, without any additional explanation or commentary.",
+          },
+          {
+            role: "user",
+            content: "Ride it song",
+          },
+          {
+            role: "assistant",
+            content:
+              "1. Ride It  \n2. SICKO MODE – Travis Scott  \n3. Mask Off – Future  \n4. The Box – Roddy Ricch  \n5. Drip Too Hard – Lil Baby & Gunna  \n6. Nonstop – Drake  \n7. Goosebumps – Travis Scott feat. Kendrick Lamar  \n8. Lemonade – Internet Money feat. Don Toliver  \n9. Stir Fry – Migos  \n10. Highest in the Room – Travis Scott",
+          },
+          {
+            role: "user",
+            content: "phir kabhi song",
+          },
+          {
+            role: "assistant",
+            content:
+              "1. Tum Hi Ho  \n2. Teri Meri Kahani  \n3. Ae Dil Hai Mushkil  \n4. Kabhi Kabhi Aditi  \n5. Pal Pal Dil Ke Paas  \n6. Jab Koi Baat Bigad Jaaye  \n7. Saathiya  \n8. Tum Se Hi  \n9. Humsafar  \n10. Hum Saath Saath Hain",
+          },
+          {
+            role: "user",
+            content:
+              "Shayad - Love Aaj Kal | Kartik | Sara | Arushi | Pritam | Arijit Singh",
+          },
+          {
+            role: "assistant",
+            content:
+              "1. Tum Hi Ho  \n2. Raabta  \n3. Janam Janam  \n4. Tera Hone Laga Hoon  \n5. Kabhie Kabhie Mere Dil Mein  \n6. Pal Pal Dil Ke Paas  \n7. Mere Haath Mein  \n8. Kabira (Encore)  \n9. Jeene De  \n10. Aashiqui 2 – Tum Hi Ho (Acoustic)",
+          },
+          {
+            role: "user",
+            content: query,
+          },
+        ],
+        model: "openai/gpt-oss-20b",
+        temperature: 1,
+        max_completion_tokens: 8192,
+        top_p: 1,
+        stream: false,
+        reasoning_effort: "high",
+        stop: null,
+      });
+
+      const response = chatCompletion?.choices?.[0].message?.content;
+      const parsedResponse = response?.length ? parseResponse(response) : null;
+      return parsedResponse;
+    },
+    isProtected: true,
+    serverErrorMessage: "getAIRecommendedSongs",
+  });
+};
+
 export {
   searchSong,
   trackSongPlayHistory,
@@ -179,4 +286,5 @@ export {
   getLastPlayedSong,
   removeSongPlayHistory,
   removeSongSearchHistory,
+  getAIRecommendedSongNames,
 };
