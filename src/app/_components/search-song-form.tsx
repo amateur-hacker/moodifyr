@@ -16,13 +16,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton"; // ✅ import shadcn skeleton
 import { encodeQueryParam } from "@/utils/url";
 import {
   getSongSearchHistory,
   removeSongSearchHistory,
   trackSongSearchHistory,
 } from "../search/_actions";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 type SearchSongFormProps = {
   inputRef?: React.Ref<HTMLInputElement>;
@@ -41,6 +41,8 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const shouldOpen = isInputFocused && query.length === 0;
 
+  useScrollLock(shouldOpen);
+
   const router = useRouter();
 
   const [localInput, setLocalInput] = useState<HTMLInputElement | null>(null);
@@ -55,14 +57,6 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     if (!shouldOpen) return;
 
     setLoadingHistory(true);
-
-    // const timer = setTimeout(() => {
-    //   getSongSearchHistory({ page: 1, limit: 10 })
-    //     .then((res) => setHistory(res ?? []))
-    //     .finally(() => setLoadingHistory(false));
-    // }, 3000); // ⏱ wait 3 seconds before fetching
-    //
-    // return () => clearTimeout(timer); // cleanup on unmount/re-render
 
     getSongSearchHistory({ page: 1, limit: 10 })
       .then((res) => setHistory(res ?? []))

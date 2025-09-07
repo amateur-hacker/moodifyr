@@ -1,0 +1,93 @@
+"use client";
+import { cn } from "@/lib/utils";
+import { motion } from "motion/react";
+import { CSSProperties } from "react";
+
+type ComicTextProps = {
+  children: string;
+  className?: string;
+  style?: CSSProperties;
+  fontSize?: number;
+};
+
+export function ComicText({
+  children,
+  className,
+  style,
+  fontSize = 5,
+}: ComicTextProps) {
+  if (typeof children !== "string") {
+    throw new Error("children must be a string");
+  }
+
+  const dotColor = "var(--destructive)";
+  const backgroundColor = "var(--primary)";
+
+  const segments = splitTextAndEmojis(children);
+
+  return (
+    <motion.div
+      className={cn("select-none text-center", className)}
+      style={{ fontSize: `${fontSize}rem`, ...style }}
+      initial={{ opacity: 0, scale: 0.8, rotate: -2 }}
+      animate={{ opacity: 1, scale: 1, rotate: 0 }}
+      transition={{
+        duration: 0.6,
+        ease: [0.175, 0.885, 0.32, 1.275],
+        type: "spring",
+      }}
+    >
+      {segments.map((seg, i) =>
+        seg.type === "emoji" ? (
+          <span key={i} className="inline-block [font-variant-emoji:text]">
+            {seg.value}
+          </span>
+        ) : (
+          <span
+            key={i}
+            style={{
+              fontFamily: "'Bangers','Comic Sans MS','Impact',sans-serif",
+              fontWeight: "900",
+              WebkitTextStroke: `${fontSize * 0.35}px #000000`,
+              transform: "skewX(-10deg)",
+              textTransform: "uppercase",
+              filter: `
+                drop-shadow(5px 5px 0px #000000)
+                drop-shadow(3px 3px 0px ${dotColor})
+              `,
+              backgroundColor,
+              backgroundImage: `radial-gradient(circle at 1px 1px, ${dotColor} 1px, transparent 0)`,
+              backgroundSize: "8px 8px",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            {seg.value}
+          </span>
+        ),
+      )}
+    </motion.div>
+  );
+}
+
+// helper
+function splitTextAndEmojis(text: string) {
+  const regex = /\p{Extended_Pictographic}/gu;
+  const result: { type: "text" | "emoji"; value: string }[] = [];
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(regex)) {
+    const emoji = match[0];
+    const start = match.index ?? 0;
+    if (lastIndex < start) {
+      result.push({ type: "text", value: text.slice(lastIndex, start) });
+    }
+    result.push({ type: "emoji", value: emoji });
+    lastIndex = start + emoji.length;
+  }
+  if (lastIndex < text.length) {
+    result.push({ type: "text", value: text.slice(lastIndex) });
+  }
+  return result;
+}

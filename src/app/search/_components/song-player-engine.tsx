@@ -30,7 +30,6 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     mode,
   } = useSongPlayer();
 
-  // host lives OUTSIDE React tree
   const hostRef = useRef<HTMLDivElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentSongRef = useRef<Song | null>(null);
@@ -82,17 +81,18 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
           (s) => s.id === currentSongRef.current?.id,
         );
 
-        if (!currentSongRef.current) {
+        if (!currentSongRef.current || songs.length === 0) {
           setIsPlaying(false);
           return;
         }
 
-        if (modeRef.current === "repeat") {
+        if (modeRef.current === "repeat-one") {
           try {
             await playerRef.current.seekTo(0, true);
             await playerRef.current.playVideo();
           } catch (err) {
             console.warn("Error repeating song:", err);
+            setIsPlaying(false);
           }
           return;
         }
@@ -106,14 +106,25 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
               otherSongs[Math.floor(Math.random() * otherSongs.length)];
             setSong(randomSong, randomSong.id);
           } else {
-            setIsPlaying(false);
+            setSong(currentSongRef.current, currentSongRef.current.id);
           }
           return;
         }
 
-        if (currentIndex !== -1 && currentIndex < songs.length - 1) {
-          const nextSong = songs[currentIndex + 1];
-          setSong(nextSong, nextSong.id);
+        if (currentIndex !== -1) {
+          if (currentIndex < songs.length - 1) {
+            const nextSong = songs[currentIndex + 1];
+            setSong(nextSong, nextSong.id);
+          } else if (modeRef.current === "repeat-all") {
+            const firstSong = songs[0];
+            console.log(
+              "Repeat-all: Starting from first song",
+              firstSong.title,
+            );
+            setSong(firstSong, firstSong.id);
+          } else {
+            setIsPlaying(false);
+          }
         } else {
           setIsPlaying(false);
         }
@@ -182,13 +193,17 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     if (playerRef.current && isPlaying) {
       intervalRef.current = setInterval(async () => {
         try {
-          const t = await playerRef.current?.getCurrentTime();
-          if (t != null) setProgress(t);
+          const currentTime = await playerRef.current?.getCurrentTime();
+          if (currentTime != null) {
+            lastTimeRef.current = currentTime;
+            setProgress(currentTime);
+          }
         } catch (err) {
           console.warn("Error getting current time:", err);
         }
       }, 1000);
     }
+
     return clearProgressTimer;
   }, [isPlaying, setProgress]);
 
@@ -200,33 +215,6 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
     setProgress(0);
     playerRef.current.loadVideoById(youtubeId);
   }, [youtubeId, setIsLoading, setProgress]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
-  useEffect(() => {
-    clearProgressTimer();
-
-    let lastProgressUpdate = 0;
-    if (playerRef.current && isPlaying) {
-      intervalRef.current = setInterval(async () => {
-        try {
-          const t = await playerRef.current?.getCurrentTime();
-          if (t != null) {
-            lastTimeRef.current = t;
-
-            const now = Date.now();
-            if (now - lastProgressUpdate > 500) {
-              setProgress(t);
-              lastProgressUpdate = now;
-            }
-          }
-        } catch (err) {
-          console.warn("Error getting current time:", err);
-        }
-      }, 100);
-    }
-
-    return clearProgressTimer;
-  }, [isPlaying, setProgress]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useEffect(() => {

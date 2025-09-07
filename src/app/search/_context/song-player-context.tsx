@@ -1,9 +1,9 @@
 "use client";
-
 import { createContext, useContext, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
 import { trackSongPlayHistory } from "@/app/search/_actions";
-import type { SongPlayerMode } from "@/app/search/_types";
+
+type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
 type Song = {
   id: string;
@@ -28,9 +28,7 @@ type SongPlayerContextType = {
   duration: number;
   playerRef: React.RefObject<ReturnType<typeof youtubePlayer> | null>;
   mode: SongPlayerMode;
-  setMode: React.Dispatch<
-    React.SetStateAction<"normal" | "shuffle" | "repeat">
-  >;
+  setMode: React.Dispatch<React.SetStateAction<SongPlayerMode>>;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextType | null>(null);
@@ -46,22 +44,19 @@ export function SongPlayerProvider({
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [mode, setMode] = useState<"normal" | "shuffle" | "repeat">("normal");
-
+  const [mode, setMode] = useState<SongPlayerMode>("normal");
   const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
 
   const setSong = async (song: Song, id: string) => {
     setCurrentSong(song);
     setYoutubeId(id);
     setIsPlaying(true);
-
     await trackSongPlayHistory({ song });
   };
 
   const togglePlay = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!playerRef.current) return;
-
     try {
       if (isPlaying) {
         await playerRef.current.pauseVideo();
@@ -106,3 +101,5 @@ export const useSongPlayer = () => {
     throw new Error("useSongPlayer must be used inside SongPlayerProvider");
   return ctx;
 };
+
+export type { SongPlayerMode };

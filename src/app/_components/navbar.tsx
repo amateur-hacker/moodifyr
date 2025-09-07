@@ -9,7 +9,7 @@ const Navbar = async () => {
   const session = await getServerSession();
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 border-b bg-background/90 text-foreground shrink-0 gap-5 sticky top-0 inset-x-0 z-[50] backdrop-blur-md">
+    <nav className="flex items-center justify-between px-6 py-3 border-b bg-background/90 text-foreground shrink-0 gap-5 fixed top-0 inset-x-0 z-[50] backdrop-blur-md">
       <div className="flex-1">
         <Link
           href="/"

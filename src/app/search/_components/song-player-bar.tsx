@@ -42,19 +42,10 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
 
   const handleSeek = async (val: number[]) => {
     if (!playerRef.current) return;
-    const wasPlaying = isPlaying;
 
     try {
-      if (wasPlaying) await playerRef.current.pauseVideo();
-
       setProgress(val[0]);
       await playerRef.current.seekTo(val[0], true);
-
-      if (wasPlaying) {
-        setTimeout(async () => {
-          if (playerRef.current) await playerRef.current.playVideo();
-        }, 300);
-      }
     } catch (error) {
       console.error("Error seeking:", error);
     }
@@ -82,7 +73,7 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
 
   const toggleMode = (
     e: React.MouseEvent,
-    newMode: "normal" | "shuffle" | "repeat",
+    newMode: "normal" | "shuffle" | "repeat-all" | "repeat-one",
   ) => {
     e.stopPropagation();
     setMode(mode === newMode ? "normal" : newMode);

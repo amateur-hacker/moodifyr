@@ -4,12 +4,16 @@ import {
   getSongSearchHistory,
   searchSong,
   getAIRecommendedSongNames,
+  getSongPlayHistoryByDateRange,
 } from "@/app/search/_actions";
 import { SongCardLoader } from "@/app/search/_components/song-card-loader";
 import { SongList } from "@/app/search/_components/song-list";
 import { SongPlayerBar } from "@/app/search/_components/song-player-bar";
 import { SongPlayerEngine } from "@/app/search/_components/song-player-engine";
 import { SongPlayerProvider } from "@/app/search/_context/song-player-context";
+import { convertToLocalTZ } from "@/utils/date";
+import { endOfDay, startOfDay, subMonths } from "date-fns";
+import { getUserMoodBySongHistory } from "../_actions";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -36,9 +40,26 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
   // console.log("songSearchHistory Results:", songSearchesHistoryResults);
   // if (!result?.success) return;
 
+  // console.log(await getSongPlayHistory({ page: 1, limit: 20 }));
+
+  const now = convertToLocalTZ(new Date());
+
+  const startDate = startOfDay(subMonths(now, 1));
+  const endDate = endOfDay(now);
+  const songHistory = await getSongPlayHistoryByDateRange({
+    startDate,
+    endDate,
+  });
+  console.log(songHistory);
+  const mood = songHistory?.length
+    ? await getUserMoodBySongHistory({ songHistory })
+    : null;
+
+  console.log(mood);
+
   return (
     <SongPlayerProvider>
-      <div className="p-4">
+      <div className="p-4 mt-15">
         <div className="w-full space-y-5 mx-auto max-w-3xl">
           {/* <SearchSongForm /> */}
 

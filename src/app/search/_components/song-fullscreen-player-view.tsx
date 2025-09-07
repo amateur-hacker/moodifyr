@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
 
-type SongPlayerMode = "normal" | "shuffle" | "repeat";
+type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
+
 type SongFullscreenPlayerViewProps = {
   currentSong: Song;
   isPlaying: boolean;
@@ -42,6 +43,7 @@ type SongFullscreenPlayerViewProps = {
   handleVolumeChange: (val: number[]) => void;
   toggleVolumeMute: (e: React.MouseEvent) => void;
 };
+
 const SongFullscreenPlayerView = ({
   currentSong,
   isPlaying,
@@ -66,6 +68,23 @@ const SongFullscreenPlayerView = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const handleRepeatClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const nextMode: SongPlayerMode =
+      mode === "normal"
+        ? "repeat-all"
+        : mode === "repeat-all"
+          ? "repeat-one"
+          : "normal";
+
+    toggleMode(e, nextMode);
+  };
+
+  const getRepeatButtonVariant = () => {
+    return mode === "repeat-all" || mode === "repeat-one" ? "default" : "ghost";
+  };
+
   return (
     <Card
       className={`p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none justify-center ${isFullScreen ? "rounded-none border-0" : "rounded-b-none"}`}
@@ -86,7 +105,6 @@ const SongFullscreenPlayerView = ({
             variant="ghost"
             className="cursor-pointer absolute top-4 right-4"
             aria-label="Open dropdown menu"
-            // onClick={(e) => e.stopPropagation()}
           >
             <EllipsisVertical size={16} aria-hidden="true" />
           </Button>
@@ -156,19 +174,24 @@ const SongFullscreenPlayerView = ({
             variant="ghost"
             size="icon"
             onClick={handleNext}
-            /// disabled={currentIndex === songs.length - 1}
+            disabled={mode === "normal" && currentIndex >= songs.length - 1}
             className="cursor-pointer size-10"
           >
             <SkipForward className="size-5" />
           </Button>
 
           <Button
-            variant={mode === "repeat" ? "default" : "ghost"}
+            variant={getRepeatButtonVariant()}
             size="icon"
-            onClick={(e) => toggleMode(e, "repeat")}
-            className="cursor-pointer size-10"
+            onClick={handleRepeatClick}
+            className="cursor-pointer size-10 relative"
           >
             <Repeat className="size-5" />
+            {mode === "repeat-one" && (
+              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-xs rounded-full size-4 flex items-center justify-center font-medium">
+                1
+              </span>
+            )}
           </Button>
         </div>
 
@@ -176,7 +199,7 @@ const SongFullscreenPlayerView = ({
           <Slider
             value={[progress]}
             max={duration}
-            step={1}
+            step={5}
             onValueChange={handleSeek}
             className="cursor-pointer"
           />

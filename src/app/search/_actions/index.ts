@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { Groq } from "groq-sdk";
 import type { Song } from "@/app/search/_types";
 import { db } from "@/db";
@@ -56,31 +56,6 @@ const trackSongPlayHistory = ({ song }: { song: Song }) => {
   });
 };
 
-// const trackSongSearchHistory = ({ query }: { query: string }) => {
-//   return executeAction({
-//     actionFn: async ({ sessionUser }) => {
-//       if (!sessionUser?.id) return;
-//
-//       // remove old history if exists
-//       await db
-//         .delete(songSearchHistory)
-//         .where(and(
-//           eq(songSearchHistory.userId, sessionUser.id),
-//           eq(songSearchHistory.query, query)
-//         ));
-//
-//       // insert new at "top" (since createdAt is newer)
-//       await db.insert(songSearchHistory).values({
-//         userId: sessionUser.id,
-//         query,
-//       });
-//     },
-//     isProtected: true,
-//     clientSuccessMessage: "Search history tracked successfully.",
-//     serverErrorMessage: "trackSearchHistory",
-//   });
-// };
-
 const trackSongSearchHistory = ({ query }: { query: string }) => {
   return executeAction({
     actionFn: async ({ sessionUser }) => {
@@ -95,7 +70,6 @@ const trackSongSearchHistory = ({ query }: { query: string }) => {
           ),
         );
 
-      // insert new at "top" (since createdAt is newer)
       await db.insert(songSearchHistory).values({
         userId: sessionUser.id,
         query,
@@ -153,7 +127,7 @@ const getSongSearchHistory = ({
       return history;
     },
     isProtected: true,
-    serverErrorMessage: "getSearchHistory",
+    serverErrorMessage: "getSongSearchHistory",
   });
 };
 
@@ -277,6 +251,80 @@ const getAIRecommendedSongNames = async ({ query }: { query: string }) => {
   });
 };
 
+const getSongPlayHistoryByDateRange = ({
+  startDate,
+  endDate,
+}: {
+  startDate: Date;
+  endDate: Date;
+  count?: number;
+}) => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      const history = await db
+        .select({
+          title: songPlayHistory.title,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(songPlayHistory)
+        .where(
+          and(
+            eq(songPlayHistory.userId, sessionUser?.id as string),
+            gte(songPlayHistory.playedAt, startDate),
+            lte(songPlayHistory.playedAt, endDate),
+          ),
+        )
+        .groupBy(songPlayHistory.title)
+        .orderBy(desc(sql`COUNT(*)`));
+
+      return history.map((h) => `${h.title} (${h.count})`);
+    },
+    isProtected: true,
+    serverErrorMessage: "getSongPlayHistoryByDateRange",
+  });
+};
+
+const getMostPlayedSongByDateRange = ({
+  startDate,
+  endDate,
+  count,
+}: {
+  startDate: Date;
+  endDate: Date;
+  count?: number;
+}) => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      const query = db
+        .select({
+          title: songPlayHistory.title,
+          thumbnail: songPlayHistory.thumbnail,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(songPlayHistory)
+        .where(
+          and(
+            eq(songPlayHistory.userId, sessionUser?.id as string),
+            gte(songPlayHistory.playedAt, startDate),
+            lte(songPlayHistory.playedAt, endDate),
+          ),
+        )
+        .groupBy(songPlayHistory.title, songPlayHistory.thumbnail)
+        .orderBy(desc(sql`COUNT(*)`));
+
+      const songs = count ? await query.limit(count) : await query;
+
+      return songs.map((s) => ({
+        title: s.title,
+        thumbnail: s.thumbnail,
+        times: s.count,
+      }));
+    },
+    isProtected: true,
+    serverErrorMessage: "getMostPlayedSongByDateRange",
+  });
+};
+
 export {
   searchSong,
   trackSongPlayHistory,
@@ -287,4 +335,6 @@ export {
   removeSongPlayHistory,
   removeSongSearchHistory,
   getAIRecommendedSongNames,
+  getSongPlayHistoryByDateRange,
+  getMostPlayedSongByDateRange,
 };
