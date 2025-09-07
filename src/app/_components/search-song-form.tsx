@@ -69,7 +69,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const navigateWithQuery = (q: string) => {
     startTransition(() => {
-      if (!q?.length) router.push("/search");
+      if (!q?.length) router.push("/");
       else router.push(`/search?q=${encodeQueryParam(q)}`);
     });
   };
