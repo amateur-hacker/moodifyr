@@ -1,7 +1,7 @@
 "use client";
-import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
+import { cn } from "@/lib/utils";
 
 type ComicTextProps = {
   children: string;
@@ -28,7 +28,7 @@ export function ComicText({
 
   return (
     <motion.div
-      className={cn("select-none text-center", className)}
+      className={cn("select-none", className)}
       style={{
         // fontSize: `${fontSize}rem`,
         fontSize: `clamp(2rem, 5vw, ${fontSize}rem)`,

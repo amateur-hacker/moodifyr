@@ -5,6 +5,7 @@ import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { FloatSearchBarProvider } from "./_context/float-search-bar-context";
+import { DashboardAnalyticsProvider } from "./_context/dashboard-analytics-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,10 +41,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${fontsVariable} antialiased`}>
         <FloatSearchBarProvider>
-          <Navbar />
-          <NextTopLoader color={"var(--primary)"} showSpinner={false} />
-          <Toaster closeButton richColors position="top-center" />
-          {children}
+          <DashboardAnalyticsProvider>
+            <Navbar />
+            <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+            <Toaster closeButton richColors position="top-center" />
+            {children}
+          </DashboardAnalyticsProvider>
         </FloatSearchBarProvider>
       </body>
     </html>
