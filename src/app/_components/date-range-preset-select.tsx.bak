@@ -5,14 +5,13 @@ import {
   endOfMonth,
   endOfWeek,
   endOfYear,
-  isSameDay,
   startOfDay,
   startOfMonth,
   startOfWeek,
   startOfYear,
   subDays,
 } from "date-fns";
-import { use, useEffect, useId, useState } from "react";
+import { use, useId } from "react";
 import { DashboardAnalyticsContext } from "@/app/_context/dashboard-analytics-context";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,98 +24,12 @@ import {
 } from "@/components/ui/select";
 import { convertToLocalTZ } from "@/utils/date";
 
-const getDefaultPreset = ({
-  startDate,
-  endDate,
-}: {
-  startDate: Date;
-  endDate: Date;
-}) => {
-  const now = convertToLocalTZ(new Date());
-
-  if (
-    isSameDay(startDate, startOfDay(now)) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "today";
-  if (
-    isSameDay(startDate, startOfDay(subDays(now, 1))) &&
-    isSameDay(endDate, endOfDay(subDays(now, 1)))
-  )
-    return "yesterday";
-  if (
-    isSameDay(startDate, startOfDay(subDays(now, 6))) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "last_7_days";
-  if (
-    isSameDay(startDate, startOfDay(subDays(now, 29))) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "last_30_days";
-  if (
-    isSameDay(startDate, startOfWeek(now, { weekStartsOn: 0 })) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "this_week";
-  if (
-    isSameDay(startDate, startOfWeek(subDays(now, 7), { weekStartsOn: 0 })) &&
-    isSameDay(endDate, endOfWeek(subDays(now, 7), { weekStartsOn: 0 }))
-  )
-    return "last_week";
-  if (
-    isSameDay(startDate, startOfMonth(now)) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "this_month";
-  if (
-    isSameDay(startDate, startOfMonth(subDays(now, now.getDate()))) &&
-    isSameDay(endDate, endOfMonth(subDays(now, now.getDate())))
-  )
-    return "last_month";
-  if (
-    isSameDay(startDate, startOfYear(now)) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "this_year";
-  if (
-    isSameDay(startDate, startOfYear(new Date(now.getFullYear() - 1, 0, 1))) &&
-    isSameDay(endDate, endOfYear(new Date(now.getFullYear() - 1, 0, 1)))
-  )
-    return "last_year";
-
-  return "custom_range";
-};
-
 const DateRangePresetSelect = () => {
-  const {
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    isDateRangePickerDisabled,
-    setIsDateRangePickerDisabled,
-  } = use(DashboardAnalyticsContext);
-  const [selectedPreset, setSelectedPreset] = useState(
-    getDefaultPreset({ startDate, endDate }),
+  const { setStartDate, setEndDate, setIsDateRangePickerDisabled } = use(
+    DashboardAnalyticsContext,
   );
 
-  useEffect(() => {
-    if (isDateRangePickerDisabled) {
-      setSelectedPreset(getDefaultPreset({ startDate, endDate }));
-    }
-  }, [startDate, endDate, isDateRangePickerDisabled]);
-
-  useEffect(() => {
-    if (selectedPreset === "custom_range") {
-      setIsDateRangePickerDisabled(false);
-    } else {
-      setIsDateRangePickerDisabled(true);
-    }
-  }, [selectedPreset, setIsDateRangePickerDisabled]);
-
   const handleSelectChange = (value: string) => {
-    setSelectedPreset(value);
     const now = convertToLocalTZ(new Date());
 
     let start: Date | null = null;
@@ -181,11 +94,9 @@ const DateRangePresetSelect = () => {
         return;
     }
 
-    if (start && end) {
-      setStartDate(start);
-      setEndDate(end);
-      setIsDateRangePickerDisabled(true);
-    }
+    setStartDate(start);
+    setEndDate(end);
+    setIsDateRangePickerDisabled(true);
   };
 
   const groupedPresetOptions = [
@@ -228,7 +139,7 @@ const DateRangePresetSelect = () => {
   const id = useId();
 
   return (
-    <Select value={selectedPreset} onValueChange={handleSelectChange}>
+    <Select defaultValue="last_7_days" onValueChange={handleSelectChange}>
       <SelectTrigger id={id} className="w-auto min-w-48 max-w-full">
         <SelectValue placeholder="Select a preset" />
       </SelectTrigger>

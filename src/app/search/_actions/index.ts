@@ -277,7 +277,20 @@ const getSongPlayHistoryByDateRange = ({
         .groupBy(songPlayHistory.title)
         .orderBy(desc(sql`COUNT(*)`));
 
-      return history.map((h) => `${h.title} (${h.count})`);
+      const formatLocalDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-indexed
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const startStr = formatLocalDate(startDate);
+      const endStr = formatLocalDate(endDate);
+
+      // return history.map((h) => `${h.title} (${h.count})`);
+      return history.map(
+        (h) => `${h.title} (${h.count}) [${startStr} to ${endStr}]`,
+      );
     },
     isProtected: true,
     serverErrorMessage: "getSongPlayHistoryByDateRange",

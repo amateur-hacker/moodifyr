@@ -19,6 +19,7 @@ const executeFn = async <T>({
     if (isProtected) {
       const session = await auth.api.getSession({ headers: await headers() });
       if (!session) throw new Error("User not authorized!");
+
       sessionUser = session.user as SessionUser;
     }
 

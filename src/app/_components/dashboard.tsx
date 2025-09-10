@@ -1,28 +1,19 @@
 "use client";
 
-import type { Session } from "better-auth";
-import { getCookie, setCookie } from "cookies-next/client";
 import Image from "next/image";
 import { use, useEffect, useState } from "react";
-import { getUserMoodBySongHistory } from "@/app/_actions";
+import { getDashboardData } from "@/app/_actions";
 import { DateRangePicker } from "@/app/_components/date-range-picker";
 import { DateRangePresetSelect } from "@/app/_components/date-range-preset-select";
 import { DashboardAnalyticsContext } from "@/app/_context/dashboard-analytics-context";
-import {
-  getMostPlayedSongByDateRange,
-  getSongPlayHistoryByDateRange,
-} from "@/app/search/_actions";
 import { ComicText } from "@/components/magicui/comic-text";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 
-type DashboardProps = {
-  session: Session | null;
-};
-const Dashboard = ({ session }: DashboardProps) => {
-  const { startDate, endDate } = use(DashboardAnalyticsContext);
+const Dashboard = () => {
+  const { startDate, endDate, isPending } = use(DashboardAnalyticsContext);
   const [mood, setMood] = useState<{ mood: string; message: string } | null>(
     null,
   );
@@ -32,15 +23,10 @@ const Dashboard = ({ session }: DashboardProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!session) {
+    if (!startDate || !endDate || isPending) {
       setLoading(false);
       return;
     }
-    if (!startDate || !endDate) return;
-
-    const rangeKey = `${startDate.toISOString().split("T")[0]}_${
-      endDate.toISOString().split("T")[0]
-    }`;
 
     const now = new Date();
     const midnight = new Date(now);
@@ -49,68 +35,24 @@ const Dashboard = ({ session }: DashboardProps) => {
       (midnight.getTime() - now.getTime()) / 1000,
     );
 
-    // biome-ignore lint/suspicious/noExplicitAny: _>
-    let analyticsCache: Record<string, any> = {};
-    const rawCache = getCookie("dashboard-analytics");
-    if (rawCache) {
-      try {
-        analyticsCache = JSON.parse(rawCache as string);
-      } catch {
-        analyticsCache = {};
-      }
-    }
-
-    if (analyticsCache[rangeKey]) {
-      setMood(analyticsCache[rangeKey].mood ?? null);
-      setTopSongs(analyticsCache[rangeKey].topSongs ?? []);
-      setLoading(false);
-      return;
-    }
-
     const fetchData = async () => {
       setLoading(true);
-
-      const songHistory = await getSongPlayHistoryByDateRange({
+      const data = await getDashboardData({
         startDate,
         endDate,
+        secondsUntilMidnight,
       });
+      console.log(data);
 
-      const moodResult = songHistory?.length
-        ? await getUserMoodBySongHistory({ songHistory })
-        : null;
-
-      setMood(moodResult);
-
-      const top5 = await getMostPlayedSongByDateRange({
-        startDate,
-        endDate,
-        count: 5,
-      });
-
-      setTopSongs(top5 ?? []);
-
-      analyticsCache[rangeKey] = {
-        mood: moodResult,
-        topSongs: top5,
-      };
-
-      setCookie("dashboard-analytics", JSON.stringify(analyticsCache), {
-        maxAge: secondsUntilMidnight,
-      });
-
-      setLoading(false);
+      if (data) {
+        setMood(data.mood);
+        setTopSongs(data.topSongs);
+        setLoading(false);
+      }
     };
 
     fetchData();
-  }, [session, startDate, endDate]);
-
-  if (!session) {
-    return (
-      <div className="mt-15 p-4">
-        <h3 className="text-lg">Please sign in to see your dashboard.</h3>
-      </div>
-    );
-  }
+  }, [startDate, endDate, isPending]);
 
   return (
     <div className="space-y-6 p-4 flex flex-col mt-15 h-[calc(100vh-3.75rem)]">
@@ -143,7 +85,7 @@ const Dashboard = ({ session }: DashboardProps) => {
               <ComicText fontSize={5}>😞 Oops!</ComicText>
               <TextAnimate
                 animation="scaleUp"
-                className="font-medium text-sm sm:text-base"
+                className="text-muted-foreground font-medium text-sm sm:text-base"
               >
                 No mood available
               </TextAnimate>
@@ -186,8 +128,8 @@ const Dashboard = ({ session }: DashboardProps) => {
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground">
-              No songs played in this range
+            <p className="text-muted-foreground font-medium text-sm sm:text-base">
+              No songs played in this date range
             </p>
           )}
         </CardContent>
