@@ -18,7 +18,12 @@ const Dashboard = () => {
     null,
   );
   const [topSongs, setTopSongs] = useState<
-    { title: string; times: number; thumbnail?: string }[]
+    {
+      title: string | null;
+      thumbnail: string | null;
+      mood: string | null;
+      times: number;
+    }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +47,6 @@ const Dashboard = () => {
         endDate,
         secondsUntilMidnight,
       });
-      console.log(data);
 
       if (data) {
         setMood(data.mood);
@@ -114,7 +118,7 @@ const Dashboard = () => {
               <div key={i} className="flex items-center gap-4">
                 <Image
                   src={s.thumbnail as string}
-                  alt={s.title}
+                  alt={s.title as string}
                   width={50}
                   height={50}
                   className="rounded-md"

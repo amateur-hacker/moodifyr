@@ -293,6 +293,7 @@ type DashboardDataCachedResult = {
   topSongs: {
     title: string;
     thumbnail: string;
+    mood: string;
     times: number;
   }[];
 };
