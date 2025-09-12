@@ -98,7 +98,7 @@ Answer with only the mood category word, nothing else.
   });
 };
 
-// const trackSongPlayHistory = async ({ song }: { song: Song }) => {
+// const trackSongPlayHistory = ({ song }: { song: Song }) => {
 //   if (!song) return null;
 //
 //   return executeAction({
@@ -111,7 +111,7 @@ Answer with only the mood category word, nothing else.
 //       if (!mood) {
 //         const moodResult = await classifySongMood({ title: song.title });
 //
-//         // if (!moodResult) return null;
+//         if (!moodResult) return null;
 //
 //         mood = moodResult;
 //
@@ -124,7 +124,7 @@ Answer with only the mood category word, nothing else.
 //             seconds: song.duration.seconds,
 //             mood,
 //           });
-//         } else if (!existingSong.mood) {
+//         } else {
 //           await db.update(songs).set({ mood }).where(eq(songs.id, song.id));
 //         }
 //       }
@@ -153,6 +153,7 @@ const trackSongPlayHistory = async ({ song }: { song: Song }) => {
 
       if (!mood) {
         const moodResult = await classifySongMood({ title: song.title });
+        if (!moodResult) return null;
         mood = moodResult;
       }
 
@@ -173,6 +174,7 @@ const trackSongPlayHistory = async ({ song }: { song: Song }) => {
         await tx.insert(songPlayHistory).values({
           userId: sessionUser?.id as string,
           songId: song.id,
+          playedAt: new Date(),
         });
       });
     },

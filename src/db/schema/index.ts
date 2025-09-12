@@ -9,4 +9,4 @@ export {
   verifications,
 } from "@/db/schema/auth";
 
-export { songPlayHistory, songSearchHistory } from "@/db/schema/song";
+export { songPlayHistory, songSearchHistory, songs } from "@/db/schema/song";

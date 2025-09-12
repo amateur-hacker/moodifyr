@@ -69,7 +69,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const navigateWithQuery = (q: string) => {
     startTransition(() => {
-      if (!q?.length) router.push("/");
+      if (!q?.length) router.push("/search");
       else router.push(`/search?q=${encodeQueryParam(q)}`);
     });
   };
@@ -146,7 +146,14 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
-            onFocus={() => setIsInputFocused(true)}
+            // onFocus={() => setIsInputFocused(true)}
+            onFocus={() => {
+              const timer = setTimeout(() => {
+                setIsInputFocused(true);
+              }, 300);
+
+              return () => clearTimeout(timer);
+            }}
             onKeyDown={handleKeyDown}
             value={query}
             autoComplete="off"

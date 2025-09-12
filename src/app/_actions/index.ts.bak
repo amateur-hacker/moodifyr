@@ -1,0 +1,188 @@
+"use server";
+
+import { endOfDay, format, startOfDay } from "date-fns";
+import { Groq } from "groq-sdk";
+import { headers } from "next/headers";
+import {
+  getMostPlayedSongByDateRange,
+  getSongPlayHistoryByDateRange,
+} from "@/app/search/_actions";
+import { auth } from "@/lib/auth";
+import { env } from "@/lib/env";
+import { redis } from "@/lib/redis";
+import { convertToLocalTZ } from "@/utils/date";
+import { executeFn } from "@/utils/execute-fn";
+
+const groq = new Groq({ apiKey: env.GROQ_API_KEY });
+
+const getServerSession = async () => {
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    return session;
+  } catch (err) {
+    console.error("Failed to fetch server session:", err);
+    return null;
+  }
+};
+
+type MoodResult = {
+  mood: string;
+  message: string;
+};
+const getUserMoodBySongHistory = async ({
+  songHistory,
+  startDate,
+  endDate,
+}: {
+  songHistory: string[];
+  startDate: Date;
+  endDate: Date;
+}) => {
+  if (!songHistory?.length) return null;
+
+  const songHistoryInput = songHistory.join(", ");
+
+  const startDateStr = format(
+    convertToLocalTZ(startOfDay(startDate)),
+    "yyyy-MM-dd'T'HH:mm:ss",
+  );
+  const endDateStr = format(
+    convertToLocalTZ(endOfDay(endDate)),
+    "yyyy-MM-dd'T'HH:mm:ss",
+  );
+
+  const today = convertToLocalTZ(new Date());
+  const isTodayIncluded =
+    (startDate.getFullYear() === today.getFullYear() &&
+      startDate.getMonth() === today.getMonth() &&
+      startDate.getDate() === today.getDate()) ||
+    (endDate.getFullYear() === today.getFullYear() &&
+      endDate.getMonth() === today.getMonth() &&
+      endDate.getDate() === today.getDate());
+
+  return executeFn({
+    fn: async () => {
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: `You are a mood-describer for a music app dashboard.
+The user will send you a compressedHistoryString that contains song names and the date range they were played (e.g., "[YYYY-MM-DD to YYYY-MM-DD]").
+If the end date of the range is today, describe the mood using present tense.
+Otherwise, use past tense.
+Use both the song names, their frequencies, and the date range to infer the user's mood for that period.
+
+Respond ONLY in valid JSON format:
+
+{
+  "mood": "😔 Sad",
+  "message": "Maybe you are missing someone very deeply during that period."
+}
+
+{
+  "mood": "⚡ Energy",
+  "message": "You’re super charged during this time, maybe something exciting was happening!"
+}
+
+Rules:
+- mood = emoji + 1–2 word mood tag (no markdown or bolding)
+- message = short, friendly, conversational sentence
+- Keep your words simple and easy to understand
+- Make the user smile or nod
+- Output must be a single JSON object with keys: mood, message
+- Do not include any extra text outside JSON
+- Date range: ${startDateStr} to ${endDateStr}
+- Present tense: ${isTodayIncluded}`,
+          },
+          {
+            role: "user",
+            content: songHistoryInput,
+          },
+        ],
+        model: "openai/gpt-oss-20b",
+        temperature: 1,
+        max_completion_tokens: 8192,
+        top_p: 1,
+        stream: false,
+        reasoning_effort: "high",
+        stop: null,
+      });
+
+      const response = chatCompletion?.choices?.[0]?.message?.content?.trim();
+      if (!response) return null;
+
+      try {
+        const result = JSON.parse(response) as MoodResult;
+        return result;
+      } catch (err) {
+        console.error("Failed to parse mood JSON:", err);
+        return null;
+      }
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserMoodBySongHistory",
+  });
+};
+
+type DashboardDataCachedResult = {
+  mood: {
+    mood: string;
+    message: string;
+  } | null;
+  topSongs: {
+    title: string;
+    thumbnail: string;
+    times: number;
+  }[];
+};
+const getDashboardData = async ({
+  startDate,
+  endDate,
+  secondsUntilMidnight,
+}: {
+  startDate: Date;
+  endDate: Date;
+  secondsUntilMidnight: number;
+}) => {
+  return executeFn({
+    fn: async ({ sessionUser }) => {
+      const rangeKey = `${sessionUser?.id as string}_${startDate.toISOString().split("T")[0]}_${
+        endDate.toISOString().split("T")[0]
+      }`;
+
+      const cachedResult = await redis.get<DashboardDataCachedResult>(rangeKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+
+      const songHistory = await getSongPlayHistoryByDateRange({
+        startDate,
+        endDate,
+      });
+
+      const moodResult = songHistory?.length
+        ? await getUserMoodBySongHistory({ songHistory, startDate, endDate })
+        : null;
+
+      const top5 = await getMostPlayedSongByDateRange({
+        startDate,
+        endDate,
+        count: 5,
+      });
+
+      const result = { mood: moodResult, topSongs: top5 ?? [] };
+
+      if (moodResult || top5?.length) {
+        await redis.set(rangeKey, JSON.stringify(result), {
+          ex: secondsUntilMidnight,
+        });
+      }
+
+      return result;
+    },
+    isProtected: true,
+    serverErrorMessage: "getDashboardData",
+  });
+};
+
+export { getServerSession, getUserMoodBySongHistory, getDashboardData };

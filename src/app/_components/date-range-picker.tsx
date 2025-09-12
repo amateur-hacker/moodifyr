@@ -19,12 +19,16 @@ import { convertToLocalTZ } from "@/utils/date";
 
 const DateRangePicker = () => {
   const {
-    isDateRangePickerDisabled,
     startDate,
     endDate,
     setStartDate,
     setEndDate,
+    isPending,
+    activeSource,
+    setActiveSource,
   } = use(DashboardAnalyticsContext);
+
+  const isDateRangePickerDisabled = activeSource === "preset";
 
   const formatForPicker = (date: Date | null) => {
     if (!date) return null;
@@ -36,46 +40,94 @@ const DateRangePicker = () => {
     start: CalendarDate | null;
     end: CalendarDate | null;
   }>({
-    start: formatForPicker(startDate),
-    end: formatForPicker(endDate),
+    start: null,
+    end: null,
   });
+
+  const [lastPickerValue, setLastPickerValue] = useState<{
+    start: Date | null;
+    end: Date | null;
+  }>({
+    start: null,
+    end: null,
+  });
+
+  const isEqualDate = (a: Date | null, b: Date | null) =>
+    Boolean(a && b && a.getTime() === b.getTime());
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    if (!isDateRangePickerDisabled) {
-      setPickerValue({
-        start: formatForPicker(startDate),
-        end: formatForPicker(endDate),
-      });
+    if (isPending) return;
+
+    if (activeSource === "picker") {
+      if (lastPickerValue.start && lastPickerValue.end) {
+        const inContextMatchesSaved =
+          startDate &&
+          endDate &&
+          isEqualDate(startDate, lastPickerValue.start) &&
+          isEqualDate(endDate, lastPickerValue.end);
+
+        if (!inContextMatchesSaved) {
+          setStartDate(lastPickerValue.start);
+          setEndDate(lastPickerValue.end);
+          const newVal = {
+            start: formatForPicker(lastPickerValue.start),
+            end: formatForPicker(lastPickerValue.end),
+          };
+          setPickerValue(newVal);
+        } else {
+          const newVal = {
+            start: formatForPicker(startDate),
+            end: formatForPicker(endDate),
+          };
+          setPickerValue(newVal);
+        }
+      } else {
+        if (startDate && endDate) {
+          setPickerValue({
+            start: formatForPicker(startDate),
+            end: formatForPicker(endDate),
+          });
+        }
+      }
+    } else {
+      if (lastPickerValue.start && lastPickerValue.end) {
+        setPickerValue({
+          start: formatForPicker(lastPickerValue.start),
+          end: formatForPicker(lastPickerValue.end),
+        });
+      } else {
+        setPickerValue({ start: null, end: null });
+      }
     }
-  }, [startDate, endDate, isDateRangePickerDisabled]);
+  }, [startDate, endDate, activeSource, isPending, lastPickerValue]);
 
   const handleDateRangeChange: Required<
     React.ComponentProps<typeof DateRangePickerRac>
   >["onChange"] = (value) => {
     if (!value) return;
+
+    setActiveSource("picker");
+
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
-    let newStartDate: Date | null = null;
-    let newEndDate: Date | null = null;
+    const newStartDate = value.start
+      ? startOfDay(format(value.start.toDate(timeZone), "yyyy-MM-dd"))
+      : null;
+    const newEndDate = value.end
+      ? endOfDay(format(value.end.toDate(timeZone), "yyyy-MM-dd"))
+      : null;
 
-    if (value.start) {
-      newStartDate = startOfDay(
-        format(value.start.toDate(timeZone), "yyyy-MM-dd"),
-      );
-      setStartDate(newStartDate);
-    }
-    if (value.end) {
-      newEndDate = endOfDay(format(value.end.toDate(timeZone), "yyyy-MM-dd"));
-      setEndDate(newEndDate);
-    }
+    if (newStartDate) setStartDate(newStartDate);
+    if (newEndDate) setEndDate(newEndDate);
+
+    setLastPickerValue({ start: newStartDate, end: newEndDate });
 
     setPickerValue({
       start: formatForPicker(newStartDate),
       end: formatForPicker(newEndDate),
     });
   };
-
   return (
     <DateRangePickerRac
       className="*:not-first:mt-2"
@@ -94,7 +146,10 @@ const DateRangePicker = () => {
           </span>
           <DateInput slot="end" unstyled />
         </Group>
-        <Button className="text-muted-foreground/80 hover:text-foreground data-focus-visible:border-ring data-focus-visible:ring-ring/50 z-10 -ms-9 -me-px flex w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none data-focus-visible:ring-[3px]">
+        <Button
+          className="text-muted-foreground/80 hover:text-foreground data-focus-visible:border-ring data-focus-visible:ring-ring/50 z-10 -ms-9 -me-px flex w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none data-focus-visible:ring-[3px] disabled:cursor-not-allowed data-disabled:opacity-50 data-disabled:hover:text-muted-foreground/80"
+          isDisabled={isDateRangePickerDisabled}
+        >
           <CalendarIcon size={16} />
         </Button>
       </div>

@@ -10,25 +10,14 @@ type DashboardAnalyticsContextProps = {
   setStartDate: (date: Date) => void;
   endDate: Date;
   setEndDate: (date: Date) => void;
-  isDateRangePickerDisabled: boolean;
-  setIsDateRangePickerDisabled: (value: boolean) => void;
   isPending: boolean;
+  activeSource: "preset" | "picker";
+  setActiveSource: (value: "preset" | "picker") => void;
 };
 
 const now = new Date();
 const defaultStartDate = startOfDay(subDays(now, 6));
 const defaultEndDate = endOfDay(now);
-
-// const formatLocalDateTime = (date: Date) => {
-//   const year = date.getFullYear();
-//   const month = String(date.getMonth() + 1).padStart(2, "0"); // 0-indexed
-//   const day = String(date.getDate()).padStart(2, "0");
-//   const hours = String(date.getHours()).padStart(2, "0");
-//   const minutes = String(date.getMinutes()).padStart(2, "0");
-//   const seconds = String(date.getSeconds()).padStart(2, "0");
-//
-//   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-// };
 
 const saveDashboardDates = (start: Date, end: Date) => {
   localStorage.setItem(
@@ -39,6 +28,10 @@ const saveDashboardDates = (start: Date, end: Date) => {
     "dashboard-endDate",
     format(convertToLocalTZ(endOfDay(end)), "yyyy-MM-dd'T'HH:mm:ss"),
   );
+};
+
+const saveActiveSource = (source: "preset" | "picker") => {
+  localStorage.setItem("dashboard-activeSource", source);
 };
 
 const loadDashboardDates = (): { startDate: Date; endDate: Date } | null => {
@@ -55,15 +48,21 @@ const loadDashboardDates = (): { startDate: Date; endDate: Date } | null => {
   return { startDate: start, endDate: end };
 };
 
+const loadActiveSource = (): string | null => {
+  const source = localStorage.getItem("dashboard-activeSource");
+  if (!source) return null;
+  return source;
+};
+
 const DashboardAnalyticsContext = createContext<DashboardAnalyticsContextProps>(
   {
     startDate: defaultStartDate,
     setStartDate: () => {},
     endDate: defaultEndDate,
     setEndDate: () => {},
-    isDateRangePickerDisabled: true,
-    setIsDateRangePickerDisabled: () => {},
     isPending: false,
+    activeSource: "preset",
+    setActiveSource: () => {},
   },
 );
 
@@ -77,21 +76,33 @@ const DashboardAnalyticsProvider = ({
   const [startDate, setStartDate] = useState<Date>(defaultStartDate);
   const [endDate, setEndDate] = useState<Date>(defaultEndDate);
   const [isPending, setIsPending] = useState<boolean>(true);
-  const [isDateRangePickerDisabled, setIsDateRangePickerDisabled] =
-    useState(true);
+  const [activeSource, setActiveSource] = useState<"preset" | "picker">(
+    "preset",
+  );
 
   useEffect(() => {
-    const stored = loadDashboardDates();
-    if (stored) {
-      setStartDate(stored.startDate);
-      setEndDate(stored.endDate);
+    const storedDates = loadDashboardDates();
+    const storedSource = loadActiveSource();
+
+    if (storedDates) {
+      setStartDate(storedDates.startDate);
+      setEndDate(storedDates.endDate);
     }
+
+    if (storedSource === "picker" || storedSource === "preset") {
+      setActiveSource(storedSource);
+    }
+
     setIsPending(false);
   }, []);
 
   useEffect(() => {
     saveDashboardDates(startDate, endDate);
   }, [startDate, endDate]);
+
+  useEffect(() => {
+    saveActiveSource(activeSource);
+  }, [activeSource]);
 
   return (
     <DashboardAnalyticsContext.Provider
@@ -100,9 +111,9 @@ const DashboardAnalyticsProvider = ({
         setStartDate,
         endDate,
         setEndDate,
-        isDateRangePickerDisabled,
-        setIsDateRangePickerDisabled,
         isPending,
+        activeSource,
+        setActiveSource,
       }}
     >
       {children}

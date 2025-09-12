@@ -94,26 +94,26 @@ const DateRangePresetSelect = () => {
     endDate,
     setStartDate,
     setEndDate,
-    isDateRangePickerDisabled,
-    setIsDateRangePickerDisabled,
+    activeSource,
+    setActiveSource,
+    isPending,
   } = use(DashboardAnalyticsContext);
   const [selectedPreset, setSelectedPreset] = useState(
     getDefaultPreset({ startDate, endDate }),
   );
 
-  useEffect(() => {
-    if (isDateRangePickerDisabled) {
-      setSelectedPreset(getDefaultPreset({ startDate, endDate }));
-    }
-  }, [startDate, endDate, isDateRangePickerDisabled]);
+  const isDateRangePickerDisabled = activeSource === "preset";
 
   useEffect(() => {
-    if (selectedPreset === "custom_range") {
-      setIsDateRangePickerDisabled(false);
-    } else {
-      setIsDateRangePickerDisabled(true);
+    if (!startDate || !endDate || isPending) {
+      return;
     }
-  }, [selectedPreset, setIsDateRangePickerDisabled]);
+    if (isDateRangePickerDisabled) {
+      setSelectedPreset(getDefaultPreset({ startDate, endDate }));
+    } else {
+      setSelectedPreset("custom_range");
+    }
+  }, [startDate, endDate, isDateRangePickerDisabled, isPending]);
 
   const handleSelectChange = (value: string) => {
     setSelectedPreset(value);
@@ -174,7 +174,7 @@ const DateRangePresetSelect = () => {
         break;
 
       case "custom_range":
-        setIsDateRangePickerDisabled(false);
+        setActiveSource("picker");
         return;
 
       default:
@@ -184,7 +184,7 @@ const DateRangePresetSelect = () => {
     if (start && end) {
       setStartDate(start);
       setEndDate(end);
-      setIsDateRangePickerDisabled(true);
+      setActiveSource("preset");
     }
   };
 
@@ -229,7 +229,10 @@ const DateRangePresetSelect = () => {
 
   return (
     <Select value={selectedPreset} onValueChange={handleSelectChange}>
-      <SelectTrigger id={id} className="w-auto min-w-48 max-w-full">
+      <SelectTrigger
+        id={id}
+        className="w-auto min-w-48 max-w-full cursor-pointer"
+      >
         <SelectValue placeholder="Select a preset" />
       </SelectTrigger>
       <SelectContent>
@@ -238,7 +241,7 @@ const DateRangePresetSelect = () => {
             <Label className="font-semibold text-sm">{group.group}</Label>
             {group.options.map((option) => (
               <SelectItem
-                className="text-sm"
+                className="text-sm cursor-pointer"
                 key={option.value}
                 value={option.value}
               >

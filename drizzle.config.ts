@@ -2,8 +2,6 @@ import { defineConfig } from "drizzle-kit";
 
 import { env } from "@/lib/env";
 
-console.log(env.DATABASE_URL);
-
 export default defineConfig({
   schema: "./src/db/schema/index.ts",
   out: "./src/db/migrations",
