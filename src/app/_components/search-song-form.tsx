@@ -182,7 +182,9 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
                 history.map((item, idx) => (
                   <DropdownMenuItem
                     key={item.id}
-                    className="flex justify-between items-center cursor-pointer"
+                    className={`flex justify-between items-center cursor-pointer ${
+                      item.query === "Removed" ? "text-muted-foreground" : ""
+                    }`}
                     // onPointerLeave={(event) => event.preventDefault()}
                     // onPointerMove={(event) => event.preventDefault()}
                     onSelect={(e) => {

@@ -15,8 +15,11 @@ export default async function HomePage() {
   return (
     <div className="mt-15 p-4">
       <h1 className="text-4xl">Home Page</h1>
-      <Link href="/dashboard" className="cursor-pointer hover:text-primary">
-        <h2 className="text-xl">Dashboard Page</h2>
+      <Link
+        href="/dashboard"
+        className="cursor-pointer hover:text-primary inline-block text-xl underline decoration-primary"
+      >
+        Dashboard Page
       </Link>
     </div>
   );

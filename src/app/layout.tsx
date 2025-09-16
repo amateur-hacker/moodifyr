@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Lora } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { Navbar } from "@/app/_components/navbar";
@@ -31,6 +31,15 @@ export const metadata: Metadata = {
     "Create mood-based playlists, track your listening habits, and discover how music shapes your focus, feelings, and daily vibe.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  // Also supported by less commonly used
+  // interactiveWidget: 'resizes-visual',
+};
+
 export const dynamic = "force-dynamic";
 export default function RootLayout({
   children,
@@ -39,12 +48,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-        />
-      </head>
       <body className={`${fontsVariable} antialiased`}>
         <FloatSearchBarProvider>
           <DashboardAnalyticsProvider>
