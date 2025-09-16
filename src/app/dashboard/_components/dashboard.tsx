@@ -2,15 +2,16 @@
 
 import Image from "next/image";
 import { use, useEffect, useState } from "react";
-import { getDashboardData } from "@/app/_actions";
-import { DateRangePicker } from "@/app/_components/date-range-picker";
-import { DateRangePresetSelect } from "@/app/_components/date-range-preset-select";
-import { DashboardAnalyticsContext } from "@/app/_context/dashboard-analytics-context";
+import { DateRangePicker } from "@/app/dashboard/_components/date-range-picker";
+import { DateRangePresetSelect } from "@/app/dashboard/_components/date-range-preset-select";
+import { DashboardAnalyticsContext } from "@/app/dashboard/_context/dashboard-analytics-context";
+import { getUserDashboardData } from "@/app/dashboard/queries";
 import { ComicText } from "@/components/magicui/comic-text";
 import { TextAnimate } from "@/components/magicui/text-animate";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TextShimmer } from "@/components/ui/text-shimmer";
+import { Typography } from "@/components/ui/typography";
 
 const Dashboard = () => {
   const { startDate, endDate, isPending } = use(DashboardAnalyticsContext);
@@ -33,19 +34,11 @@ const Dashboard = () => {
       return;
     }
 
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(24, 0, 0, 0);
-    const secondsUntilMidnight = Math.floor(
-      (midnight.getTime() - now.getTime()) / 1000,
-    );
-
     const fetchData = async () => {
       setLoading(true);
-      const data = await getDashboardData({
+      const data = await getUserDashboardData({
         startDate,
         endDate,
-        secondsUntilMidnight,
       });
 
       if (data) {
@@ -121,20 +114,25 @@ const Dashboard = () => {
                   alt={s.title as string}
                   width={50}
                   height={50}
-                  className="rounded-md"
+                  className="rounded-sm border"
                 />
                 <div>
-                  <p className="font-medium line-clamp-1">{s.title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {s.times} plays
-                  </p>
+                  <Typography
+                    variant="body-small"
+                    className="line-clamp-1 max-w-lg"
+                  >
+                    {s.title}
+                  </Typography>
+                  <Typography variant="small" className="text-muted-foreground">
+                    {s.times} Plays
+                  </Typography>
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-muted-foreground font-medium text-sm sm:text-base">
+            <Typography variant="body-small" className="text-muted-foreground">
               No songs played in this date range
-            </p>
+            </Typography>
           )}
         </CardContent>
       </Card>

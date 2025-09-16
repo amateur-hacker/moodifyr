@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { getServerSession } from "@/app/_actions";
 import { FloatSearchSongForm } from "@/app/_components/float-search-song-form";
 import { SearchSongForm } from "@/app/_components/search-song-form";
 import { SignInButton } from "@/app/_components/signin-button";
 import { UserMenu } from "@/app/_components/user-menu";
+import { getUserSession } from "@/app/queries";
 
 const Navbar = async () => {
-  const session = await getServerSession();
+  const session = (await getUserSession()) ?? null;
 
   return (
     <nav className="flex items-center justify-between px-6 py-3 border-b bg-background/90 text-foreground shrink-0 gap-5 fixed top-0 inset-x-0 z-[50] backdrop-blur-md">

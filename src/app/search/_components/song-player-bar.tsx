@@ -27,14 +27,16 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
     setIsPlaying,
     mode,
     setMode,
+    isPlayerFullScreen,
+    setIsPlayerFullScreen,
   } = useSongPlayer();
 
   const { ref, height } = useElementSize();
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  // const [isFullScreen, setIsFullScreen] = useState(false);
   const [volume, setVolume] = useState(100);
   const [prevVolume, setPrevVolume] = useState(100);
 
-  useScrollLock(isFullScreen);
+  useScrollLock(isPlayerFullScreen);
 
   const currentIndex = currentSong
     ? songs.findIndex((s) => s.id === currentSong.id)
@@ -71,6 +73,13 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
     }
   };
 
+  const handlePlay = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentSong) return;
+    setSong(currentSong, currentSong.id);
+    togglePlay(e);
+  };
+
   const toggleMode = (
     e: React.MouseEvent,
     newMode: "normal" | "shuffle" | "repeat-all" | "repeat-one",
@@ -79,14 +88,14 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
     setMode(mode === newMode ? "normal" : newMode);
   };
 
-  const [showMiniProgress, setShowMiniProgress] = useState(!isFullScreen);
+  const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
 
   const toggleFullScreen = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!isFullScreen) {
+    if (!isPlayerFullScreen) {
       setShowMiniProgress(false);
     }
-    setIsFullScreen((prev) => !prev);
+    setIsPlayerFullScreen((prev) => !prev);
   };
 
   const handleVolumeChange = (val: number[]) => {
@@ -131,20 +140,20 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
       ref={ref}
       className="fixed bottom-0 left-0 right-0 z-50"
       initial={false}
-      animate={isFullScreen ? { height: "100%" } : { height: "auto" }}
+      animate={isPlayerFullScreen ? { height: "100%" } : { height: "auto" }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onAnimationComplete={() => {
-        if (!isFullScreen) {
+        if (!isPlayerFullScreen) {
           setShowMiniProgress(true);
         }
       }}
     >
-      {isFullScreen ? (
+      {isPlayerFullScreen ? (
         <SongFullscreenPlayerView
           currentSong={currentSong}
           isPlaying={isPlaying}
           isLoading={isLoading}
-          togglePlay={togglePlay}
+          handlePlay={handlePlay}
           handlePrevious={handlePrevious}
           handleNext={handleNext}
           currentIndex={currentIndex}
@@ -159,14 +168,14 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
           handleVolumeChange={handleVolumeChange}
           toggleVolumeMute={toggleVolumeMute}
           toggleFullScreen={toggleFullScreen}
-          isFullScreen={isFullScreen}
+          isFullScreen={isPlayerFullScreen}
         />
       ) : (
         <SongMiniPlayerView
           currentSong={currentSong}
           isPlaying={isPlaying}
           isLoading={isLoading}
-          togglePlay={togglePlay}
+          handlePlay={handlePlay}
           handlePrevious={handlePrevious}
           handleNext={handleNext}
           currentIndex={currentIndex}
@@ -175,6 +184,7 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
           duration={duration}
           toggleFullScreen={toggleFullScreen}
           showProgress={showMiniProgress}
+          mode={mode}
         />
       )}
     </motion.div>

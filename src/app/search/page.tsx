@@ -1,10 +1,11 @@
 import { Suspense } from "react";
-import { searchSong } from "@/app/search/_actions";
+import { getUserFavouriteSongs, getUserLastPlayedSong } from "@/app/queries";
 import { SongCardLoader } from "@/app/search/_components/song-card-loader";
 import { SongList } from "@/app/search/_components/song-list";
 import { SongPlayerBar } from "@/app/search/_components/song-player-bar";
 import { SongPlayerEngine } from "@/app/search/_components/song-player-engine";
 import { SongPlayerProvider } from "@/app/search/_context/song-player-context";
+import { searchSong } from "@/app/search/api";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -17,37 +18,40 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
   const { q: searchQuery, id } = await searchParams;
 
   // if (!searchQuery && !id) return;
-  const result = await searchSong({ query: searchQuery, id });
+  const [songResult, favouriteSongs, lastPlayedSong] = await Promise.all([
+    searchSong({ query: searchQuery, id }).then((res) => res ?? null),
+    getUserFavouriteSongs().then((res) => res ?? null),
+    getUserLastPlayedSong().then((res) => res ?? null),
+  ]);
 
   return (
-    <SongPlayerProvider>
-      <div className="p-4 mt-15">
-        <div className="w-full space-y-5 mx-auto max-w-3xl">
-          {/* <SearchSongForm /> */}
-
-          {result?.success && (
-            <Suspense
-              fallback={
-                <div className="space-y-3">
-                  {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
-                    <SongCardLoader key={`loader-${id}`} />
-                  ))}
-                </div>
-              }
+    <div className="p-4 mt-15">
+      <div className="w-full space-y-5 mx-auto max-w-3xl">
+        {songResult?.success && (
+          <Suspense
+            fallback={
+              <div className="space-y-3">
+                {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
+                  <SongCardLoader key={`loader-${id}`} />
+                ))}
+              </div>
+            }
+          >
+            <SongPlayerProvider
+              key={searchQuery ?? id}
+              initialSong={lastPlayedSong}
             >
-              <SongList songs={result.songs} />
-            </Suspense>
-          )}
-        </div>
+              <SongList
+                songs={songResult.songs}
+                favouriteSongs={favouriteSongs}
+              />
+              <SongPlayerEngine songs={songResult.songs} />
+              <SongPlayerBar songs={songResult.songs} />
+            </SongPlayerProvider>
+          </Suspense>
+        )}
       </div>
-
-      {result?.success && (
-        <>
-          <SongPlayerEngine songs={result.songs} />
-          <SongPlayerBar songs={result.songs} />
-        </>
-      )}
-    </SongPlayerProvider>
+    </div>
   );
 };
 

@@ -1,17 +1,11 @@
 "use client";
-import { createContext, useContext, useRef, useState } from "react";
+
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
-import { trackSongPlayHistory } from "@/app/search/_actions";
+import type { Song } from "@/app/search/_types";
+import { trackUserSongPlayHistory } from "@/app/search/actions";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
-
-type Song = {
-  id: string;
-  title: string;
-  url: string;
-  thumbnail: string;
-  duration: { timestamp: string; seconds: number };
-};
 
 type SongPlayerContextType = {
   currentSong: Song | null;
@@ -29,29 +23,58 @@ type SongPlayerContextType = {
   playerRef: React.RefObject<ReturnType<typeof youtubePlayer> | null>;
   mode: SongPlayerMode;
   setMode: React.Dispatch<React.SetStateAction<SongPlayerMode>>;
+  setIsPlayerFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
+  isPlayerFullScreen: boolean;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextType | null>(null);
 
+type SongPlayerProviderProps = {
+  children: React.ReactNode;
+  initialSong: Song | null;
+};
 export function SongPlayerProvider({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  initialSong,
+}: SongPlayerProviderProps) {
+  const [currentSong, setCurrentSong] = useState<Song | null>(
+    initialSong ?? null,
+  );
   const [youtubeId, setYoutubeId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+
   const [mode, setMode] = useState<SongPlayerMode>("normal");
+  const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
+
   const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
+
+  // Sync mode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem("songPlayerMode") as SongPlayerMode;
+    if (savedMode) setMode(savedMode);
+
+    // const savedFullScreen = localStorage.getItem("songPlayerFullScreen");
+    // if (savedFullScreen === "true") setIsPlayerFullScreen(true);
+  }, []);
+
+  // Persist mode changes
+  useEffect(() => {
+    localStorage.setItem("songPlayerMode", mode);
+  }, [mode]);
+
+  // Persist fullscreen changes
+  // useEffect(() => {
+  //   localStorage.setItem("songPlayerFullScreen", isPlayerFullScreen.toString());
+  // }, [isPlayerFullScreen]);
 
   const setSong = async (song: Song, id: string) => {
     setCurrentSong(song);
     setYoutubeId(id);
     setIsPlaying(true);
-    await trackSongPlayHistory({ song });
+    await trackUserSongPlayHistory({ song });
   };
 
   const togglePlay = async (e: React.MouseEvent) => {
@@ -88,6 +111,8 @@ export function SongPlayerProvider({
         setProgress,
         mode,
         setMode,
+        setIsPlayerFullScreen,
+        isPlayerFullScreen,
       }}
     >
       {children}

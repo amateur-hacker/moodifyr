@@ -3,7 +3,7 @@
 import { LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { googleSignInUser } from "@/app/_utils";
+import { googleSignInUser } from "@/app/fn";
 import { ButtonLoader } from "@/components/button-loader";
 import { Button } from "@/components/ui/button";
 
@@ -14,8 +14,10 @@ const SignInButton = () => {
   const handleSignIn = async () => {
     setLoading(true);
     try {
-      await googleSignInUser();
-      router.refresh();
+      const response = await googleSignInUser();
+      if (response?.url) {
+        router.push(response?.url);
+      }
     } finally {
       setLoading(false);
     }

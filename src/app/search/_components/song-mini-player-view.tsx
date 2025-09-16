@@ -1,16 +1,18 @@
-import { motion } from "motion/react";
+"use client";
+
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
+import { motion } from "motion/react";
+import Image from "next/image";
+import type { Song } from "@/app/search/_types";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import type { Song } from "@/app/search/_types";
 
 type SongMiniPlayerViewProps = {
   currentSong: Song;
   isPlaying: boolean;
   isLoading: boolean;
-  togglePlay: (e: React.MouseEvent) => void;
+  handlePlay: (e: React.MouseEvent) => void;
   handlePrevious: (e: React.MouseEvent) => void;
   handleNext: (e: React.MouseEvent) => void;
   currentIndex: number;
@@ -19,12 +21,13 @@ type SongMiniPlayerViewProps = {
   duration: number;
   toggleFullScreen: (e: React.MouseEvent) => void;
   showProgress: boolean;
+  mode: string;
 };
 const SongMiniPlayerView = ({
   currentSong,
   isPlaying,
   isLoading,
-  togglePlay,
+  handlePlay,
   handlePrevious,
   handleNext,
   currentIndex,
@@ -33,6 +36,7 @@ const SongMiniPlayerView = ({
   duration,
   toggleFullScreen,
   showProgress,
+  mode,
 }: SongMiniPlayerViewProps) => {
   const progressPercent =
     duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
@@ -59,7 +63,7 @@ const SongMiniPlayerView = ({
             alt={currentSong.title}
             width={50}
             height={50}
-            className="rounded-md"
+            className="rounded-sm object-cover"
           />
           <p className="font-medium max-w-md mx-auto line-clamp-1">
             {currentSong.title}
@@ -68,43 +72,42 @@ const SongMiniPlayerView = ({
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePrevious}
-            disabled={currentIndex <= 0}
-            className="size-8 cursor-pointer"
-          >
-            <SkipBack className="size-4" />
-          </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handlePrevious}
+          disabled={currentIndex <= 0}
+          className="size-8 cursor-pointer"
+        >
+          <SkipBack className="size-4" />
+        </Button>
 
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={togglePlay}
-            className="rounded-full size-10 cursor-pointer"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="size-5 animate-spin rounded-full border-2 border-white border-b-transparent" />
-            ) : isPlaying ? (
-              <Pause className="size-5" />
-            ) : (
-              <Play className="size-5" />
-            )}
-          </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handlePlay}
+          className="rounded-full size-10 cursor-pointer"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <div className="size-5 animate-spin rounded-full border-2 border-white border-b-transparent" />
+          ) : isPlaying ? (
+            <Pause className="size-5" />
+          ) : (
+            <Play className="size-5" />
+          )}
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNext}
-            // disabled={currentIndex === songs.length - 1}
-            className="size-8 cursor-pointer"
-          >
-            <SkipForward className="size-4" />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleNext}
+          // disabled={currentIndex === songs.length - 1}
+          disabled={mode === "normal" && currentIndex >= songs.length - 1}
+          className="size-8 cursor-pointer"
+        >
+          <SkipForward className="size-4" />
+        </Button>
       </div>
     </Card>
   );

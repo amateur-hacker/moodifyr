@@ -7,7 +7,7 @@ const songs = pgTable("songs", (t) => ({
   url: t.text("url").notNull(),
   thumbnail: t.text("thumbnail").notNull(),
   seconds: t.integer("seconds").notNull(),
-  mood: t.text("mood"),
+  category: t.text("category"),
   createdAt: t.timestamp("created_at").defaultNow().notNull(),
 }));
 
@@ -17,7 +17,10 @@ const songPlayHistory = pgTable("song_play_history", (t) => ({
     .text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  songId: t.text("song_id").notNull(),
+  songId: t
+    .text("song_id")
+    .notNull()
+    .references(() => songs.id, { onDelete: "cascade" }),
   playedAt: t.timestamp("played_at").defaultNow().notNull(),
 }));
 
@@ -31,4 +34,17 @@ const songSearchHistory = pgTable("song_search_history", (t) => ({
   searchedAt: t.timestamp("searched_at").defaultNow().notNull(),
 }));
 
-export { songs, songPlayHistory, songSearchHistory };
+const favouriteSongs = pgTable("favourite_songs", (t) => ({
+  id: t.text("id").primaryKey().notNull(),
+  userId: t
+    .text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  title: t.text("title").notNull(),
+  url: t.text("url").notNull(),
+  thumbnail: t.text("thumbnail").notNull(),
+  seconds: t.integer("seconds").notNull(),
+  favouritedAt: t.timestamp("created_at").defaultNow().notNull(),
+}));
+
+export { songs, songPlayHistory, songSearchHistory, favouriteSongs };

@@ -4,8 +4,8 @@ import NextTopLoader from "nextjs-toploader";
 import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-import { FloatSearchBarProvider } from "./_context/float-search-bar-context";
-import { DashboardAnalyticsProvider } from "./_context/dashboard-analytics-context";
+import { FloatSearchBarProvider } from "@/app/_context/float-search-bar-context";
+import { DashboardAnalyticsProvider } from "@/app/dashboard/_context/dashboard-analytics-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +39,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
+      </head>
       <body className={`${fontsVariable} antialiased`}>
         <FloatSearchBarProvider>
           <DashboardAnalyticsProvider>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef } from "react";
+import { isMobile } from "react-device-detect";
 import youtubePlayer from "youtube-player";
 import { useSongPlayer } from "@/app/search/_context/song-player-context";
 
@@ -218,7 +219,7 @@ export function SongPlayerEngine({ songs }: SongPlayerEngineProps) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <don't need extra dependencies>
   useEffect(() => {
-    if (!playerRef.current) return;
+    if (!isMobile || !playerRef.current) return;
 
     const handleVisibility = async () => {
       if (document.hidden && isPlayingRef.current) {

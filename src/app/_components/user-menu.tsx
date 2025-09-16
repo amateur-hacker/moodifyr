@@ -4,7 +4,7 @@ import { LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signOutUser } from "@/app/_utils";
+import { signOutUser } from "@/app/actions";
 import { ButtonLoader } from "@/components/button-loader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {

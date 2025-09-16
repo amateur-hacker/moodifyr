@@ -3,7 +3,7 @@
 import { endOfDay, format, startOfDay, subDays } from "date-fns";
 import type React from "react";
 import { createContext, useEffect, useState } from "react";
-import { convertToLocalTZ } from "@/utils/date";
+import { convertToLocalTZ } from "@/lib/utils";
 
 type DashboardAnalyticsContextProps = {
   startDate: Date;

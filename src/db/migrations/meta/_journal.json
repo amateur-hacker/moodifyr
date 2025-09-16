@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1756411217369,
-      "tag": "0000_glamorous_deathbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1756974888403,
-      "tag": "0001_yummy_banshee",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1756981407674,
-      "tag": "0002_illegal_justin_hammer",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1757592747580,
-      "tag": "0003_whole_squadron_supreme",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1757676472106,
-      "tag": "0004_elite_tattoo",
+      "when": 1758059881892,
+      "tag": "0000_clear_juggernaut",
       "breakpoints": true
     }
   ]

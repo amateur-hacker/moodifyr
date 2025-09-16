@@ -1,8 +1,11 @@
 "use client";
 
-import { EllipsisVertical, Pause, Play } from "lucide-react";
+import { EllipsisVertical, Heart, Pause, Play } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 import { useSongPlayer } from "@/app/search/_context/song-player-context";
+import type { FavouriteSong, Song } from "@/app/search/_types";
+import { toggleUserFavouriteSong } from "@/app/search/fn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -12,47 +15,64 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Typography } from "@/components/ui/typography";
-import { cn } from "@/utils/cn";
+import { cn } from "@/lib/utils";
 
-type Song = {
-  id: string;
-  title: string;
-  thumbnail: string;
-  url: string;
-  duration: { timestamp: string; seconds: number };
-};
+type SongCardProps = { song: Song; favouriteSongs: FavouriteSong[] | null };
 
-type SongCardProps = { song: Song };
-
-const SongCard = ({ song }: SongCardProps) => {
-  const { currentSong, isPlaying, setSong, togglePlay, isLoading } =
-    useSongPlayer();
+const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
+  const {
+    currentSong,
+    isPlaying,
+    setSong,
+    togglePlay,
+    isLoading,
+    setIsPlayerFullScreen,
+  } = useSongPlayer();
 
   const isCurrent = currentSong?.id === song.id;
+
+  const initialFavourite = favouriteSongs?.some((fav) => fav.id === song.id);
+  const [isFavourite, setIsFavourite] = useState(initialFavourite);
 
   const handleClick = (e: React.MouseEvent) => {
     if (isCurrent) {
       togglePlay(e);
+
+      if (!isPlaying) {
+        setIsPlayerFullScreen(true);
+      }
     } else {
-      const youtubeId = song.id;
-      setSong(song, youtubeId);
+      setSong(song, song.id);
+      setIsPlayerFullScreen(true);
+    }
+  };
+
+  const handleToggleFavourite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    setIsFavourite((prev) => !prev);
+
+    const result = await toggleUserFavouriteSong({ song });
+
+    if (!result) {
+      setIsFavourite(initialFavourite);
+    } else {
+      setIsFavourite(result.status === "added");
     }
   };
 
   return (
-    <Card
-      className="flex flex-row items-center gap-2.5 sm:gap-5 p-0 border-0 shadow-none rounded-none cursor-pointer group"
-      onClick={handleClick}
-    >
+    <Card className="flex flex-row items-center gap-2.5 sm:gap-5 p-0 border-0 shadow-none rounded-none group">
       <button
         type="button"
         className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer"
+        onClick={handleClick}
       >
         <Image
           src={song.thumbnail}
           alt={song.title}
           fill
-          className="rounded-md border object-cover shadow-lg transition-all duration-200 ease-out group-hover:brightness-[0.8]"
+          className="rounded-md object-cover transition-all duration-200 ease-out group-hover:brightness-[0.8]"
         />
         <div
           className={cn(
@@ -74,7 +94,28 @@ const SongCard = ({ song }: SongCardProps) => {
             <Play size={36} />
           )}
         </div>
+        {isFavourite && (
+          <>
+            <Heart
+              size={18}
+              className="absolute -top-2 -left-2 text-red-500 fill-red-500 rotate-[-40deg] drop-shadow"
+            />
+            <Heart
+              size={18}
+              className="absolute -top-2 -right-2 text-red-500 fill-red-500 rotate-[40deg] drop-shadow"
+            />
+            <Heart
+              size={18}
+              className="absolute -bottom-2 -left-2 text-red-500 fill-red-500 rotate-[220deg] drop-shadow"
+            />
+            <Heart
+              size={18}
+              className="absolute -bottom-2 -right-2 text-red-500 fill-red-500 rotate-[-220deg] drop-shadow"
+            />
+          </>
+        )}{" "}
       </button>
+
       <div className="flex flex-col justify-center gap-2.5">
         <Typography variant="body-small" className="line-clamp-1">
           {song.title}
@@ -83,6 +124,7 @@ const SongCard = ({ song }: SongCardProps) => {
           {song.duration.timestamp}
         </Typography>
       </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -97,9 +139,18 @@ const SongCard = ({ song }: SongCardProps) => {
             <EllipsisVertical size={16} aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent onClick={(e) => e.stopPropagation()}>
-          <DropdownMenuItem>Option 1</DropdownMenuItem>
-          <DropdownMenuItem>Option 2</DropdownMenuItem>
+
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            onClick={handleToggleFavourite}
+            className="cursor-pointer"
+          >
+            {isFavourite ? "Remove from fav." : "Add to fav."}
+            <Heart className="text-red-500 fill-red-500" />
+          </DropdownMenuItem>
+          <DropdownMenuItem className="cursor-pointer">
+            Option 2
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </Card>

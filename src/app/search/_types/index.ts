@@ -6,6 +6,10 @@ type Song = {
   duration: { timestamp: string; seconds: number };
 };
 
+type FavouriteSong = Omit<Song, "duration"> & {
+  seconds: number;
+};
+
 type SongPlayerMode = "normal" | "shuffle" | "repeat";
 
-export type { Song, SongPlayerMode };
+export type { Song, FavouriteSong, SongPlayerMode };

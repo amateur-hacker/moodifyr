@@ -5,14 +5,15 @@ import {
   endOfMonth,
   endOfWeek,
   endOfYear,
+  isSameDay,
   startOfDay,
   startOfMonth,
   startOfWeek,
   startOfYear,
   subDays,
 } from "date-fns";
-import { use, useId } from "react";
-import { DashboardAnalyticsContext } from "@/app/_context/dashboard-analytics-context";
+import { use, useEffect, useId, useState } from "react";
+import { DashboardAnalyticsContext } from "@/app/dashboard/_context/dashboard-analytics-context";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -22,14 +23,100 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { convertToLocalTZ } from "@/utils/date";
+import { convertToLocalTZ } from "@/lib/utils";
+
+const getDefaultPreset = ({
+  startDate,
+  endDate,
+}: {
+  startDate: Date;
+  endDate: Date;
+}) => {
+  const now = convertToLocalTZ(new Date());
+
+  if (
+    isSameDay(startDate, startOfDay(now)) &&
+    isSameDay(endDate, endOfDay(now))
+  )
+    return "today";
+  if (
+    isSameDay(startDate, startOfDay(subDays(now, 1))) &&
+    isSameDay(endDate, endOfDay(subDays(now, 1)))
+  )
+    return "yesterday";
+  if (
+    isSameDay(startDate, startOfDay(subDays(now, 6))) &&
+    isSameDay(endDate, endOfDay(now))
+  )
+    return "last_7_days";
+  if (
+    isSameDay(startDate, startOfDay(subDays(now, 29))) &&
+    isSameDay(endDate, endOfDay(now))
+  )
+    return "last_30_days";
+  if (
+    isSameDay(startDate, startOfWeek(now, { weekStartsOn: 0 })) &&
+    isSameDay(endDate, endOfDay(now))
+  )
+    return "this_week";
+  if (
+    isSameDay(startDate, startOfWeek(subDays(now, 7), { weekStartsOn: 0 })) &&
+    isSameDay(endDate, endOfWeek(subDays(now, 7), { weekStartsOn: 0 }))
+  )
+    return "last_week";
+  if (
+    isSameDay(startDate, startOfMonth(now)) &&
+    isSameDay(endDate, endOfDay(now))
+  )
+    return "this_month";
+  if (
+    isSameDay(startDate, startOfMonth(subDays(now, now.getDate()))) &&
+    isSameDay(endDate, endOfMonth(subDays(now, now.getDate())))
+  )
+    return "last_month";
+  if (
+    isSameDay(startDate, startOfYear(now)) &&
+    isSameDay(endDate, endOfDay(now))
+  )
+    return "this_year";
+  if (
+    isSameDay(startDate, startOfYear(new Date(now.getFullYear() - 1, 0, 1))) &&
+    isSameDay(endDate, endOfYear(new Date(now.getFullYear() - 1, 0, 1)))
+  )
+    return "last_year";
+
+  return "custom_range";
+};
 
 const DateRangePresetSelect = () => {
-  const { setStartDate, setEndDate, setIsDateRangePickerDisabled } = use(
-    DashboardAnalyticsContext,
+  const {
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+    activeSource,
+    setActiveSource,
+    isPending,
+  } = use(DashboardAnalyticsContext);
+  const [selectedPreset, setSelectedPreset] = useState(
+    getDefaultPreset({ startDate, endDate }),
   );
 
+  const isDateRangePickerDisabled = activeSource === "preset";
+
+  useEffect(() => {
+    if (!startDate || !endDate || isPending) {
+      return;
+    }
+    if (isDateRangePickerDisabled) {
+      setSelectedPreset(getDefaultPreset({ startDate, endDate }));
+    } else {
+      setSelectedPreset("custom_range");
+    }
+  }, [startDate, endDate, isDateRangePickerDisabled, isPending]);
+
   const handleSelectChange = (value: string) => {
+    setSelectedPreset(value);
     const now = convertToLocalTZ(new Date());
 
     let start: Date | null = null;
@@ -87,16 +174,18 @@ const DateRangePresetSelect = () => {
         break;
 
       case "custom_range":
-        setIsDateRangePickerDisabled(false);
+        setActiveSource("picker");
         return;
 
       default:
         return;
     }
 
-    setStartDate(start);
-    setEndDate(end);
-    setIsDateRangePickerDisabled(true);
+    if (start && end) {
+      setStartDate(start);
+      setEndDate(end);
+      setActiveSource("preset");
+    }
   };
 
   const groupedPresetOptions = [
@@ -139,8 +228,11 @@ const DateRangePresetSelect = () => {
   const id = useId();
 
   return (
-    <Select defaultValue="last_7_days" onValueChange={handleSelectChange}>
-      <SelectTrigger id={id} className="w-auto min-w-48 max-w-full">
+    <Select value={selectedPreset} onValueChange={handleSelectChange}>
+      <SelectTrigger
+        id={id}
+        className="w-auto min-w-48 max-w-full cursor-pointer"
+      >
         <SelectValue placeholder="Select a preset" />
       </SelectTrigger>
       <SelectContent>
@@ -149,7 +241,7 @@ const DateRangePresetSelect = () => {
             <Label className="font-semibold text-sm">{group.group}</Label>
             {group.options.map((option) => (
               <SelectItem
-                className="text-sm"
+                className="text-sm cursor-pointer"
                 key={option.value}
                 value={option.value}
               >

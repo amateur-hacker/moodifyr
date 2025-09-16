@@ -7,6 +7,11 @@ import type React from "react";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
+import {
+  removeUserSongSearchHistory,
+  trackUserSongSearchHistory,
+} from "@/app/actions";
+import { getUserSongSearchHistory } from "@/app/queries";
 import { TopLoader } from "@/components/top-loader";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,13 +21,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { encodeQueryParam } from "@/utils/url";
-import {
-  getSongSearchHistory,
-  removeSongSearchHistory,
-  trackSongSearchHistory,
-} from "../search/_actions";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { encodeQueryParam } from "@/lib/utils";
 
 type SearchSongFormProps = {
   inputRef?: React.Ref<HTMLInputElement>;
@@ -58,7 +58,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
     setLoadingHistory(true);
 
-    getSongSearchHistory({ page: 1, limit: 10 })
+    getUserSongSearchHistory({ page: 1, limit: 10 })
       .then((res) => setHistory(res ?? []))
       .finally(() => setLoadingHistory(false));
   }, [shouldOpen]);
@@ -79,7 +79,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     try {
       localInput?.blur();
       if (query?.length) {
-        trackSongSearchHistory({ query });
+        trackUserSongSearchHistory({ query });
       }
       navigateWithQuery(query);
     } catch (error) {
@@ -99,7 +99,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
         item.id === id ? { ...item, query: "Removed" } : item,
       ),
     );
-    const res = await removeSongSearchHistory({ id });
+    const res = await removeUserSongSearchHistory({ id });
     if (!res?.success) toast.error("Failed to remove search history");
   };
 
@@ -109,7 +109,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     try {
       localInput?.blur();
       navigateWithQuery(text);
-      await trackSongSearchHistory({ query: text });
+      await trackUserSongSearchHistory({ query: text });
     } catch (error) {
       toast.error("Something went wrong while searching");
       console.error("Search navigation error:", error);

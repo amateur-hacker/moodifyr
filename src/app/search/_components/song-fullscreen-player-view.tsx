@@ -26,7 +26,7 @@ type SongFullscreenPlayerViewProps = {
   currentSong: Song;
   isPlaying: boolean;
   isLoading: boolean;
-  togglePlay: (e: React.MouseEvent) => void;
+  handlePlay: (e: React.MouseEvent) => void;
   handlePrevious: (e: React.MouseEvent) => void;
   handleNext: (e: React.MouseEvent) => void;
   currentIndex: number;
@@ -48,7 +48,7 @@ const SongFullscreenPlayerView = ({
   currentSong,
   isPlaying,
   isLoading,
-  togglePlay,
+  handlePlay,
   handlePrevious,
   handleNext,
   currentIndex,
@@ -157,7 +157,7 @@ const SongFullscreenPlayerView = ({
           <Button
             variant="outline"
             size="icon"
-            onClick={togglePlay}
+            onClick={handlePlay}
             className="rounded-full size-14 cursor-pointer"
             disabled={isLoading}
           >
