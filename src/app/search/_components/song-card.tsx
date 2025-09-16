@@ -3,6 +3,7 @@
 import { EllipsisVertical, Heart, Pause, Play } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/search/_context/song-player-context";
 import type { FavouriteSong, Song } from "@/app/search/_types";
 import { toggleUserFavouriteSong } from "@/app/search/fn";
@@ -79,7 +80,7 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
             "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
             isCurrent
               ? "bg-black/40 group-hover:bg-black/50 opacity-100"
-              : "opacity-0 group-hover:opacity-100 bg-black/40",
+              : `${isMobile || isTablet ? "opacity-100" : "opacity-0 group-hover:opacity-100"} bg-black/40`,
           )}
         >
           {isCurrent ? (
