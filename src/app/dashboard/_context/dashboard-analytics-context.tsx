@@ -1,9 +1,8 @@
 "use client";
 
-import { endOfDay, format, startOfDay, subDays } from "date-fns";
 import type React from "react";
-import { createContext, useEffect, useState } from "react";
-import { convertToLocalTZ } from "@/lib/utils";
+import { createContext, useState } from "react";
+import { saveUserPreference } from "@/app/actions";
 
 type DashboardAnalyticsContextProps = {
   startDate: Date;
@@ -15,50 +14,11 @@ type DashboardAnalyticsContextProps = {
   setActiveSource: (value: "preset" | "picker") => void;
 };
 
-const now = new Date();
-const defaultStartDate = startOfDay(subDays(now, 6));
-const defaultEndDate = endOfDay(now);
-
-const saveDashboardDates = (start: Date, end: Date) => {
-  localStorage.setItem(
-    "dashboard-startDate",
-    format(convertToLocalTZ(startOfDay(start)), "yyyy-MM-dd'T'HH:mm:ss"),
-  );
-  localStorage.setItem(
-    "dashboard-endDate",
-    format(convertToLocalTZ(endOfDay(end)), "yyyy-MM-dd'T'HH:mm:ss"),
-  );
-};
-
-const saveActiveSource = (source: "preset" | "picker") => {
-  localStorage.setItem("dashboard-activeSource", source);
-};
-
-const loadDashboardDates = (): { startDate: Date; endDate: Date } | null => {
-  const storedStart = localStorage.getItem("dashboard-startDate");
-  const storedEnd = localStorage.getItem("dashboard-endDate");
-
-  if (!storedStart || !storedEnd) return null;
-
-  const start = convertToLocalTZ(new Date(storedStart));
-  const end = convertToLocalTZ(new Date(storedEnd));
-
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
-
-  return { startDate: start, endDate: end };
-};
-
-const loadActiveSource = (): string | null => {
-  const source = localStorage.getItem("dashboard-activeSource");
-  if (!source) return null;
-  return source;
-};
-
 const DashboardAnalyticsContext = createContext<DashboardAnalyticsContextProps>(
   {
-    startDate: defaultStartDate,
+    startDate: new Date(),
     setStartDate: () => {},
-    endDate: defaultEndDate,
+    endDate: new Date(),
     setEndDate: () => {},
     isPending: false,
     activeSource: "preset",
@@ -68,52 +28,48 @@ const DashboardAnalyticsContext = createContext<DashboardAnalyticsContextProps>(
 
 type DashboardAnalyticsProviderProps = {
   children: React.ReactNode;
+  initialStartDate: Date;
+  initialEndDate: Date;
+  initialActiveSource: "preset" | "picker";
 };
 
 const DashboardAnalyticsProvider = ({
   children,
+  initialStartDate,
+  initialEndDate,
+  initialActiveSource,
 }: DashboardAnalyticsProviderProps) => {
-  const [startDate, setStartDate] = useState<Date>(defaultStartDate);
-  const [endDate, setEndDate] = useState<Date>(defaultEndDate);
-  const [isPending, setIsPending] = useState<boolean>(true);
+  const [startDate, setStartDate] = useState<Date>(initialStartDate);
+  const [endDate, setEndDate] = useState<Date>(initialEndDate);
   const [activeSource, setActiveSource] = useState<"preset" | "picker">(
-    "preset",
+    initialActiveSource,
   );
 
-  useEffect(() => {
-    const storedDates = loadDashboardDates();
-    const storedSource = loadActiveSource();
+  const handleSetStartDate = (date: Date) => {
+    setStartDate(date);
+    saveUserPreference({ key: "dashboard.startDate", value: date });
+  };
 
-    if (storedDates) {
-      setStartDate(storedDates.startDate);
-      setEndDate(storedDates.endDate);
-    }
+  const handleSetEndDate = (date: Date) => {
+    setEndDate(date);
+    saveUserPreference({ key: "dashboard.endDate", value: date });
+  };
 
-    if (storedSource === "picker" || storedSource === "preset") {
-      setActiveSource(storedSource);
-    }
-
-    setIsPending(false);
-  }, []);
-
-  useEffect(() => {
-    saveDashboardDates(startDate, endDate);
-  }, [startDate, endDate]);
-
-  useEffect(() => {
-    saveActiveSource(activeSource);
-  }, [activeSource]);
+  const handleSetActiveSource = (value: "preset" | "picker") => {
+    setActiveSource(value);
+    saveUserPreference({ key: "dashboard.activeSource", value });
+  };
 
   return (
     <DashboardAnalyticsContext.Provider
       value={{
         startDate,
-        setStartDate,
+        setStartDate: handleSetStartDate,
         endDate,
-        setEndDate,
-        isPending,
+        setEndDate: handleSetEndDate,
+        isPending: false,
         activeSource,
-        setActiveSource,
+        setActiveSource: handleSetActiveSource,
       }}
     >
       {children}

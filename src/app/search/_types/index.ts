@@ -10,6 +10,6 @@ type FavouriteSong = Omit<Song, "duration"> & {
   seconds: number;
 };
 
-type SongPlayerMode = "normal" | "shuffle" | "repeat";
+type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
 export type { Song, FavouriteSong, SongPlayerMode };

@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { songSearchHistory } from "@/db/schema/song";
 import { executeAction } from "@/db/utils";
 import { auth } from "@/lib/auth";
+import { userPreferences } from "@/db/schema";
 
 const signOutUser = async () => {
   return executeAction({
@@ -61,4 +62,39 @@ const removeUserSongSearchHistory = ({ id }: { id: string }) => {
   });
 };
 
-export { signOutUser, trackUserSongSearchHistory, removeUserSongSearchHistory };
+const saveUserPreference = async ({
+  key,
+  value,
+}: {
+  key: string;
+  value: unknown;
+}) => {
+  return executeAction({
+    actionFn: async ({ sessionUser }) => {
+      await db
+        .insert(userPreferences)
+        .values({
+          userId: sessionUser?.id as string,
+          key,
+          value: JSON.stringify(value),
+        })
+        .onConflictDoUpdate({
+          target: [userPreferences.userId, userPreferences.key],
+          set: {
+            value: JSON.stringify(value),
+            updatedAt: new Date(),
+          },
+        });
+    },
+    isProtected: true,
+    clientSuccessMessage: "Preference saved.",
+    serverErrorMessage: "saveUserPreference",
+  });
+};
+
+export {
+  signOutUser,
+  trackUserSongSearchHistory,
+  removeUserSongSearchHistory,
+  saveUserPreference,
+};

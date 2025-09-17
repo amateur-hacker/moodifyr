@@ -224,6 +224,42 @@ const getUserFavouriteSongs = () => {
   });
 };
 
+const getUserPreference = async ({ key }: { key: string }) => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      if (!sessionUser?.id) return null;
+
+      const pref = await db.query.userPreferences.findFirst({
+        where: (prefs, { eq, and }) =>
+          and(eq(prefs.userId, sessionUser.id), eq(prefs.key, key)),
+      });
+
+      return pref ? JSON.parse(pref.value) : null;
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserPreference",
+  });
+};
+
+const getUserAllPreferences = async () => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      if (!sessionUser?.id) return {};
+
+      const prefs = await db.query.userPreferences.findMany({
+        where: (prefs, { eq }) => eq(prefs.userId, sessionUser.id),
+      });
+
+      return prefs.reduce<Record<string, unknown>>((acc, p) => {
+        acc[p.key] = JSON.parse(p.value);
+        return acc;
+      }, {});
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserAllPreferences",
+  });
+};
+
 export {
   getUserSession,
   getUserSongSearchHistory,
@@ -232,4 +268,6 @@ export {
   getUserSongPlayHistoryByDateRange,
   getUserMostPlayedSongByDateRange,
   getUserFavouriteSongs,
+  getUserPreference,
+  getUserAllPreferences,
 };

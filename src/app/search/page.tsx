@@ -1,11 +1,16 @@
 import { Suspense } from "react";
-import { getUserFavouriteSongs, getUserLastPlayedSong } from "@/app/queries";
+import {
+  getUserFavouriteSongs,
+  getUserLastPlayedSong,
+  getUserPreference,
+} from "@/app/queries";
 import { SongCardLoader } from "@/app/search/_components/song-card-loader";
 import { SongList } from "@/app/search/_components/song-list";
 import { SongPlayerBar } from "@/app/search/_components/song-player-bar";
 import { SongPlayerEngine } from "@/app/search/_components/song-player-engine";
 import { SongPlayerProvider } from "@/app/search/_context/song-player-context";
 import { searchSong } from "@/app/search/api";
+import type { SongPlayerMode } from "@/app/search/_types";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -18,11 +23,15 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
   const { q: searchQuery, id } = await searchParams;
 
   // if (!searchQuery && !id) return;
-  const [songResult, favouriteSongs, lastPlayedSong] = await Promise.all([
-    searchSong({ query: searchQuery, id }).then((res) => res ?? null),
-    getUserFavouriteSongs().then((res) => res ?? null),
-    getUserLastPlayedSong().then((res) => res ?? null),
-  ]);
+  const [songResult, favouriteSongs, lastPlayedSong, initialMode] =
+    await Promise.all([
+      searchSong({ query: searchQuery, id }).then((res) => res ?? null),
+      getUserFavouriteSongs().then((res) => res ?? null),
+      getUserLastPlayedSong().then((res) => res ?? null),
+      getUserPreference({ key: "songPlayerMode" }).then(
+        (res) => (res as SongPlayerMode) ?? "normal",
+      ),
+    ]);
 
   return (
     <div className="p-4 mt-15">
@@ -40,6 +49,7 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
             <SongPlayerProvider
               key={searchQuery ?? id}
               initialSong={lastPlayedSong}
+              initialMode={initialMode}
             >
               <SongList
                 songs={songResult.songs}

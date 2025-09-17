@@ -15,3 +15,5 @@ export {
   songSearchHistory,
   songs,
 } from "@/db/schema/song";
+
+export { userPreferences } from "@/db/schema/user";

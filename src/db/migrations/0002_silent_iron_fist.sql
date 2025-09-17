@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "user_preferences_user_id_key_unique" ON "user_preferences" USING btree ("user_id","key");

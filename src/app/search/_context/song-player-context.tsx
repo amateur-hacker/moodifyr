@@ -1,41 +1,42 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
-import type { Song } from "@/app/search/_types";
+import { saveUserPreference } from "@/app/actions";
+import type { Song, SongPlayerMode } from "@/app/search/_types";
 import { trackUserSongPlayHistory } from "@/app/search/actions";
 
-type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
-
-type SongPlayerContextType = {
+type SongPlayerContextProps = {
   currentSong: Song | null;
   youtubeId: string | null;
-  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsPlaying: (status: boolean) => void;
   isPlaying: boolean;
   setSong: (song: Song, youtubeId: string) => void;
   togglePlay: (e: React.MouseEvent) => void;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoading: (status: boolean) => void;
   isLoading: boolean;
-  setProgress: React.Dispatch<React.SetStateAction<number>>;
+  setProgress: (seconds: number) => void;
   progress: number;
-  setDuration: React.Dispatch<React.SetStateAction<number>>;
+  setDuration: (seconds: number) => void;
   duration: number;
   playerRef: React.RefObject<ReturnType<typeof youtubePlayer> | null>;
   mode: SongPlayerMode;
-  setMode: React.Dispatch<React.SetStateAction<SongPlayerMode>>;
-  setIsPlayerFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
+  setMode: (mode: SongPlayerMode) => void;
+  setIsPlayerFullScreen: (status: boolean) => void;
   isPlayerFullScreen: boolean;
 };
 
-const SongPlayerContext = createContext<SongPlayerContextType | null>(null);
+const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
 
 type SongPlayerProviderProps = {
   children: React.ReactNode;
   initialSong: Song | null;
+  initialMode: SongPlayerMode;
 };
 export function SongPlayerProvider({
   children,
   initialSong,
+  initialMode,
 }: SongPlayerProviderProps) {
   const [currentSong, setCurrentSong] = useState<Song | null>(
     initialSong ?? null,
@@ -46,30 +47,27 @@ export function SongPlayerProvider({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const [mode, setMode] = useState<SongPlayerMode>("normal");
+  const [mode, setMode] = useState<SongPlayerMode>(initialMode ?? "normal");
   const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
 
   const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
 
-  // Sync mode from localStorage on mount
-  useEffect(() => {
-    const savedMode = localStorage.getItem("songPlayerMode") as SongPlayerMode;
-    if (savedMode) setMode(savedMode);
+  const handleSetMode = async (mode: SongPlayerMode) => {
+    setMode(mode);
+    if (currentSong) {
+      await saveUserPreference({ key: "songPlayerMode", value: mode });
+    }
+  };
 
-    // const savedFullScreen = localStorage.getItem("songPlayerFullScreen");
-    // if (savedFullScreen === "true") setIsPlayerFullScreen(true);
-  }, []);
-
-  // Persist mode changes
-  useEffect(() => {
-    localStorage.setItem("songPlayerMode", mode);
-  }, [mode]);
-
-  // Persist fullscreen changes
-  // useEffect(() => {
-  //   localStorage.setItem("songPlayerFullScreen", isPlayerFullScreen.toString());
-  // }, [isPlayerFullScreen]);
-
+  const handleSetIsPlaying = async (status: boolean) => {
+    setIsPlaying(status);
+    if (currentSong) {
+      await saveUserPreference({
+        key: "songPlayerIsPlaying",
+        value: String(status),
+      });
+    }
+  };
   const setSong = async (song: Song, id: string) => {
     setCurrentSong(song);
     setYoutubeId(id);
@@ -98,7 +96,7 @@ export function SongPlayerProvider({
       value={{
         currentSong,
         youtubeId,
-        setIsPlaying,
+        setIsPlaying: handleSetIsPlaying,
         isPlaying,
         setSong,
         togglePlay,
@@ -110,7 +108,7 @@ export function SongPlayerProvider({
         progress,
         setProgress,
         mode,
-        setMode,
+        setMode: handleSetMode,
         setIsPlayerFullScreen,
         isPlayerFullScreen,
       }}

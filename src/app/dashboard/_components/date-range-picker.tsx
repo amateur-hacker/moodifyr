@@ -67,8 +67,8 @@ const DateRangePicker = () => {
           isEqualDate(endDate, lastPickerValue.end);
 
         if (!inContextMatchesSaved) {
-          setStartDate(lastPickerValue.start);
-          setEndDate(lastPickerValue.end);
+          setStartDate(convertToLocalTZ(lastPickerValue.start));
+          setEndDate(convertToLocalTZ(lastPickerValue.end));
           const newVal = {
             start: formatForPicker(lastPickerValue.start),
             end: formatForPicker(lastPickerValue.end),
@@ -117,8 +117,8 @@ const DateRangePicker = () => {
       ? endOfDay(format(value.end.toDate(timeZone), "yyyy-MM-dd"))
       : null;
 
-    if (newStartDate) setStartDate(newStartDate);
-    if (newEndDate) setEndDate(newEndDate);
+    if (newStartDate) setStartDate(convertToLocalTZ(newStartDate));
+    if (newEndDate) setEndDate(convertToLocalTZ(newEndDate));
 
     setLastPickerValue({ start: newStartDate, end: newEndDate });
 

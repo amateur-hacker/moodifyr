@@ -50,12 +50,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${fontsVariable} antialiased`}>
         <FloatSearchBarProvider>
-          <DashboardAnalyticsProvider>
-            <Navbar />
-            <NextTopLoader color={"var(--primary)"} showSpinner={false} />
-            <Toaster closeButton richColors position="top-center" />
-            {children}
-          </DashboardAnalyticsProvider>
+          <Navbar />
+          <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+          <Toaster closeButton richColors position="top-center" />
+          {children}
         </FloatSearchBarProvider>
       </body>
     </html>
