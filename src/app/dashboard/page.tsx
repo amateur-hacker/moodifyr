@@ -8,7 +8,7 @@ export default async function DashboardPage() {
 
   if (!session) {
     return (
-      <div className="mt-15 p-4">
+      <div className="w-full">
         <h3 className="text-lg">Please sign in to see your dashboard.</h3>
       </div>
     );

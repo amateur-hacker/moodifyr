@@ -1,12 +1,14 @@
 "use client";
 
-import { EllipsisVertical, Heart, Pause, Play } from "lucide-react";
+import { EllipsisVertical, Pause, Play } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
-import { useSongPlayer } from "@/app/search/_context/song-player-context";
-import type { FavouriteSong, Song } from "@/app/search/_types";
-import { toggleUserFavouriteSong } from "@/app/search/fn";
+import { toast } from "sonner";
+import { useSongPlayer } from "@/app/_context/song-player-context";
+import type { HistorySong } from "@/app/_types";
+import { removeUserSongPlayHistory } from "@/app/history/actions";
+import { getSongStatus } from "@/app/queries";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -18,9 +20,10 @@ import {
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
-type SongCardProps = { song: Song; favouriteSongs: FavouriteSong[] | null };
-
-const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
+type HistorySongCardProps = {
+  song: HistorySong;
+};
+const HistorySongCard = ({ song }: HistorySongCardProps) => {
   const {
     currentSong,
     isPlaying,
@@ -28,37 +31,70 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
     togglePlay,
     isLoading,
     setIsPlayerFullScreen,
+    isCurrentSong,
   } = useSongPlayer();
 
-  const isCurrent = currentSong?.id === song.id;
+  // const isCurrent = isCurrentSong(song);
+  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  // const isCurrent = useMemo(() => isCurrentSong(song), [currentSong, song]);
 
-  const initialFavourite = favouriteSongs?.some((fav) => fav.id === song.id);
-  const [isFavourite, setIsFavourite] = useState(initialFavourite);
+  const [isClient, setIsClient] = useState(false);
+  const [isCurrent, setIsCurrent] = useState(false);
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (isCurrent) {
-      togglePlay(e);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
-      if (!isPlaying) {
-        setIsPlayerFullScreen(true);
-      }
-    } else {
-      setSong(song, song.id);
-      setIsPlayerFullScreen(true);
-    }
-  };
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    setIsCurrent(isCurrentSong(song));
+  }, [song, currentSong]);
 
-  const handleToggleFavourite = async (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
-    setIsFavourite((prev) => !prev);
+    if (!song.id) return;
 
-    const result = await toggleUserFavouriteSong({ song });
+    const previousSong = currentSong ?? null;
+    setSong(song);
 
-    if (!result) {
-      setIsFavourite(initialFavourite);
-    } else {
-      setIsFavourite(result.status === "added");
+    try {
+      const isSongAvailable = await getSongStatus({ youtubeId: song.id });
+
+      if (!isSongAvailable) {
+        setSong(previousSong, isPlaying);
+        toast.error("Song not available or removed by the user");
+        return;
+      }
+    } catch (_err) {
+      setSong(previousSong, isPlaying);
+      toast.error("Error checking song status");
+    }
+
+    if (!isCurrent) {
+      // setDuration(0);
+      // playerRef?.current?.loadVideoById(song.id);
+      setIsPlayerFullScreen(true);
+      setSong(song);
+      return;
+    }
+
+    if (!isPlaying) setIsPlayerFullScreen(true);
+    setSong(song);
+    togglePlay(e);
+  };
+
+  const handleRemoveSongPlayHistory = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    try {
+      await removeUserSongPlayHistory({
+        id: song.historyId,
+        revalidate: true,
+        path: "/history",
+      });
+    } catch (error) {
+      console.error("Error removing song play history", error);
     }
   };
 
@@ -66,7 +102,7 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
     <Card className="flex flex-row items-center gap-2.5 sm:gap-5 p-0 border-0 shadow-none rounded-none group">
       <button
         type="button"
-        className="relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer"
+        className={`relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer rounded-md ${isCurrent && "[--shadow-2xl:0px_1px_4px_0px_oklch(0.8109_0_0)] shadow-2xl"}`}
         onClick={handleClick}
       >
         <Image
@@ -80,7 +116,7 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
             "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
             isCurrent
               ? "bg-black/40 group-hover:bg-black/50 opacity-100"
-              : `${isMobile || isTablet ? "opacity-100" : "opacity-0 group-hover:opacity-100"} bg-black/40`,
+              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover:opacity-100"} bg-black/40`,
           )}
         >
           {isCurrent ? (
@@ -95,26 +131,6 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
             <Play size={36} />
           )}
         </div>
-        {isFavourite && (
-          <>
-            <Heart
-              size={18}
-              className="absolute -top-2 -left-2 text-red-500 fill-red-500 rotate-[-40deg] drop-shadow"
-            />
-            <Heart
-              size={18}
-              className="absolute -top-2 -right-2 text-red-500 fill-red-500 rotate-[40deg] drop-shadow"
-            />
-            <Heart
-              size={18}
-              className="absolute -bottom-2 -left-2 text-red-500 fill-red-500 rotate-[220deg] drop-shadow"
-            />
-            <Heart
-              size={18}
-              className="absolute -bottom-2 -right-2 text-red-500 fill-red-500 rotate-[-220deg] drop-shadow"
-            />
-          </>
-        )}{" "}
       </button>
 
       <div className="flex flex-col justify-center gap-2.5">
@@ -143,14 +159,10 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
 
         <DropdownMenuContent>
           <DropdownMenuItem
-            onClick={handleToggleFavourite}
+            onClick={handleRemoveSongPlayHistory}
             className="cursor-pointer"
           >
-            {isFavourite ? "Remove from fav." : "Add to fav."}
-            <Heart className="text-red-500 fill-red-500" />
-          </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer">
-            Option 2
+            Remove from history
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -158,4 +170,4 @@ const SongCard = ({ song, favouriteSongs }: SongCardProps) => {
   );
 };
 
-export { SongCard };
+export { HistorySongCard };

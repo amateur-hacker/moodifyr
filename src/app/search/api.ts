@@ -1,6 +1,6 @@
 "use server";
 
-import type { Song } from "@/app/search/_types";
+import type { Song } from "@/app/_types";
 import { executeApi } from "@/db/utils";
 import { env } from "@/lib/env";
 import { encodeQueryParam } from "@/lib/utils";
@@ -16,12 +16,15 @@ const searchSong = async ({ query, id }: { query?: string; id?: string }) => {
 
   return executeApi({
     apiFn: async (): Promise<
-      { success: true; songs: Song[] } | { success: false; message: string }
+      | { success: true; songs: Song[] }
+      | { success: true; song: Song }
+      | { success: false; message: string }
     > =>
       (
         await fetch(url, {
-          cache: "force-cache",
-          next: { revalidate: 10 * 60 },
+          cache: "no-store",
+          // cache: "force-cache",
+          // next: { revalidate: 24 * 60 * 60 },
         })
       ).json(),
     isProtected: false,

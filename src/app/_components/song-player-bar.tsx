@@ -4,16 +4,12 @@ import { useElementSize } from "@mantine/hooks";
 import { Volume, Volume1, Volume2, VolumeX } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { SongFullscreenPlayerView } from "@/app/search/_components/song-fullscreen-player-view";
-import { SongMiniPlayerView } from "@/app/search/_components/song-mini-player-view";
-import { useSongPlayer } from "@/app/search/_context/song-player-context";
-import type { Song } from "@/app/search/_types";
+import { SongFullscreenPlayerView } from "@/app/_components/song-fullscreen-player-view";
+import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
+import { useSongPlayer } from "@/app/_context/song-player-context";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 
-type SongPlayerBarProps = {
-  songs: Song[];
-};
-const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
+const SongPlayerBar = () => {
   const {
     currentSong,
     isPlaying,
@@ -29,6 +25,7 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
     setMode,
     isPlayerFullScreen,
     setIsPlayerFullScreen,
+    songs,
   } = useSongPlayer();
 
   const { ref, height } = useElementSize();
@@ -53,13 +50,30 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
     }
   };
 
+  // const handlePrevious = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //   if (!currentSong) return;
+  //   if (currentIndex > 0) {
+  //     const prevSong = songs[currentIndex - 1];
+  //     setSong(prevSong);
+  //   }
+  // };
+
   const handlePrevious = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!currentSong) return;
-    if (currentIndex > 0) {
-      const prevSong = songs[currentIndex - 1];
-      setSong(prevSong, prevSong.id);
-    }
+    if (!currentSong || !playerRef.current) return;
+
+    playerRef.current.getCurrentTime().then((currentTime: number) => {
+      if (currentIndex > 0 && currentTime < 5) {
+        // Go to previous song
+        const prevSong = songs[currentIndex - 1];
+        setSong(prevSong);
+      } else {
+        // Restart current song
+        playerRef?.current?.seekTo(0, true);
+        setProgress(0);
+      }
+    });
   };
 
   const handleNext = (e: React.MouseEvent) => {
@@ -67,7 +81,7 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
     if (!currentSong) return;
     if (currentIndex !== -1 && currentIndex < songs.length - 1) {
       const nextSong = songs[currentIndex + 1];
-      setSong(nextSong, nextSong.id);
+      setSong(nextSong);
     } else {
       setIsPlaying(false);
     }
@@ -76,7 +90,7 @@ const SongPlayerBar = ({ songs }: SongPlayerBarProps) => {
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentSong) return;
-    setSong(currentSong, currentSong.id);
+    setSong(currentSong);
     togglePlay(e);
   };
 

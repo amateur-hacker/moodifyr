@@ -3,7 +3,7 @@
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
-import type { Song } from "@/app/search/_types";
+import type { Song } from "@/app/_types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";

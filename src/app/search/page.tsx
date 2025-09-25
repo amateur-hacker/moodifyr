@@ -1,16 +1,10 @@
 import { Suspense } from "react";
-import {
-  getUserFavouriteSongs,
-  getUserLastPlayedSong,
-  getUserPreference,
-} from "@/app/queries";
-import { SongCardLoader } from "@/app/search/_components/song-card-loader";
-import { SongList } from "@/app/search/_components/song-list";
-import { SongPlayerBar } from "@/app/search/_components/song-player-bar";
-import { SongPlayerEngine } from "@/app/search/_components/song-player-engine";
-import { SongPlayerProvider } from "@/app/search/_context/song-player-context";
+import { SongCardLoader } from "@/app/_components/song-card-loader";
+import { SongList } from "@/app/_components/song-list";
+import { SongsSetter } from "@/app/_components/songs-setter";
+import { getUserFavouriteSongs } from "@/app/queries";
 import { searchSong } from "@/app/search/api";
-import type { SongPlayerMode } from "@/app/search/_types";
+import { Typography } from "@/components/ui/typography";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -23,18 +17,37 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
   const { q: searchQuery, id } = await searchParams;
 
   // if (!searchQuery && !id) return;
-  const [songResult, favouriteSongs, lastPlayedSong, initialMode] =
-    await Promise.all([
-      searchSong({ query: searchQuery, id }).then((res) => res ?? null),
-      getUserFavouriteSongs().then((res) => res ?? null),
-      getUserLastPlayedSong().then((res) => res ?? null),
-      getUserPreference({ key: "songPlayerMode" }).then(
-        (res) => (res as SongPlayerMode) ?? "normal",
-      ),
-    ]);
+  if (!searchQuery && !id) {
+    return (
+      <div className="w-full">
+        <Typography variant="lead">
+          Search for a song and let the vibe begin
+        </Typography>
+      </div>
+    );
+  }
+
+  const [songResult, favouriteSongs] = await Promise.all([
+    searchSong({ query: searchQuery, id }).then((res) => res ?? null),
+    getUserFavouriteSongs().then((res) => res ?? null),
+  ]);
+
+  const songs = songResult?.success
+    ? "songs" in songResult
+      ? songResult.songs.map((song) => ({
+          ...song,
+          searchId: song.id,
+        }))
+      : [
+          {
+            ...songResult.song,
+            searchId: songResult.song.id,
+          },
+        ]
+    : [];
 
   return (
-    <div className="p-4 mt-15">
+    <div className="w-full">
       <div className="w-full space-y-5 mx-auto max-w-3xl">
         {songResult?.success && (
           <Suspense
@@ -46,18 +59,8 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
               </div>
             }
           >
-            <SongPlayerProvider
-              key={searchQuery ?? id}
-              initialSong={lastPlayedSong}
-              initialMode={initialMode}
-            >
-              <SongList
-                songs={songResult.songs}
-                favouriteSongs={favouriteSongs}
-              />
-              <SongPlayerEngine songs={songResult.songs} />
-              <SongPlayerBar songs={songResult.songs} />
-            </SongPlayerProvider>
+            <SongList songs={songs} favouriteSongs={favouriteSongs} />
+            <SongsSetter songs={songs} />
           </Suspense>
         )}
       </div>

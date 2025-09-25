@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1758059881892,
-      "tag": "0000_clear_juggernaut",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1758106038914,
-      "tag": "0001_shallow_kree",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1758107129864,
-      "tag": "0002_silent_iron_fist",
+      "when": 1758654887132,
+      "tag": "0000_public_jack_power",
       "breakpoints": true
     }
   ]

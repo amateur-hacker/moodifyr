@@ -38,7 +38,7 @@ const encodeQueryParam = (param: string) =>
   encodeURIComponent(param).replace(/%20/g, "+");
 
 const decodeQueryParam = (param: string) =>
-  decodeURIComponent(param.replace("+", " "));
+  decodeURIComponent(param.replace("/+/g", " "));
 
 const encodePathParam = (param: string) =>
   encodeURIComponent(

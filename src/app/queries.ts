@@ -1,13 +1,14 @@
 "use server";
 
-import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import type { Song } from "@/app/search/_types";
+import type { SearchSong, SongWithUniqueId } from "@/app/_types";
 import { db } from "@/db";
 import { songSearchHistory } from "@/db/schema";
 import { favouriteSongs, songPlayHistory, songs } from "@/db/schema/song";
 import { executeQuery } from "@/db/utils";
 import { auth } from "@/lib/auth";
+import { v4 as uuid } from "uuid";
 
 const getUserSession = async () => {
   return executeQuery({
@@ -45,186 +46,100 @@ const getUserSongSearchHistory = ({
   });
 };
 
-const getUserSongPlayHistory = ({
-  page = 1,
-  limit = 10,
-}: {
-  page: number;
-  limit: number;
-}) => {
-  return executeQuery({
-    queryFn: async ({ sessionUser }) => {
-      const offset = (page - 1) * limit;
-
-      const history = await db.query.songPlayHistory.findMany({
-        where: eq(songPlayHistory.userId, sessionUser?.id as string),
-        orderBy: [desc(songPlayHistory.playedAt)],
-        limit,
-        offset,
-      });
-
-      return history;
-    },
-    isProtected: true,
-    serverErrorMessage: "getUserSongPlayHistory",
+const getUserLastPlayedSong = async (): Promise<SongWithUniqueId | null> => {
+  const song = await getUserPreference<SongWithUniqueId>({
+    key: "lastPlayedSong",
   });
+  if (!song) return null;
+
+  return song as SongWithUniqueId;
 };
 
-const getUserLastPlayedSong = () => {
-  const formatTimestamp = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  return executeQuery({
-    queryFn: async ({ sessionUser }) => {
-      const last = await db
-        .select({
-          id: songs.id,
-          title: songs.title,
-          url: songs.url,
-          thumbnail: songs.thumbnail,
-          seconds: songs.seconds,
-          playedAt: songPlayHistory.playedAt,
-        })
-        .from(songPlayHistory)
-        .innerJoin(songs, eq(songPlayHistory.songId, songs.id))
-        .where(eq(songPlayHistory.userId, sessionUser?.id as string))
-        .orderBy(desc(songPlayHistory.playedAt))
-        .limit(1);
-
-      if (!last[0]) return null;
-
-      const row = last[0];
-      const song: Song = {
-        id: row.id,
-        title: row.title,
-        url: row.url,
-        thumbnail: row.thumbnail,
-        duration: {
-          seconds: row.seconds,
-          timestamp: formatTimestamp(row.seconds),
-        },
-      };
-
-      return song;
-    },
-    isProtected: true,
-    serverErrorMessage: "getUserLastPlayedSong",
-  });
-};
-
-const getUserSongPlayHistoryByDateRange = ({
-  startDate,
-  endDate,
-}: {
-  startDate: Date;
-  endDate: Date;
-  count?: number;
-}) => {
-  return executeQuery({
-    queryFn: async ({ sessionUser }) => {
-      const history = await db
-        .select({
-          title: songs.title,
-          mood: songs.category,
-          count: sql<number>`COUNT(*)`,
-        })
-        .from(songPlayHistory)
-        .leftJoin(songs, eq(songs.id, songPlayHistory.songId))
-        .where(
-          and(
-            eq(songPlayHistory.userId, sessionUser?.id as string),
-            gte(songPlayHistory.playedAt, startDate),
-            lte(songPlayHistory.playedAt, endDate),
-          ),
-        )
-        .groupBy(songs.title, songs.category)
-        .orderBy(desc(sql`COUNT(*)`));
-
-      const formatLocalDate = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-      };
-
-      const startStr = formatLocalDate(startDate);
-      const endStr = formatLocalDate(endDate);
-
-      return history.map(
-        (h) => `${h.title} (${h.count}) [${h.mood}] [${startStr} to ${endStr}]`,
-      );
-    },
-    isProtected: true,
-    serverErrorMessage: "getUserSongPlayHistoryByDateRange",
-  });
-};
-
-const getUserMostPlayedSongByDateRange = ({
-  startDate,
-  endDate,
-  count,
-}: {
-  startDate: Date;
-  endDate: Date;
-  count?: number;
-}) => {
-  return executeQuery({
-    queryFn: async ({ sessionUser }) => {
-      const query = db
-        .select({
-          title: songs.title,
-          thumbnail: songs.thumbnail,
-          mood: songs.category,
-          times: sql<number>`COUNT(*)`,
-        })
-        .from(songPlayHistory)
-        .leftJoin(songs, eq(songs.id, songPlayHistory.songId))
-        .where(
-          and(
-            eq(songPlayHistory.userId, sessionUser?.id as string),
-            gte(songPlayHistory.playedAt, startDate),
-            lte(songPlayHistory.playedAt, endDate),
-          ),
-        )
-        .groupBy(songs.id)
-        .orderBy(desc(sql`COUNT(*)`));
-
-      const songsList = count ? await query.limit(count) : await query;
-
-      return songsList.map((s) => ({
-        title: s.title,
-        thumbnail: s.thumbnail,
-        mood: s.mood,
-        times: s.times,
-      }));
-    },
-    isProtected: true,
-    serverErrorMessage: "getUserMostPlayedSongByDateRange",
-  });
-};
+// const getUserLastPlayedSong = () => {
+//   const formatTimestamp = (seconds: number) => {
+//     const mins = Math.floor(seconds / 60);
+//     const secs = seconds % 60;
+//     return `${mins}:${secs.toString().padStart(2, "0")}`;
+//   };
+//
+//   return executeQuery({
+//     queryFn: async ({ sessionUser }) => {
+//       const results = await db
+//         .select({
+//           id: songs.id,
+//           title: songs.title,
+//           thumbnail: songs.thumbnail,
+//           duration: songs.duration,
+//           playedAt: songPlayHistory.playedAt,
+//         })
+//         .from(songPlayHistory)
+//         .innerJoin(songs, eq(songPlayHistory.songId, songs.id))
+//         .where(eq(songPlayHistory.userId, sessionUser?.id as string))
+//         .orderBy(desc(songPlayHistory.playedAt))
+//         .limit(1);
+//
+//       const latestPlay = results[0];
+//       if (!latestPlay) return null;
+//
+//       const lastPlayedSong: SearchSong = {
+//         id: latestPlay.id,
+//         searchId: uuid(),
+//         title: latestPlay.title,
+//         thumbnail: latestPlay.thumbnail,
+//         duration: {
+//           timestamp: latestPlay.duration.timestamp,
+//           seconds: latestPlay.duration.seconds,
+//         },
+//       };
+//
+//       return lastPlayedSong;
+//     },
+//     isProtected: true,
+//     serverErrorMessage: "getUserLastPlayedSong",
+//   });
+// };
 
 const getUserFavouriteSongs = () => {
+  // const formatTimestamp = (seconds: number) => {
+  //   const mins = Math.floor(seconds / 60);
+  //   const secs = seconds % 60;
+  //   return `${mins}:${secs.toString().padStart(2, "0")}`;
+  // };
+
   return executeQuery({
-    queryFn: async ({ sessionUser }) =>
-      await db
+    queryFn: async ({ sessionUser }) => {
+      const favourites = await db
         .select({
           id: favouriteSongs.id,
+          songId: favouriteSongs.songId,
           title: favouriteSongs.title,
-          url: favouriteSongs.url,
           thumbnail: favouriteSongs.thumbnail,
-          seconds: favouriteSongs.seconds,
+          duration: favouriteSongs.duration,
         })
         .from(favouriteSongs)
-        .where(eq(favouriteSongs.userId, sessionUser?.id as string)),
+        .where(eq(favouriteSongs.userId, sessionUser?.id as string));
+
+      return favourites.map((fav) => ({
+        id: fav.songId,
+        favouriteId: fav.id,
+        title: fav.title,
+        thumbnail: fav.thumbnail,
+        duration: {
+          timestamp: fav.duration.timestamp,
+          seconds: fav.duration.seconds,
+        },
+      }));
+    },
     isProtected: true,
     serverErrorMessage: "getUserFavouriteSongs",
   });
 };
 
-const getUserPreference = async ({ key }: { key: string }) => {
+const getUserPreference = async <T = unknown>({
+  key,
+}: {
+  key: string;
+}): Promise<T | string | null> => {
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
       if (!sessionUser?.id) return null;
@@ -234,7 +149,14 @@ const getUserPreference = async ({ key }: { key: string }) => {
           and(eq(prefs.userId, sessionUser.id), eq(prefs.key, key)),
       });
 
-      return pref ? JSON.parse(pref.value) : null;
+      // return pref ? JSON.parse(pref.value) : null;
+      if (!pref) return null;
+
+      try {
+        return JSON.parse(pref.value) as T;
+      } catch {
+        return pref.value;
+      }
     },
     isProtected: true,
     serverErrorMessage: "getUserPreference",
@@ -260,14 +182,36 @@ const getUserAllPreferences = async () => {
   });
 };
 
+const getSongStatus = async ({ youtubeId }: { youtubeId: string }) => {
+  return executeQuery({
+    queryFn: async () => {
+      const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${youtubeId}`;
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "text/html",
+        },
+        cache: "force-cache",
+        next: { revalidate: 24 * 60 * 60 },
+      });
+
+      if (!res.ok) {
+        return false;
+      }
+
+      return true;
+    },
+    isProtected: false,
+    serverErrorMessage: "getSongStatus",
+  });
+};
+
 export {
   getUserSession,
   getUserSongSearchHistory,
-  getUserSongPlayHistory,
   getUserLastPlayedSong,
-  getUserSongPlayHistoryByDateRange,
-  getUserMostPlayedSongByDateRange,
   getUserFavouriteSongs,
   getUserPreference,
   getUserAllPreferences,
+  getSongStatus,
 };

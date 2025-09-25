@@ -1,15 +1,102 @@
 "use server";
 
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
-import {
-  getUserMostPlayedSongByDateRange,
-  getUserSongPlayHistoryByDateRange,
-} from "@/app/queries";
+import { getMoodMessage } from "@/app/dashboard/utils";
 import { db } from "@/db";
-import { songPlayHistory, songs } from "@/db/schema";
+import { songAnalyticsPlayHistory, songs } from "@/db/schema";
 import { executeQuery } from "@/db/utils";
 import { convertToLocalTZ } from "@/lib/utils";
-import { getMoodMessage } from "./utils";
+
+const getUserSongAnalyticsPlayHistoryByDateRange = async ({
+  startDate,
+  endDate,
+}: {
+  startDate: Date;
+  endDate: Date;
+  count?: number;
+}) => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      const history = await db
+        .select({
+          title: songs.title,
+          mood: songs.category,
+          count: sql<number>`COUNT(*)`,
+        })
+        .from(songAnalyticsPlayHistory)
+        .leftJoin(songs, eq(songs.id, songAnalyticsPlayHistory.songId))
+        .where(
+          and(
+            eq(songAnalyticsPlayHistory.userId, sessionUser?.id as string),
+            gte(songAnalyticsPlayHistory.playedAt, startDate),
+            lte(songAnalyticsPlayHistory.playedAt, endDate),
+          ),
+        )
+        .groupBy(songs.title, songs.category)
+        .orderBy(desc(sql`COUNT(*)`));
+
+      const formatLocalDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const startStr = formatLocalDate(startDate);
+      const endStr = formatLocalDate(endDate);
+
+      return history.map(
+        (h) => `${h.title} (${h.count}) [${h.mood}] [${startStr} to ${endStr}]`,
+      );
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserSongAnalyticsPlayHistoryByDateRange",
+  });
+};
+
+const getUserMostPlayedSongByDateRange = ({
+  startDate,
+  endDate,
+  count,
+}: {
+  startDate: Date;
+  endDate: Date;
+  count?: number;
+}) => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      const query = db
+        .select({
+          title: songs.title,
+          thumbnail: songs.thumbnail,
+          mood: songs.category,
+          times: sql<number>`COUNT(*)`,
+        })
+        .from(songAnalyticsPlayHistory)
+        .leftJoin(songs, eq(songs.id, songAnalyticsPlayHistory.songId))
+        .where(
+          and(
+            eq(songAnalyticsPlayHistory.userId, sessionUser?.id as string),
+            gte(songAnalyticsPlayHistory.playedAt, startDate),
+            lte(songAnalyticsPlayHistory.playedAt, endDate),
+          ),
+        )
+        .groupBy(songs.id)
+        .orderBy(desc(sql`COUNT(*)`));
+
+      const songsList = count ? await query.limit(count) : await query;
+
+      return songsList.map((s) => ({
+        title: s.title,
+        thumbnail: s.thumbnail,
+        mood: s.mood,
+        times: s.times,
+      }));
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserMostPlayedSongByDateRange",
+  });
+};
 
 type MoodResult = {
   mood: string;
@@ -53,13 +140,13 @@ const getUserMoodBySongHistory = async ({
           category: songs.category,
           times: sql<number>`COUNT(*)`,
         })
-        .from(songPlayHistory)
-        .leftJoin(songs, eq(songs.id, songPlayHistory.songId))
+        .from(songAnalyticsPlayHistory)
+        .leftJoin(songs, eq(songs.id, songAnalyticsPlayHistory.songId))
         .where(
           and(
-            eq(songPlayHistory.userId, sessionUser.id),
-            gte(songPlayHistory.playedAt, startDate),
-            lte(songPlayHistory.playedAt, endDate),
+            eq(songAnalyticsPlayHistory.userId, sessionUser.id),
+            gte(songAnalyticsPlayHistory.playedAt, startDate),
+            lte(songAnalyticsPlayHistory.playedAt, endDate),
           ),
         )
         .groupBy(songs.category)
@@ -122,7 +209,7 @@ const getUserDashboardData = async ({
     queryFn: async ({ sessionUser }) => {
       if (!sessionUser?.id) return null;
 
-      const songHistory = await getUserSongPlayHistoryByDateRange({
+      const songHistory = await getUserSongAnalyticsPlayHistoryByDateRange({
         startDate,
         endDate,
       });
@@ -148,4 +235,9 @@ const getUserDashboardData = async ({
   });
 };
 
-export { getUserMoodBySongHistory, getUserDashboardData };
+export {
+  getUserSongAnalyticsPlayHistoryByDateRange,
+  getUserMostPlayedSongByDateRange,
+  getUserMoodBySongHistory,
+  getUserDashboardData,
+};

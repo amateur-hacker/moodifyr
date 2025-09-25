@@ -1,7 +1,8 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
-import type { Song } from "@/app/search/_types";
+import { revalidatePath } from "next/cache";
+import type { Song } from "@/app/_types";
 import { db } from "@/db";
 import { favouriteSongs } from "@/db/schema";
 import { executeFn } from "@/db/utils";
@@ -42,21 +43,31 @@ Answer with only the category word, nothing else.
   });
 };
 
-const toggleUserFavouriteSong = ({ song }: { song: Song }) => {
+const toggleUserFavouriteSong = ({
+  song,
+  revalidate = false,
+  path = "/fav-songs",
+}: {
+  song: Song;
+  revalidate?: boolean;
+  path?: string;
+}) => {
   return executeFn({
     fn: async ({ sessionUser }) => {
       const userId = sessionUser?.id as string;
 
       const [alreadyFavourite] = await db
-        .select({ id: favouriteSongs.id })
+        .select()
         .from(favouriteSongs)
         .where(
           and(
             eq(favouriteSongs.userId, userId),
-            eq(favouriteSongs.id, song.id),
+            eq(favouriteSongs.songId, song.id),
           ),
         )
         .limit(1);
+
+      let result: { status: "removed" | "added" };
 
       if (alreadyFavourite) {
         await db
@@ -64,21 +75,27 @@ const toggleUserFavouriteSong = ({ song }: { song: Song }) => {
           .where(
             and(
               eq(favouriteSongs.userId, userId),
-              eq(favouriteSongs.id, song.id),
+              eq(favouriteSongs.songId, song.id),
             ),
           );
-        return { status: "removed" as const };
+        result = { status: "removed" };
       } else {
         await db.insert(favouriteSongs).values({
-          id: song.id,
+          songId: song.id,
           userId,
           title: song.title,
-          url: song.url,
           thumbnail: song.thumbnail,
-          seconds: song.duration.seconds,
+          duration: {
+            timestamp: song.duration.timestamp,
+            seconds: song.duration.seconds,
+          },
         });
-        return { status: "added" as const };
+        result = { status: "added" };
       }
+
+      if (revalidate) revalidatePath(path);
+
+      return result;
     },
     isProtected: true,
     serverErrorMessage: "toggleUserFavouriteSong",

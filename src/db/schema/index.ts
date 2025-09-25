@@ -11,6 +11,7 @@ export {
 
 export {
   favouriteSongs,
+  songAnalyticsPlayHistory,
   songPlayHistory,
   songSearchHistory,
   songs,

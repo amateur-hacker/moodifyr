@@ -16,13 +16,13 @@ CREATE TABLE "accounts" (
 );
 --> statement-breakpoint
 CREATE TABLE "favourite_songs" (
-	"id" text PRIMARY KEY NOT NULL,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"songId" text NOT NULL,
 	"user_id" text NOT NULL,
 	"title" text NOT NULL,
-	"url" text NOT NULL,
 	"thumbnail" text NOT NULL,
-	"seconds" integer NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL
+	"duration" json NOT NULL,
+	"favourited_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
@@ -35,6 +35,13 @@ CREATE TABLE "sessions" (
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "sessions_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "song_analytics_play_history" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"song_id" text NOT NULL,
+	"played_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "song_play_history" (
@@ -54,11 +61,18 @@ CREATE TABLE "song_search_history" (
 CREATE TABLE "songs" (
 	"id" text PRIMARY KEY NOT NULL,
 	"title" text NOT NULL,
-	"url" text NOT NULL,
 	"thumbnail" text NOT NULL,
-	"seconds" integer NOT NULL,
+	"duration" json NOT NULL,
 	"category" text,
 	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "user_preferences" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"key" text NOT NULL,
+	"value" text NOT NULL,
+	"searched_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -85,6 +99,10 @@ CREATE TABLE "verifications" (
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "favourite_songs" ADD CONSTRAINT "favourite_songs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "song_analytics_play_history" ADD CONSTRAINT "song_analytics_play_history_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "song_analytics_play_history" ADD CONSTRAINT "song_analytics_play_history_song_id_songs_id_fk" FOREIGN KEY ("song_id") REFERENCES "public"."songs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "song_play_history" ADD CONSTRAINT "song_play_history_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "song_play_history" ADD CONSTRAINT "song_play_history_song_id_songs_id_fk" FOREIGN KEY ("song_id") REFERENCES "public"."songs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "song_search_history" ADD CONSTRAINT "song_search_history_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "song_search_history" ADD CONSTRAINT "song_search_history_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "user_preferences" ADD CONSTRAINT "user_preferences_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE UNIQUE INDEX "user_preferences_user_id_key_unique" ON "user_preferences" USING btree ("user_id","key");
