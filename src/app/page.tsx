@@ -1,6 +1,6 @@
 import { LucideHeartPulse, LucideHistory } from "lucide-react";
 import Link from "next/link";
-import { getUserSession, getUserSongPlayHistory } from "@/app/queries";
+import { getUserSession } from "@/app/queries";
 import { Typography } from "@/components/ui/typography";
 
 export default async function HomePage() {
