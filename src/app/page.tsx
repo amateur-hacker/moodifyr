@@ -17,7 +17,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="mt-15 p-4 flex flex-wrap gap-4">
+    <div className="flex flex-wrap gap-4">
       {/* <h1 className="text-4xl">Home Page</h1> */}
       {/* <Link */}
       {/*   href="/dashboard" */}
