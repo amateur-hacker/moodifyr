@@ -3,7 +3,7 @@ import type { FavouriteSong, SearchSong } from "@/app/_types";
 // import { TypingAnimation } from "@/components/ui/typing-animation";
 
 type SongListProps = {
-  songs: SearchSong[] | FavouriteSong[] | null;
+  songs: SearchSong[] | null;
   favouriteSongs: FavouriteSong[] | null;
   revalidate?: boolean;
   path?: string;
