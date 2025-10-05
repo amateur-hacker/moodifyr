@@ -92,7 +92,7 @@ export function SongPlayerEngine() {
         break;
       }
       case 2:
-        setIsPlaying(false);
+        // setIsPlaying(false);
         break;
       case 0: {
         const currentIndex = songsRef.current.findIndex(
@@ -248,16 +248,12 @@ export function SongPlayerEngine() {
 
     const handleVisibility = async () => {
       if (document.hidden && isPlayingRef.current) {
-        const timeout = setTimeout(async () => {
-          try {
-            await playerRef.current?.seekTo(lastTimeRef.current, true);
-            await playerRef.current?.playVideo();
-          } catch (err) {
-            console.warn("Autoplay blocked or failed resume:", err);
-          }
-        }, 1000);
-
-        return () => clearTimeout(timeout);
+        try {
+          await playerRef.current?.seekTo(lastTimeRef.current, true);
+          await playerRef.current?.playVideo();
+        } catch (err) {
+          console.warn("Autoplay blocked or failed resume:", err);
+        }
       }
     };
 
