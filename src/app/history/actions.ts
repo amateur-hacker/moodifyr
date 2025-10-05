@@ -3,32 +3,33 @@
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { songPlayHistory } from "@/db/schema/song";
+import {
+  type SongPlayHistorySchema,
+  songPlayHistory,
+  songPlayHistorySchema,
+} from "@/db/schema/song";
 import { executeAction } from "@/db/utils";
 
 const removeUserSongPlayHistory = ({
   id,
-  revalidate = true,
-  path = "/history",
-}: {
-  id: string;
-  revalidate?: boolean;
-  path?: string;
-}) => {
+}: Pick<SongPlayHistorySchema, "id">) => {
   return executeAction({
     actionFn: async ({ sessionUser }) => {
+      const removeUserSongPlayHistorySchema = songPlayHistorySchema.pick({
+        id: true,
+      });
+      const { id: parsedId } = removeUserSongPlayHistorySchema.parse({ id });
+
       const result = await db
         .delete(songPlayHistory)
         .where(
           and(
-            eq(songPlayHistory.id, id),
-            eq(songPlayHistory.userId, sessionUser?.id as string),
+            eq(songPlayHistory.id, parsedId),
+            eq(songPlayHistory.userId, sessionUser.id),
           ),
         );
 
-      if (revalidate) {
-        revalidatePath(path);
-      }
+      revalidatePath("/history");
 
       return result;
     },

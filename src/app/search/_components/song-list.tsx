@@ -1,19 +1,23 @@
-import { SongCard } from "@/app/_components/song-card";
-import type { FavouriteSong, SearchSong } from "@/app/_types";
+import type { FavouriteSongSchema, SearchSongSchema } from "@/app/_types";
+import { SongCard } from "@/app/search/_components/song-card";
+import type { SelectMoodlistModel } from "@/db/schema/moodlists";
+
 // import { TypingAnimation } from "@/components/ui/typing-animation";
 
 type SongListProps = {
-  songs: SearchSong[] | null;
-  favouriteSongs: FavouriteSong[] | null;
+  songs: SearchSongSchema[] | null;
+  favouriteSongs: FavouriteSongSchema[] | null;
   revalidate?: boolean;
   path?: string;
   showFavHearts?: boolean;
+  moodlists: SelectMoodlistModel[] | null;
 };
 const SongList = async ({
   songs,
   favouriteSongs,
   revalidate = false,
   path = "/fav-songs",
+  moodlists,
 }: SongListProps) => {
   return (
     <div className="pb-[var(--player-height,80px)]">
@@ -32,6 +36,7 @@ const SongList = async ({
             isAlreadyFavourite={
               favouriteSongs?.some((fav) => fav.id === song.id) ?? false
             }
+            moodlists={moodlists}
           />
           {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
         </div>

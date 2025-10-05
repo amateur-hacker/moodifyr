@@ -1,58 +1,67 @@
 "use client";
 
 import {
+  CirclePlus,
   EllipsisIcon,
-  EllipsisVertical,
   Heart,
   Pause,
   Play,
+  Plus,
+  Share2,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { toast } from "sonner";
 import { useSongPlayer } from "@/app/_context/song-player-context";
-import type { FavouriteSong, SearchSong } from "@/app/_types";
+import type {
+  SongSchema,
+  FavouriteSongSchema,
+  SearchSongSchema,
+} from "@/app/_types";
+import { googleSignInUser, toggleUserFavouriteSong } from "@/app/fn";
 import { getSongStatus } from "@/app/queries";
-import { toggleUserFavouriteSong } from "@/app/search/fn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { CopyButton } from "@/components/ui/shadcn-io/copy-button";
-// import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Typography } from "@/components/ui/typography";
-import { cn } from "@/lib/utils";
-import { IconButton } from "@/components/ui/shadcn-io/icon-button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CopyButton } from "@/components/ui/shadcn-io/copy-button";
+import { IconButton } from "@/components/ui/shadcn-io/icon-button";
+import { Typography } from "@/components/ui/typography";
+import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
+import { AddToMoodlistDialog } from "./add-to-moodlist-dialog";
+import type { SelectMoodlistModel } from "@/db/schema/moodlists";
+import { ShareLinkDialog } from "./share-link-dialog";
 
 type SongCardProps = {
-  song: SearchSong;
-  favouriteSongs: FavouriteSong[] | null;
+  song: SongSchema | SearchSongSchema;
+  favouriteSongs: FavouriteSongSchema[] | null;
   revalidate?: boolean;
   path?: string;
   isAlreadyFavourite?: boolean;
+  moodlists: SelectMoodlistModel[] | null;
 };
 const SongCard = ({
   song,
   revalidate = false,
   path = "/fav-songs",
   isAlreadyFavourite = false,
+  moodlists,
 }: SongCardProps) => {
   const {
     currentSong,
@@ -64,10 +73,10 @@ const SongCard = ({
     isCurrentSong,
   } = useSongPlayer();
 
-  // const router = useRouter();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  // const isCurrent = isCurrentSong(song);
-  // const isCurrent = currentSong?.id === song.id;
   // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   // const isCurrent = useMemo(() => isCurrentSong(song), [currentSong, song]);
 
@@ -76,17 +85,17 @@ const SongCard = ({
   const [isCurrent, setIsCurrent] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [origin, setOrigin] = useState("");
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
+    useState(false);
+
+  const { useSession } = authClient;
+  const { data: session } = useSession();
 
   useEffect(() => {
     setIsClient(true);
     setOrigin(window.location.origin);
   }, []);
-
-  // useEffect(() => {
-  //   if (favouriteSongs) {
-  //     setIsFavourite(favouriteSongs.some((fav) => fav.id === song.id));
-  //   }
-  // }, [favouriteSongs, song.id]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
@@ -117,15 +126,11 @@ const SongCard = ({
 
     if (!isCurrent) {
       setIsPlayerFullScreen(true);
-      // router.replace(`/song?id=${song.id}`);
-      // const newUrl = `/song?id=${song.id}`; // Construct your desired URL
-      // window.history.replaceState({}, "", newUrl);
       setSong(song);
       return;
     }
 
     if (!isPlaying) setIsPlayerFullScreen(true);
-    // router.replace(`/song?id=${song.id}`);
     setSong(song);
     togglePlay(e);
   };
@@ -133,6 +138,29 @@ const SongCard = ({
   const handleToggleFavourite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     setHasInteracted(true);
+    if (!session?.user) {
+      toast("Sign in to save your favourite songs", {
+        action: {
+          label: "Sign in",
+          onClick: async () => {
+            const queryString = searchParams?.toString();
+            const url = queryString
+              ? `${origin}${pathname}?${queryString}`
+              : `${origin}${pathname}`;
+            const response = await googleSignInUser({
+              callbackURL: url,
+              newUserCallbackURL: url,
+            });
+            if (response?.url) {
+              router.push(response?.url);
+            }
+          },
+        },
+        description: "You need an account to favourite songs",
+        duration: 5000,
+      });
+      return;
+    }
 
     setIsFavourite((prev) => !prev);
 
@@ -141,10 +169,13 @@ const SongCard = ({
 
       if (result) {
         setIsFavourite(result.status === "added");
+      } else {
+        setIsFavourite(false);
       }
     } catch (error) {
       console.error("Error toggling favourite:", error);
-      setIsFavourite((prev) => !prev);
+      toast.error("Failed to update favourite. Try again.");
+      setIsFavourite(false);
     }
   };
 
@@ -162,14 +193,14 @@ const SongCard = ({
           src={song.thumbnail}
           alt={song.title}
           fill
-          className="rounded-md object-cover transition-all duration-200 ease-out group-hover:brightness-[0.8]"
+          className="rounded-md object-cover transition-all duration-200 ease-out group-hover-always:group-hover:brightness-[0.8]"
         />
         <div
           className={cn(
             "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
             isCurrent
-              ? "bg-black/40 group-hover:bg-black/50 opacity-100"
-              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover:opacity-100"} bg-black/40`,
+              ? "bg-black/40 group-hover-always:group-hover:bg-black/50 opacity-100"
+              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover-always:group-hover:opacity-100"} bg-black/40`,
           )}
         >
           {isCurrent ? (
@@ -196,62 +227,40 @@ const SongCard = ({
       </div>
 
       <div className="ml-auto flex flex-col justify-between gap-5">
-        <Dialog>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="icon"
-                variant="ghost"
-                className={cn(
-                  "cursor-pointer ml-auto transition-all duration-200 group-hover:opacity-100 data-[state=open]:opacity-100 ",
-                  isCurrent ? "opacity-100" : "opacity-100 sm:opacity-0",
-                )}
-                aria-label="Open dropdown menu"
-              >
-                <EllipsisIcon size={16} aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                "cursor-pointer ml-auto transition-all duration-200 group-hover-always:group-hover:opacity-100 data-[state=open]:opacity-100 ",
+                isCurrent
+                  ? "opacity-100"
+                  : "opacity-100 sm:has-hover:opacity-0",
+              )}
+              aria-label="Open dropdown menu"
+            >
+              <EllipsisIcon size={16} aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
 
-            <DropdownMenuContent>
-              {/* <DropdownMenuItem */}
-              {/*   className="cursor-pointer" */}
-              {/*   onClick={(e) => e.stopPropagation()} */}
-              {/* > */}
-              {/*   Share */}
-              {/* </DropdownMenuItem> */}
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <DialogTrigger className="w-full">Share</DialogTrigger>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Share link</DialogTitle>
-              <DialogDescription>
-                Anyone who has this link will be able to view this.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex items-center gap-2">
-              <div className="grid flex-1 gap-2">
-                <Label htmlFor="link" className="sr-only">
-                  Link
-                </Label>
-                <div className="flex-1 flex gap-2">
-                  <Input
-                    id="link"
-                    defaultValue={`${origin}/search?id=${song.id}`}
-                    readOnly
-                  />
-                  <CopyButton
-                    content={`${origin}/search?id=${song.id}`}
-                    size="default"
-                    className="rounded-md"
-                  />
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => setIsAddToMoodlistDialogOpen(true)}
+            >
+              <CirclePlus size={16} />
+              Add to
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => setIsShareDialogOpen(true)}
+            >
+              <Share2 size={16} />
+              Share
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <IconButton
           icon={Heart}
           active={isFavourite}
@@ -259,6 +268,18 @@ const SongCard = ({
           onClick={handleToggleFavourite}
           size="default"
           animate={hasInteracted}
+        />
+        <ShareLinkDialog
+          open={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          link={`${origin}/search?id=${song.id}`}
+        />
+        <AddToMoodlistDialog
+          open={isAddToMoodlistDialogOpen}
+          onOpenChange={setIsAddToMoodlistDialogOpen}
+          moodlists={moodlists}
+          songId={song.id}
+          song={song as SongSchema}
         />
       </div>
     </Card>

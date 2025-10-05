@@ -1,6 +1,7 @@
 "use server";
 
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
+import z from "zod";
 import { getMoodMessage } from "@/app/dashboard/utils";
 import { db } from "@/db";
 import { songAnalyticsPlayHistory, songs } from "@/db/schema";
@@ -13,8 +14,17 @@ const getUserSongAnalyticsPlayHistoryByDateRange = async ({
 }: {
   startDate: Date;
   endDate: Date;
-  count?: number;
 }) => {
+  const getUserSongAnalyticsPlayHistoryByDateRangeSchema = z.object({
+    startDate: z.date(),
+    endDate: z.date(),
+  });
+  const { startDate: parsedStartDate, endDate: parsedEndDate } =
+    getUserSongAnalyticsPlayHistoryByDateRangeSchema.parse({
+      startDate,
+      endDate,
+    });
+
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
       const history = await db
@@ -28,8 +38,8 @@ const getUserSongAnalyticsPlayHistoryByDateRange = async ({
         .where(
           and(
             eq(songAnalyticsPlayHistory.userId, sessionUser?.id as string),
-            gte(songAnalyticsPlayHistory.playedAt, startDate),
-            lte(songAnalyticsPlayHistory.playedAt, endDate),
+            gte(songAnalyticsPlayHistory.playedAt, parsedStartDate),
+            lte(songAnalyticsPlayHistory.playedAt, parsedEndDate),
           ),
         )
         .groupBy(songs.title, songs.category)
@@ -63,6 +73,21 @@ const getUserMostPlayedSongByDateRange = ({
   endDate: Date;
   count?: number;
 }) => {
+  const getUserMostPlayedSongByDateRangeSchema = z.object({
+    startDate: z.date(),
+    endDate: z.date(),
+    count: z.number().int(),
+  });
+  const {
+    startDate: parsedStartDate,
+    endDate: parsedEndDate,
+    count: parsedCount,
+  } = getUserMostPlayedSongByDateRangeSchema.parse({
+    startDate,
+    endDate,
+    count,
+  });
+
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
       const query = db
@@ -76,15 +101,17 @@ const getUserMostPlayedSongByDateRange = ({
         .leftJoin(songs, eq(songs.id, songAnalyticsPlayHistory.songId))
         .where(
           and(
-            eq(songAnalyticsPlayHistory.userId, sessionUser?.id as string),
-            gte(songAnalyticsPlayHistory.playedAt, startDate),
-            lte(songAnalyticsPlayHistory.playedAt, endDate),
+            eq(songAnalyticsPlayHistory.userId, sessionUser.id),
+            gte(songAnalyticsPlayHistory.playedAt, parsedStartDate),
+            lte(songAnalyticsPlayHistory.playedAt, parsedEndDate),
           ),
         )
         .groupBy(songs.id)
         .orderBy(desc(sql`COUNT(*)`));
 
-      const songsList = count ? await query.limit(count) : await query;
+      const songsList = parsedCount
+        ? await query.limit(parsedCount)
+        : await query;
 
       return songsList.map((s) => ({
         title: s.title,
@@ -131,10 +158,18 @@ const getUserMoodBySongHistory = async ({
   startDate: Date;
   endDate: Date;
 }) => {
+  const getUserMoodBySongHistorySchema = z.object({
+    startDate: z.date(),
+    endDate: z.date(),
+  });
+  const { startDate: parsedStartDate, endDate: parsedEndDate } =
+    getUserMoodBySongHistorySchema.parse({
+      startDate,
+      endDate,
+    });
+
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
-      if (!sessionUser?.id) return null;
-
       const rows = await db
         .select({
           category: songs.category,
@@ -145,8 +180,8 @@ const getUserMoodBySongHistory = async ({
         .where(
           and(
             eq(songAnalyticsPlayHistory.userId, sessionUser.id),
-            gte(songAnalyticsPlayHistory.playedAt, startDate),
-            lte(songAnalyticsPlayHistory.playedAt, endDate),
+            gte(songAnalyticsPlayHistory.playedAt, parsedStartDate),
+            lte(songAnalyticsPlayHistory.playedAt, parsedEndDate),
           ),
         )
         .groupBy(songs.category)
@@ -205,22 +240,33 @@ const getUserDashboardData = async ({
   startDate: Date;
   endDate: Date;
 }) => {
-  return executeQuery({
-    queryFn: async ({ sessionUser }) => {
-      if (!sessionUser?.id) return null;
+  const getUserDashboardDataSchema = z.object({
+    startDate: z.date(),
+    endDate: z.date(),
+  });
+  const { startDate: parsedStartDate, endDate: parsedEndDate } =
+    getUserDashboardDataSchema.parse({
+      startDate,
+      endDate,
+    });
 
+  return executeQuery({
+    queryFn: async () => {
       const songHistory = await getUserSongAnalyticsPlayHistoryByDateRange({
-        startDate,
-        endDate,
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
       });
 
       const moodResult = songHistory?.length
-        ? await getUserMoodBySongHistory({ startDate, endDate })
+        ? await getUserMoodBySongHistory({
+            startDate: parsedStartDate,
+            endDate: parsedEndDate,
+          })
         : null;
 
       const top5 = await getUserMostPlayedSongByDateRange({
-        startDate,
-        endDate,
+        startDate: parsedStartDate,
+        endDate: parsedEndDate,
         count: 5,
       });
 

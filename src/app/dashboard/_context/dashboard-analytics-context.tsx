@@ -47,12 +47,15 @@ const DashboardAnalyticsProvider = ({
 
   const handleSetStartDate = (date: Date) => {
     setStartDate(date);
-    saveUserPreference({ key: "dashboard.startDate", value: date });
+    saveUserPreference({
+      key: "dashboard.startDate",
+      value: date.toISOString(),
+    });
   };
 
   const handleSetEndDate = (date: Date) => {
     setEndDate(date);
-    saveUserPreference({ key: "dashboard.endDate", value: date });
+    saveUserPreference({ key: "dashboard.endDate", value: date.toISOString() });
   };
 
   const handleSetActiveSource = (value: "preset" | "picker") => {

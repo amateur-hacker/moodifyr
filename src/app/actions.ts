@@ -3,10 +3,18 @@
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { db } from "@/db";
-import { songSearchHistory } from "@/db/schema/song";
+import { userPreferences } from "@/db/schema";
+import {
+  type SongSearchHistorySchema,
+  songSearchHistory,
+  songSearchHistorySchema,
+} from "@/db/schema/song";
+import {
+  type UserPreferenceSchema,
+  userPreferenceSchema,
+} from "@/db/schema/user";
 import { executeAction } from "@/db/utils";
 import { auth } from "@/lib/auth";
-import { userPreferences } from "@/db/schema";
 
 const signOutUser = async () => {
   return executeAction({
@@ -19,17 +27,24 @@ const signOutUser = async () => {
   });
 };
 
-const trackUserSongSearchHistory = ({ query }: { query: string }) => {
+const trackUserSongSearchHistory = ({
+  query,
+}: Pick<SongSearchHistorySchema, "query">) => {
+  const trackUserSongSearchHistorySchema = songSearchHistorySchema.pick({
+    query: true,
+  });
+  const { query: parsedQuery } = trackUserSongSearchHistorySchema.parse({
+    query,
+  });
+
   return executeAction({
     actionFn: async ({ sessionUser }) => {
-      if (!sessionUser?.id) return;
-
       await db
         .delete(songSearchHistory)
         .where(
           and(
             eq(songSearchHistory.userId, sessionUser.id),
-            eq(songSearchHistory.query, query),
+            eq(songSearchHistory.query, parsedQuery),
           ),
         );
 
@@ -44,15 +59,22 @@ const trackUserSongSearchHistory = ({ query }: { query: string }) => {
   });
 };
 
-const removeUserSongSearchHistory = ({ id }: { id: string }) => {
+const removeUserSongSearchHistory = ({
+  id,
+}: Pick<SongSearchHistorySchema, "id">) => {
+  const removeUserSongSearchHistorySchema = songSearchHistorySchema.pick({
+    id: true,
+  });
+  const { id: parsedId } = removeUserSongSearchHistorySchema.parse({ id });
+
   return executeAction({
     actionFn: async ({ sessionUser }) => {
       await db
         .delete(songSearchHistory)
         .where(
           and(
-            eq(songSearchHistory.id, id),
-            eq(songSearchHistory.userId, sessionUser?.id as string),
+            eq(songSearchHistory.id, parsedId),
+            eq(songSearchHistory.userId, sessionUser.id),
           ),
         );
     },
@@ -65,24 +87,28 @@ const removeUserSongSearchHistory = ({ id }: { id: string }) => {
 const saveUserPreference = async ({
   key,
   value,
-}: {
-  key: string;
-  value: unknown;
-}) => {
+}: Pick<UserPreferenceSchema, "key" | "value">) => {
+  const saveUserPreferenceSchema = userPreferenceSchema.pick({
+    key: true,
+    value: true,
+  });
+  const { key: parsedKey, value: parsedValue } = saveUserPreferenceSchema.parse(
+    { key, value },
+  );
+
   return executeAction({
     actionFn: async ({ sessionUser }) => {
       await db
         .insert(userPreferences)
         .values({
-          userId: sessionUser?.id as string,
-          key,
-          value: JSON.stringify(value),
+          userId: sessionUser.id,
+          key: parsedKey,
+          value: parsedValue,
         })
         .onConflictDoUpdate({
           target: [userPreferences.userId, userPreferences.key],
           set: {
-            value: JSON.stringify(value),
-            updatedAt: new Date(),
+            value: parsedValue,
           },
         });
     },

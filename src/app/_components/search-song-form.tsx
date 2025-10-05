@@ -1,12 +1,11 @@
 "use client";
 
-import { mergeRefs, useClickOutside } from "@mantine/hooks";
-import { ChevronLeft, Search, X } from "lucide-react";
+import { useClickOutside } from "@mantine/hooks";
+import { Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
 import {
   removeUserSongSearchHistory,
   trackUserSongSearchHistory,
@@ -24,12 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { encodeQueryParam } from "@/lib/utils";
 
-type SearchSongFormProps = {
-  inputRef?: React.Ref<HTMLInputElement>;
-};
-
-const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
-  const { close } = useFloatSearchBar();
+const SearchSongForm = () => {
   const searchParams = useSearchParams();
   const querySearchParam = searchParams.get("q") || "";
 
@@ -38,6 +32,8 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
   const [history, setHistory] = useState<{ id: string; query: string }[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const shouldOpen = isInputFocused && query.length === 0;
 
@@ -45,11 +41,8 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const router = useRouter();
 
-  const [localInput, setLocalInput] = useState<HTMLInputElement | null>(null);
-  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
-
   useClickOutside(() => setIsInputFocused(false), null, [
-    localInput,
+    inputRef?.current,
     contentEl,
   ]);
 
@@ -77,7 +70,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
   const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     try {
-      localInput?.blur();
+      inputRef?.current?.blur();
       if (query?.length) {
         trackUserSongSearchHistory({ query });
       }
@@ -90,7 +83,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const handleClear = () => {
     setQuery("");
-    localInput?.focus();
+    inputRef?.current?.focus();
   };
 
   const handleRemoveHistory = async (id: string) => {
@@ -107,7 +100,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     if (text === "Removed") return;
     setQuery(text);
     try {
-      localInput?.blur();
+      inputRef?.current?.blur();
       navigateWithQuery(text);
       await trackUserSongSearchHistory({ query: text });
     } catch (error) {
@@ -132,17 +125,17 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
       <TopLoader isLoading={isPending} />
       <form className="w-full flex" onSubmit={handleSearch}>
         <div className="relative w-full bg-background rounded-s-md rounded-e-md">
-          <button
-            className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer block sm:hidden z-20"
-            onClick={close}
-            type="button"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
+          {/* <button */}
+          {/*   className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer block sm:hidden z-20" */}
+          {/*   onClick={close} */}
+          {/*   type="button" */}
+          {/* > */}
+          {/*   <ChevronLeft className="size-5" /> */}
+          {/* </button> */}
 
           <Input
-            ref={mergeRefs(setLocalInput, inputRef)}
-            className="sticky inset-x-0 top-0 pl-8 pr-8 sm:pl-3 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
+            ref={inputRef}
+            className="sticky inset-x-0 top-0 pl-3 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
@@ -202,7 +195,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
                         if (idx > 0) {
                           items[idx - 1]?.focus();
                         } else {
-                          localInput?.focus();
+                          inputRef?.current?.focus();
                         }
                       }
                     }}

@@ -8,7 +8,7 @@ import { Typography } from "@/components/ui/typography";
 const FavSongsPage = async () => {
   const session = (await getUserSession()) ?? null;
 
-  if (!session) {
+  if (!session?.user) {
     return (
       <div className="w-full">
         <Typography variant="lead">
@@ -21,11 +21,14 @@ const FavSongsPage = async () => {
 
   return (
     <div className="w-full">
+      <Typography variant="h2" className="font-playful text-center mb-4">
+        Favourites
+      </Typography>
       {favSongs?.length ? (
         <div className="w-full space-y-5 mx-auto max-w-3xl">
           <Suspense
             fallback={
-              <div className="space-y-3">
+              <div className="space-y-[1.3125rem]">
                 {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
                   <SongCardLoader key={`loader-${id}`} />
                 ))}

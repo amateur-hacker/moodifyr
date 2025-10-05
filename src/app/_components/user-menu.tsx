@@ -15,20 +15,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { authClient } from "@/lib/auth-client";
+import { authClient } from "@/lib/auth-client";
 
 type UserMenuProps = {
   session: typeof authClient.$Infer.Session;
 };
 const UserMenu = ({ session }: UserMenuProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  // const router = useRouter();
+  // const { useSession } = authClient;
 
   const handleSignOut = async () => {
     setIsLoading(true);
     try {
       await signOutUser();
-      router.refresh();
+      // await authClient.signOut();
+      window.location.reload();
+      // refetch();
+      // router.refresh();
     } finally {
       setIsLoading(false);
     }

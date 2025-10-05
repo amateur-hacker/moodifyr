@@ -1,14 +1,5 @@
-type HistorySong = {
-  id: string;
-  historyId: string;
-  title: string;
-  thumbnail: string;
-  duration: {
-    seconds: number;
-    timestamp: string;
-  };
-};
+import type { HistorySongSchema, Prettify } from "@/app/_types";
 
-type SongHistory = Record<string, HistorySong[]>;
+type SongHistorySchema = Prettify<Record<string, HistorySongSchema[]>>;
 
-export type { HistorySong, SongHistory };
+export type { HistorySongSchema, SongHistorySchema };

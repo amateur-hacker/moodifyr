@@ -1,20 +1,14 @@
 "use client";
 
-import {
-  EllipsisIcon,
-  EllipsisVertical,
-  Heart,
-  Pause,
-  Play,
-} from "lucide-react";
+import { EllipsisIcon, Heart, Pause, Play } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { toast } from "sonner";
 import { useSongPlayer } from "@/app/_context/song-player-context";
-import type { FavouriteSong } from "@/app/_types";
+import type { FavouriteSongSchema } from "@/app/_types";
+import { toggleUserFavouriteSong } from "@/app/fn";
 import { getSongStatus } from "@/app/queries";
-import { toggleUserFavouriteSong } from "@/app/search/fn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -23,20 +17,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IconButton } from "@/components/ui/shadcn-io/icon-button";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import { IconButton } from "@/components/ui/shadcn-io/icon-button";
 
 type FavouriteSongCardProps = {
-  song: FavouriteSong;
-  favouriteSongs: FavouriteSong[] | null;
+  song: FavouriteSongSchema;
+  favouriteSongs: FavouriteSongSchema[] | null;
   revalidate?: boolean;
   path?: string;
   isAlreadyFavourite?: boolean;
 };
 const FavouriteSongCard = ({
   song,
-  favouriteSongs,
   revalidate = false,
   path = "/fav-songs",
 }: FavouriteSongCardProps) => {
@@ -50,8 +43,6 @@ const FavouriteSongCard = ({
     isCurrentSong,
   } = useSongPlayer();
 
-  // const isCurrent = isCurrentSong(song);
-  // const isCurrent = currentSong?.id === song.id;
   // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   // const isCurrent = useMemo(() => isCurrentSong(song), [currentSong, song]);
 
@@ -63,12 +54,6 @@ const FavouriteSongCard = ({
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // useEffect(() => {
-  //   if (favouriteSongs) {
-  //     setIsFavourite(favouriteSongs.some((fav) => fav.id === song.id));
-  //   }
-  // }, [favouriteSongs, song.id]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
@@ -137,14 +122,14 @@ const FavouriteSongCard = ({
           src={song.thumbnail}
           alt={song.title}
           fill
-          className="rounded-md object-cover transition-all duration-200 ease-out group-hover:brightness-[0.8]"
+          className="rounded-md object-cover transition-all duration-200 ease-out group-hover-always:group-hover:brightness-[0.8]"
         />
         <div
           className={cn(
             "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
             isCurrent
-              ? "bg-black/40 group-hover:bg-black/50 opacity-100"
-              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover:opacity-100"} bg-black/40`,
+              ? "bg-black/40 group-hover-always:group-hover:bg-black/50 opacity-100"
+              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover-always:group-hover:opacity-100"} bg-black/40`,
           )}
         >
           {isCurrent ? (
@@ -177,8 +162,10 @@ const FavouriteSongCard = ({
               size="icon"
               variant="ghost"
               className={cn(
-                "cursor-pointer ml-auto transition-all duration-200 group-hover:opacity-100 data-[state=open]:opacity-100 ",
-                isCurrent ? "opacity-100" : "opacity-100 sm:opacity-0",
+                "cursor-pointer ml-auto transition-all duration-200 group-hover-always:group-hover:opacity-100 data-[state=open]:opacity-100 ",
+                isCurrent
+                  ? "opacity-100"
+                  : "opacity-100 sm:has-hover:opacity-0",
               )}
               aria-label="Open dropdown menu"
             >

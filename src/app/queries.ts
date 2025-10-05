@@ -2,13 +2,17 @@
 
 import { desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import type { SearchSong, SongWithUniqueId } from "@/app/_types";
+import z from "zod";
+import type { SongWithUniqueIdSchema } from "@/app/_types";
 import { db } from "@/db";
 import { songSearchHistory } from "@/db/schema";
-import { favouriteSongs, songPlayHistory, songs } from "@/db/schema/song";
+import { favouriteSongs, songs } from "@/db/schema/song";
+import {
+  type UserPreferenceSchema,
+  userPreferenceSchema,
+} from "@/db/schema/user";
 import { executeQuery } from "@/db/utils";
 import { auth } from "@/lib/auth";
-import { v4 as uuid } from "uuid";
 
 const getUserSession = async () => {
   return executeQuery({
@@ -28,14 +32,21 @@ const getUserSongSearchHistory = ({
   page: number;
   limit: number;
 }) => {
+  const getUserSongSearchHistorySchema = z.object({
+    page: z.number().int().min(1),
+    limit: z.number().int().min(10).max(20),
+  });
+  const { page: parsedPage, limit: parsedLimit } =
+    getUserSongSearchHistorySchema.parse({ page, limit });
+
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
-      const offset = (page - 1) * limit;
+      const offset = (parsedPage - 1) * parsedLimit;
 
       const history = await db.query.songSearchHistory.findMany({
         where: eq(songSearchHistory.userId, sessionUser?.id as string),
         orderBy: [desc(songSearchHistory.searchedAt)],
-        limit,
+        limit: parsedLimit,
         offset,
       });
 
@@ -46,82 +57,34 @@ const getUserSongSearchHistory = ({
   });
 };
 
-const getUserLastPlayedSong = async (): Promise<SongWithUniqueId | null> => {
-  const song = await getUserPreference<SongWithUniqueId>({
-    key: "lastPlayedSong",
-  });
-  if (!song) return null;
+const getUserLastPlayedSong =
+  async (): Promise<SongWithUniqueIdSchema | null> => {
+    const song = await getUserPreference<SongWithUniqueIdSchema>({
+      key: "lastPlayedSong",
+    });
+    if (!song) return null;
 
-  return song as SongWithUniqueId;
-};
-
-// const getUserLastPlayedSong = () => {
-//   const formatTimestamp = (seconds: number) => {
-//     const mins = Math.floor(seconds / 60);
-//     const secs = seconds % 60;
-//     return `${mins}:${secs.toString().padStart(2, "0")}`;
-//   };
-//
-//   return executeQuery({
-//     queryFn: async ({ sessionUser }) => {
-//       const results = await db
-//         .select({
-//           id: songs.id,
-//           title: songs.title,
-//           thumbnail: songs.thumbnail,
-//           duration: songs.duration,
-//           playedAt: songPlayHistory.playedAt,
-//         })
-//         .from(songPlayHistory)
-//         .innerJoin(songs, eq(songPlayHistory.songId, songs.id))
-//         .where(eq(songPlayHistory.userId, sessionUser?.id as string))
-//         .orderBy(desc(songPlayHistory.playedAt))
-//         .limit(1);
-//
-//       const latestPlay = results[0];
-//       if (!latestPlay) return null;
-//
-//       const lastPlayedSong: SearchSong = {
-//         id: latestPlay.id,
-//         searchId: uuid(),
-//         title: latestPlay.title,
-//         thumbnail: latestPlay.thumbnail,
-//         duration: {
-//           timestamp: latestPlay.duration.timestamp,
-//           seconds: latestPlay.duration.seconds,
-//         },
-//       };
-//
-//       return lastPlayedSong;
-//     },
-//     isProtected: true,
-//     serverErrorMessage: "getUserLastPlayedSong",
-//   });
-// };
+    return song as SongWithUniqueIdSchema;
+  };
 
 const getUserFavouriteSongs = () => {
-  // const formatTimestamp = (seconds: number) => {
-  //   const mins = Math.floor(seconds / 60);
-  //   const secs = seconds % 60;
-  //   return `${mins}:${secs.toString().padStart(2, "0")}`;
-  // };
-
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
       const favourites = await db
         .select({
-          id: favouriteSongs.id,
-          songId: favouriteSongs.songId,
-          title: favouriteSongs.title,
-          thumbnail: favouriteSongs.thumbnail,
-          duration: favouriteSongs.duration,
+          favouriteId: favouriteSongs.id,
+          songId: songs.id,
+          title: songs.title,
+          thumbnail: songs.thumbnail,
+          duration: songs.duration,
         })
         .from(favouriteSongs)
-        .where(eq(favouriteSongs.userId, sessionUser?.id as string));
+        .innerJoin(songs, eq(favouriteSongs.songId, songs.id))
+        .where(eq(favouriteSongs.userId, sessionUser.id));
 
       return favourites.map((fav) => ({
         id: fav.songId,
-        favouriteId: fav.id,
+        favouriteId: fav.favouriteId,
         title: fav.title,
         thumbnail: fav.thumbnail,
         duration: {
@@ -137,19 +100,17 @@ const getUserFavouriteSongs = () => {
 
 const getUserPreference = async <T = unknown>({
   key,
-}: {
-  key: string;
-}): Promise<T | string | null> => {
+}: Pick<UserPreferenceSchema, "key">): Promise<T | string | null> => {
+  const getUserPreferenceSchema = userPreferenceSchema.pick({ key: true });
+  const { key: parsedKey } = getUserPreferenceSchema.parse({ key });
+
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
-      if (!sessionUser?.id) return null;
-
       const pref = await db.query.userPreferences.findFirst({
         where: (prefs, { eq, and }) =>
-          and(eq(prefs.userId, sessionUser.id), eq(prefs.key, key)),
+          and(eq(prefs.userId, sessionUser.id), eq(prefs.key, parsedKey)),
       });
 
-      // return pref ? JSON.parse(pref.value) : null;
       if (!pref) return null;
 
       try {
@@ -166,14 +127,15 @@ const getUserPreference = async <T = unknown>({
 const getUserAllPreferences = async () => {
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
-      if (!sessionUser?.id) return {};
-
       const prefs = await db.query.userPreferences.findMany({
         where: (prefs, { eq }) => eq(prefs.userId, sessionUser.id),
       });
-
       return prefs.reduce<Record<string, unknown>>((acc, p) => {
-        acc[p.key] = JSON.parse(p.value);
+        acc[p.key] =
+          typeof p.value === "string" &&
+          (p.value.startsWith("{") || p.value.startsWith("["))
+            ? JSON.parse(p.value)
+            : p.value;
         return acc;
       }, {});
     },
@@ -183,9 +145,18 @@ const getUserAllPreferences = async () => {
 };
 
 const getSongStatus = async ({ youtubeId }: { youtubeId: string }) => {
+  const getSongStatusSchema = z.object({
+    youtubeId: z.string().min(1),
+    // .length(11)
+    // .regex(/^[A-Za-z0-9_-]{11}$/, "Invalid YouTube video ID format"),
+  });
+  const { youtubeId: parsedYoutubeId } = getSongStatusSchema.parse({
+    youtubeId,
+  });
+
   return executeQuery({
     queryFn: async () => {
-      const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${youtubeId}`;
+      const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${parsedYoutubeId}`;
       const res = await fetch(url, {
         method: "GET",
         headers: {

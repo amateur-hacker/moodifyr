@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { isMobile } from "react-device-detect";
 import youtubePlayer from "youtube-player";
 import { useSongPlayer } from "@/app/_context/song-player-context";
-import type { SongWithUniqueId } from "@/app/_types";
+import type { SongWithUniqueIdSchema } from "@/app/_types";
 import {
   trackUserSongAnalyticsPlayHistory,
   trackUserSongPlayHistory,
@@ -26,10 +26,10 @@ export function SongPlayerEngine() {
     songs,
   } = useSongPlayer();
 
-  const songsRef = useRef<SongWithUniqueId[]>(songs);
+  const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const currentSongRef = useRef<SongWithUniqueId | null>(null);
+  const currentSongRef = useRef<SongWithUniqueIdSchema | null>(null);
   const modeRef = useRef(mode);
   const isPlayingRef = useRef(isPlaying);
   const lastTimeRef = useRef(0);
@@ -81,7 +81,12 @@ export function SongPlayerEngine() {
         ) {
           lastTrackedIdRef.current = currentSongRef.current.id;
           await trackUserSongPlayHistory({
-            song: currentSongRef.current,
+            song: {
+              id: currentSongRef.current.id,
+              title: currentSongRef.current.title,
+              thumbnail: currentSongRef.current.thumbnail,
+              duration: currentSongRef.current.duration,
+            },
           });
         }
         break;

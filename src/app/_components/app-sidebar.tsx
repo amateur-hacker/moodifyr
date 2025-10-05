@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Activity,
   HardDriveDownload,
@@ -9,6 +11,10 @@ import {
   Smile,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { googleSignInUser } from "@/app/fn";
 import {
   Sidebar,
   SidebarContent,
@@ -21,64 +27,79 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { authClient } from "@/lib/auth-client";
 
 const items = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: Activity,
-  },
-  {
-    title: "Search",
-    url: "/search",
-    icon: Search,
-  },
+  { title: "Home", url: "/", icon: Home, protected: true },
+  { title: "Dashboard", url: "/dashboard", icon: Activity, protected: true },
+  { title: "Search", url: "/search", icon: Search, protected: false },
   {
     title: "Favourites",
     url: "/favourites",
     icon: HeartPulse,
+    protected: true,
   },
-  {
-    title: "Moodlist",
-    url: "/moodlist",
-    icon: Smile,
-  },
+  { title: "Moodlists", url: "/moodlists", icon: Smile, protected: true },
   {
     title: "Downloads",
     url: "/downloads",
     icon: HardDriveDownload,
+    protected: true,
   },
-  {
-    title: "History",
-    url: "/history",
-    icon: History,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
+  { title: "History", url: "/history", icon: History, protected: true },
+  { title: "Settings", url: "/settings", icon: Settings, protected: true },
 ];
 
 export function AppSidebar() {
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [origin, setOrigin] = useState("");
+
+  const handleNavClick = (url: string, isProtected: boolean) => {
+    if (isProtected && !session?.user) {
+      toast("Sign in to access this page", {
+        id: "signin-toast",
+        action: {
+          label: "Sign In",
+          onClick: async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const response = await googleSignInUser({
+              callbackURL: url,
+              newUserCallbackURL: url,
+            });
+            if (response?.url) {
+              router.push(response?.url);
+            }
+          },
+        },
+        duration: 5000,
+        className: "pointer-events-auto",
+      });
+      return false;
+    }
+    return true;
+  };
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
   return (
     <Sidebar variant="sidebar">
       <SidebarHeader className="h-[3.8rem] px-6 py-3">
         <div className="flex-1 flex gap-1.5 items-center">
           <SidebarTrigger className="cursor-pointer" />
-          <Link
-            href="/"
-            className="text-xl font-bold hover:opacity-80 transition-opacity"
-          >
+          <Link href="/" className="text-2xl font-bold font-logo">
             Moodifyr
           </Link>
         </div>
       </SidebarHeader>
+
       <SidebarContent className="px-6 py-3">
         <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -87,7 +108,23 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url}>
+                    <Link
+                      href={item.url}
+                      onClick={(e) => {
+                        const ok = handleNavClick(item.url, item.protected);
+                        if (!ok) {
+                          e.preventDefault();
+                          const queryString = searchParams?.toString();
+                          const url = queryString
+                            ? `${origin}${pathname}?${queryString}`
+                            : `${origin}${pathname}`;
+
+                          router.push(url);
+                          return;
+                        }
+                      }}
+                      className="flex items-center gap-2"
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>

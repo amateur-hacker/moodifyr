@@ -8,7 +8,7 @@ export default async function HomePage() {
 
   if (!session) {
     return (
-      <div className="mt-15 p-4">
+      <div className="w-full">
         <Typography variant="lead">
           Please sign in to see your home page.
         </Typography>

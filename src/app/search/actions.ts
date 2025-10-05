@@ -2,12 +2,14 @@
 
 import { endOfDay, startOfDay } from "date-fns";
 import { and, eq, gte, lte } from "drizzle-orm";
-import type { SongWithUniqueId } from "@/app/_types";
+import z from "zod";
 import { classifySongCategory } from "@/app/search/fn";
 import { db } from "@/db";
 import {
+  type SongSchema,
   songAnalyticsPlayHistory,
   songPlayHistory,
+  songSchema,
   songs,
 } from "@/db/schema/song";
 import { executeAction } from "@/db/utils";
@@ -16,25 +18,28 @@ import { convertToLocalTZ } from "@/lib/utils";
 const trackUserSongPlayHistory = async ({
   song,
 }: {
-  song: SongWithUniqueId;
+  song: Omit<SongSchema, "category">;
 }) => {
-  if (!song) return null;
+  const trackUserSongPlayHistorySchema = z.object({
+    song: songSchema.omit({ category: true }),
+  });
+  const { song: parsedSong } = trackUserSongPlayHistorySchema.parse({ song });
 
   return executeAction({
     actionFn: async ({ sessionUser }) => {
       const existingSong = await db.query.songs.findFirst({
-        where: eq(songs.id, song.id),
+        where: eq(songs.id, parsedSong.id),
       });
 
       await db.transaction(async (tx) => {
         if (!existingSong) {
           await tx.insert(songs).values({
-            id: song.id,
-            title: song.title,
-            thumbnail: song.thumbnail,
+            id: parsedSong.id,
+            title: parsedSong.title,
+            thumbnail: parsedSong.thumbnail,
             duration: {
-              timestamp: song.duration.timestamp,
-              seconds: song.duration.seconds,
+              timestamp: parsedSong.duration.timestamp,
+              seconds: parsedSong.duration.seconds,
             },
           });
         }
@@ -48,22 +53,28 @@ const trackUserSongPlayHistory = async ({
         const existingPlay = await tx.query.songPlayHistory.findFirst({
           where: and(
             eq(songPlayHistory.userId, sessionUser?.id as string),
-            eq(songPlayHistory.songId, song.id),
+            eq(songPlayHistory.songId, parsedSong.id),
             gte(songPlayHistory.playedAt, dayStart),
             lte(songPlayHistory.playedAt, dayEnd),
           ),
         });
 
         if (existingPlay) {
+          // await tx
+          //   .delete(songPlayHistory)
+          //   .where(eq(songPlayHistory.id, existingPlay.id));
           await tx
-            .delete(songPlayHistory)
+            .update(songPlayHistory)
+            .set({
+              playedAt: new Date(),
+            })
             .where(eq(songPlayHistory.id, existingPlay.id));
+        } else {
+          await tx.insert(songPlayHistory).values({
+            userId: sessionUser.id,
+            songId: parsedSong.id,
+          });
         }
-
-        await tx.insert(songPlayHistory).values({
-          userId: sessionUser?.id as string,
-          songId: song.id,
-        });
       });
     },
     isProtected: true,
@@ -71,24 +82,28 @@ const trackUserSongPlayHistory = async ({
     serverErrorMessage: "trackUserSongPlayHistory",
   });
 };
+
 const trackUserSongAnalyticsPlayHistory = async ({
   song,
 }: {
-  song: SongWithUniqueId;
+  song: SongSchema;
 }) => {
-  if (!song) return null;
+  const trackUserSongAnalayticsPlayHistorySchema = songSchema;
+  const parsedSong = trackUserSongAnalayticsPlayHistorySchema.parse({
+    ...song,
+  });
 
   return executeAction({
     actionFn: async ({ sessionUser }) => {
       const existingSong = await db.query.songs.findFirst({
-        where: eq(songs.id, song.id),
+        where: eq(songs.id, parsedSong.id),
       });
 
       let category = existingSong?.category;
 
       if (!category) {
         const categoryResult = await classifySongCategory({
-          title: song.title,
+          title: parsedSong.title,
         });
         category = categoryResult;
       }
@@ -96,12 +111,12 @@ const trackUserSongAnalyticsPlayHistory = async ({
       await db.transaction(async (tx) => {
         if (!existingSong) {
           await tx.insert(songs).values({
-            id: song.id,
-            title: song.title,
-            thumbnail: song.thumbnail,
+            id: parsedSong.id,
+            title: parsedSong.title,
+            thumbnail: parsedSong.thumbnail,
             duration: {
-              timestamp: song.duration.timestamp,
-              seconds: song.duration.seconds,
+              timestamp: parsedSong.duration.timestamp,
+              seconds: parsedSong.duration.seconds,
             },
             category,
           });
@@ -110,8 +125,8 @@ const trackUserSongAnalyticsPlayHistory = async ({
         }
 
         await tx.insert(songAnalyticsPlayHistory).values({
-          userId: sessionUser?.id as string,
-          songId: song.id,
+          userId: sessionUser.id,
+          songId: parsedSong.id,
         });
       });
     },

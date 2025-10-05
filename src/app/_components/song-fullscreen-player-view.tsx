@@ -9,7 +9,7 @@ import {
   SkipForward,
 } from "lucide-react";
 import Image from "next/image";
-import type { Song } from "@/app/_types";
+import type { SongSchema } from "@/app/_types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -23,14 +23,14 @@ import { Slider } from "@/components/ui/slider";
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
 type SongFullscreenPlayerViewProps = {
-  currentSong: Song;
+  currentSong: SongSchema;
   isPlaying: boolean;
   isLoading: boolean;
   handlePlay: (e: React.MouseEvent) => void;
   handlePrevious: (e: React.MouseEvent) => void;
   handleNext: (e: React.MouseEvent) => void;
   currentIndex: number;
-  songs: Song[];
+  songs: SongSchema[];
   progress: number;
   duration: number;
   toggleFullScreen: (e: React.MouseEvent) => void;

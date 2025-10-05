@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useSongPlayer } from "@/app/_context/song-player-context";
-import type { SongWithUniqueId } from "@/app/_types";
+import type { SongWithUniqueIdSchema } from "@/app/_types";
 
-type SongsSetterProps = { songs: SongWithUniqueId[] | null };
+type SongsSetterProps = { songs: SongWithUniqueIdSchema[] | null };
 
 export function SongsSetter({ songs }: SongsSetterProps) {
   const { setSongs, currentSong } = useSongPlayer();

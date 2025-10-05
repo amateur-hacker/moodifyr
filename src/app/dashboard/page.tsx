@@ -1,12 +1,13 @@
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { Dashboard } from "@/app/dashboard/_components/dashboard";
 import { getUserAllPreferences, getUserSession } from "@/app/queries";
+import { convertToLocalTZ } from "@/lib/utils";
 import { DashboardAnalyticsProvider } from "./_context/dashboard-analytics-context";
 
 export default async function DashboardPage() {
   const session = (await getUserSession()) ?? null;
 
-  if (!session) {
+  if (!session?.user) {
     return (
       <div className="w-full">
         <h3 className="text-lg">Please sign in to see your dashboard.</h3>
@@ -21,11 +22,11 @@ export default async function DashboardPage() {
   const defaultEndDate = endOfDay(now);
 
   const initialStartDate = prefs["dashboard.startDate"]
-    ? new Date(prefs["dashboard.startDate"] as string)
+    ? convertToLocalTZ(new Date(prefs["dashboard.startDate"] as string))
     : defaultStartDate;
 
   const initialEndDate = prefs["dashboard.endDate"]
-    ? new Date(prefs["dashboard.endDate"] as string)
+    ? convertToLocalTZ(new Date(prefs["dashboard.endDate"] as string))
     : defaultEndDate;
 
   const initialActiveSource =

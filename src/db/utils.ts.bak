@@ -1,4 +1,4 @@
-import type { User as SessionUser } from "better-auth";
+import { BetterAuthError, type User as SessionUser } from "better-auth";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
@@ -24,9 +24,12 @@ const withSession = async <T>({
 
     return await fn({ sessionUser });
   } catch (error) {
-    // if (isRedirectError(error)) throw error;
+    if (isRedirectError(error)) throw error;
     console.error(serverErrorMessage, error);
     return null;
+    // if (error instanceof BetterAuthError) return null;
+    // if (error instanceof Error) throw error;
+    // throw new Error(serverErrorMessage);
   }
 };
 

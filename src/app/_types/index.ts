@@ -1,39 +1,46 @@
-type Song = {
-  id: string;
-  title: string;
-  thumbnail: string;
-  duration: { timestamp: string; seconds: number };
-};
+import type { SongSchema as OrigSongSchema } from "@/db/schema/song";
 
-type SearchSong = Song & {
-  searchId: string;
-};
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
 
-type HistorySong = Song & {
-  historyId: string;
-};
+type SongSchema = Prettify<Omit<OrigSongSchema, "category">>;
 
-type FavouriteSong = Song & {
-  favouriteId: string;
-};
+type SearchSongSchema = Prettify<
+  SongSchema & {
+    searchId: string;
+  }
+>;
 
-type SongWithUniqueId = {
-  id: string;
-  title: string;
-  thumbnail: string;
-  duration: { seconds: number; timestamp: string };
-  searchId?: string;
-  favouriteId?: string;
-  historyId?: string;
-};
+type HistorySongSchema = Prettify<
+  SongSchema & {
+    historyId: string;
+  }
+>;
+
+type FavouriteSongSchema = Prettify<
+  SongSchema & {
+    favouriteId: string;
+  }
+>;
+type SongWithUniqueIdSchema = Prettify<
+  SongSchema &
+    Partial<{
+      searchId: string;
+      favouriteId: string;
+      historyId: string;
+      moodlistSongId: string;
+    }>
+>;
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
 export type {
-  Song,
-  SearchSong,
-  HistorySong,
-  FavouriteSong,
-  SongWithUniqueId,
+  Prettify,
+  SongSchema,
+  SearchSongSchema,
+  HistorySongSchema,
+  FavouriteSongSchema,
+  SongWithUniqueIdSchema,
   SongPlayerMode,
 };

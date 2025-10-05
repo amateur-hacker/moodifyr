@@ -25,7 +25,7 @@ const TopLoader = ({ isLoading }: { isLoading: boolean }) => {
     }
   }, [isLoading]);
 
-  const color = "#89b4fa";
+  const color = "var(--primary)";
   const height = 3;
   const boxShadow = `box-shadow:0 0 10px ${color},0 0 5px ${color}`;
   const zIndex = 1600;

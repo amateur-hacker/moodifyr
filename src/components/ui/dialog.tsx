@@ -63,6 +63,17 @@ function DialogContent({
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
           className,
         )}
+        onPointerDownOutside={(e) => {
+          // don't dismiss dialog when clicking inside the toast
+          if (
+            e.target instanceof Element &&
+            e.target.closest("[data-sonner-toast]")
+          ) {
+            e.preventDefault();
+          }
+          // if you are wrapping this component like shadcn, also call the caller's onPointerDownOutside method
+          // onPointerDownOutside?.(e);
+        }}
         {...props}
       >
         {children}

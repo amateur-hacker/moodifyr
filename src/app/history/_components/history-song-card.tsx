@@ -2,11 +2,11 @@
 
 import { EllipsisVertical, Pause, Play } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { toast } from "sonner";
 import { useSongPlayer } from "@/app/_context/song-player-context";
-import type { HistorySong } from "@/app/_types";
+import type { HistorySongSchema } from "@/app/_types";
 import { removeUserSongPlayHistory } from "@/app/history/actions";
 import { getSongStatus } from "@/app/queries";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 type HistorySongCardProps = {
-  song: HistorySong;
+  song: HistorySongSchema;
 };
 const HistorySongCard = ({ song }: HistorySongCardProps) => {
   const {
@@ -34,7 +34,6 @@ const HistorySongCard = ({ song }: HistorySongCardProps) => {
     isCurrentSong,
   } = useSongPlayer();
 
-  // const isCurrent = isCurrentSong(song);
   // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   // const isCurrent = useMemo(() => isCurrentSong(song), [currentSong, song]);
 
@@ -72,8 +71,6 @@ const HistorySongCard = ({ song }: HistorySongCardProps) => {
     }
 
     if (!isCurrent) {
-      // setDuration(0);
-      // playerRef?.current?.loadVideoById(song.id);
       setIsPlayerFullScreen(true);
       setSong(song);
       return;
@@ -90,8 +87,6 @@ const HistorySongCard = ({ song }: HistorySongCardProps) => {
     try {
       await removeUserSongPlayHistory({
         id: song.historyId,
-        revalidate: true,
-        path: "/history",
       });
     } catch (error) {
       console.error("Error removing song play history", error);
@@ -109,14 +104,14 @@ const HistorySongCard = ({ song }: HistorySongCardProps) => {
           src={song.thumbnail}
           alt={song.title}
           fill
-          className="rounded-md object-cover transition-all duration-200 ease-out group-hover:brightness-[0.8]"
+          className="rounded-md object-cover transition-all duration-200 ease-out group-hover-always:group-hover:brightness-[0.8]"
         />
         <div
           className={cn(
             "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
             isCurrent
-              ? "bg-black/40 group-hover:bg-black/50 opacity-100"
-              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover:opacity-100"} bg-black/40`,
+              ? "bg-black/40 group-hover-always:group-hover:bg-black/50 opacity-100"
+              : `${isClient && (isMobile || isTablet) ? "opacity-100" : "opacity-0 group-hover-always:group-hover:opacity-100"} bg-black/40`,
           )}
         >
           {isCurrent ? (
@@ -148,8 +143,8 @@ const HistorySongCard = ({ song }: HistorySongCardProps) => {
             size="icon"
             variant="ghost"
             className={cn(
-              "cursor-pointer ml-auto transition-all duration-200 group-hover:opacity-100 data-[state=open]:opacity-100 ",
-              isCurrent ? "opacity-100" : "opacity-100 sm:opacity-0",
+              "cursor-pointer ml-auto transition-all duration-200 group-hover-always:group-hover:opacity-100 data-[state=open]:opacity-100 ",
+              isCurrent ? "opacity-100" : "opacity-100 sm:has-hover:opacity-0",
             )}
             aria-label="Open dropdown menu"
           >

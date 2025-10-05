@@ -180,6 +180,7 @@ function Sidebar({
     );
   }
 
+  // HACK: !z-10
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>

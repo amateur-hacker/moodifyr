@@ -1,17 +1,17 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
-import type { SongPlayerMode, SongWithUniqueId } from "@/app/_types";
+import type { SongPlayerMode, SongWithUniqueIdSchema } from "@/app/_types";
 import { saveUserPreference } from "@/app/actions";
 
 type SongPlayerContextProps = {
-  setCurrentSong: (song: SongWithUniqueId | null) => void;
-  currentSong: SongWithUniqueId | null;
+  setCurrentSong: (song: SongWithUniqueIdSchema | null) => void;
+  currentSong: SongWithUniqueIdSchema | null;
   youtubeId: string | null;
   setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   isPlaying: boolean;
-  setSong: (song: SongWithUniqueId | null, isPlaying?: boolean) => void;
+  setSong: (song: SongWithUniqueIdSchema | null, isPlaying?: boolean) => void;
   togglePlay: (e: React.MouseEvent) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isLoading: boolean;
@@ -24,25 +24,24 @@ type SongPlayerContextProps = {
   setMode: (mode: SongPlayerMode) => Promise<void>;
   setIsPlayerFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
   isPlayerFullScreen: boolean;
-  songs: SongWithUniqueId[];
-  setSongs: React.Dispatch<React.SetStateAction<SongWithUniqueId[]>>;
-  isCurrentSong: (song: SongWithUniqueId) => boolean;
+  songs: SongWithUniqueIdSchema[];
+  setSongs: React.Dispatch<React.SetStateAction<SongWithUniqueIdSchema[]>>;
+  isCurrentSong: (song: SongWithUniqueIdSchema) => boolean;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
 
 type SongPlayerProviderProps = {
   children: React.ReactNode;
-  initialSong: SongWithUniqueId | null;
+  initialSong: SongWithUniqueIdSchema | null;
   initialMode: SongPlayerMode;
 };
-
 export function SongPlayerProvider({
   children,
   initialSong,
   initialMode,
 }: SongPlayerProviderProps) {
-  const [currentSong, setCurrentSong] = useState<SongWithUniqueId | null>(
+  const [currentSong, setCurrentSong] = useState<SongWithUniqueIdSchema | null>(
     initialSong ?? null,
   );
   const [youtubeId, setYoutubeId] = useState<string | null>(null);
@@ -52,7 +51,7 @@ export function SongPlayerProvider({
   const [duration, setDuration] = useState(0);
   const [mode, setMode] = useState<SongPlayerMode>(initialMode ?? "normal");
   const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
-  const [songs, setSongs] = useState<SongWithUniqueId[]>([]);
+  const [songs, setSongs] = useState<SongWithUniqueIdSchema[]>([]);
 
   const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
 
@@ -63,13 +62,15 @@ export function SongPlayerProvider({
     }
   };
 
-  const getUniqueSongId = (song: SongWithUniqueId) => {
-    if (song.favouriteId) return `favourite-${song.id}`;
-    else if (song.historyId) return `history-${song.id}`;
-    return `search-${song.id}`;
+  const getUniqueSongId = (song: SongWithUniqueIdSchema) => {
+    if (song.favouriteId) return `favourite-${song.favouriteId}`;
+    else if (song.historyId) return `history-${song.historyId}`;
+    else if (song.searchId) return `search-${song.searchId}`;
+    else if (song.moodlistSongId) return `moodlist-${song.moodlistSongId}`;
+    return `song-${song.id}`;
   };
 
-  const setSong = (song: SongWithUniqueId | null, isPlaying = true) => {
+  const setSong = (song: SongWithUniqueIdSchema | null, isPlaying = true) => {
     if (!song) return;
     setCurrentSong(song);
     setYoutubeId(song.id);
@@ -81,13 +82,13 @@ export function SongPlayerProvider({
     if (newId !== currentId) {
       const valueToSave = { ...song };
 
-      if (song.favouriteId) valueToSave.favouriteId = song.id;
-      else if (song.historyId) valueToSave.historyId = song.id;
-      else valueToSave.searchId = song.id;
+      if (song.favouriteId) valueToSave.favouriteId = song.favouriteId;
+      else if (song.historyId) valueToSave.historyId = song.historyId;
+      else valueToSave.searchId = song.searchId;
 
       saveUserPreference({
         key: "lastPlayedSong",
-        value: valueToSave,
+        value: JSON.stringify(valueToSave),
       });
     }
   };
@@ -108,8 +109,9 @@ export function SongPlayerProvider({
     }
   };
 
-  const isCurrentSong = (song: SongWithUniqueId) => {
+  const isCurrentSong = (song: SongWithUniqueIdSchema) => {
     if (!currentSong) return false;
+    console.log(currentSong);
     return getUniqueSongId(currentSong) === getUniqueSongId(song);
   };
 

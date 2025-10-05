@@ -3,20 +3,20 @@
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
-import type { Song } from "@/app/_types";
+import type { SongSchema } from "@/app/_types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 type SongMiniPlayerViewProps = {
-  currentSong: Song;
+  currentSong: SongSchema;
   isPlaying: boolean;
   isLoading: boolean;
   handlePlay: (e: React.MouseEvent) => void;
   handlePrevious: (e: React.MouseEvent) => void;
   handleNext: (e: React.MouseEvent) => void;
   currentIndex: number;
-  songs: Song[];
+  songs: SongSchema[];
   progress: number;
   duration: number;
   toggleFullScreen: (e: React.MouseEvent) => void;

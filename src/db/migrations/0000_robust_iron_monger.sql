@@ -17,12 +17,32 @@ CREATE TABLE "accounts" (
 --> statement-breakpoint
 CREATE TABLE "favourite_songs" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"songId" text NOT NULL,
+	"song_id" text NOT NULL,
 	"user_id" text NOT NULL,
-	"title" text NOT NULL,
-	"thumbnail" text NOT NULL,
-	"duration" json NOT NULL,
 	"favourited_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "moodlist_followers" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"moodlist_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
+	"followed_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "moodlist_songs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"moodlist_id" uuid NOT NULL,
+	"song_id" text NOT NULL,
+	"user_id" text NOT NULL,
+	"added_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "moodlists" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" text NOT NULL,
+	"name" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "sessions" (
@@ -72,7 +92,8 @@ CREATE TABLE "user_preferences" (
 	"user_id" text NOT NULL,
 	"key" text NOT NULL,
 	"value" text NOT NULL,
-	"searched_at" timestamp DEFAULT now() NOT NULL
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -97,7 +118,14 @@ CREATE TABLE "verifications" (
 );
 --> statement-breakpoint
 ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "favourite_songs" ADD CONSTRAINT "favourite_songs_song_id_songs_id_fk" FOREIGN KEY ("song_id") REFERENCES "public"."songs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "favourite_songs" ADD CONSTRAINT "favourite_songs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "moodlist_followers" ADD CONSTRAINT "moodlist_followers_moodlist_id_moodlists_id_fk" FOREIGN KEY ("moodlist_id") REFERENCES "public"."moodlists"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "moodlist_followers" ADD CONSTRAINT "moodlist_followers_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "moodlist_songs" ADD CONSTRAINT "moodlist_songs_moodlist_id_moodlists_id_fk" FOREIGN KEY ("moodlist_id") REFERENCES "public"."moodlists"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "moodlist_songs" ADD CONSTRAINT "moodlist_songs_song_id_songs_id_fk" FOREIGN KEY ("song_id") REFERENCES "public"."songs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "moodlist_songs" ADD CONSTRAINT "moodlist_songs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "moodlists" ADD CONSTRAINT "moodlists_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "song_analytics_play_history" ADD CONSTRAINT "song_analytics_play_history_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "song_analytics_play_history" ADD CONSTRAINT "song_analytics_play_history_song_id_songs_id_fk" FOREIGN KEY ("song_id") REFERENCES "public"."songs"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
