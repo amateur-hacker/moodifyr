@@ -244,7 +244,8 @@ export function SongPlayerEngine() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    if (!isMobile || !playerRef.current) return;
+    // if (!isMobile || !playerRef.current) return;
+    if (!playerRef.current) return;
 
     const handleVisibility = async () => {
       if (document.hidden && isPlayingRef.current) {
