@@ -244,17 +244,20 @@ export function SongPlayerEngine() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    // if (!isMobile || !playerRef.current) return;
-    if (!playerRef.current) return;
+    if (!isMobile || !playerRef.current) return;
 
     const handleVisibility = async () => {
       if (document.hidden && isPlayingRef.current) {
-        try {
-          await playerRef.current?.seekTo(lastTimeRef.current, true);
-          await playerRef.current?.playVideo();
-        } catch (err) {
-          console.warn("Autoplay blocked or failed resume:", err);
-        }
+        const timeout = setTimeout(async () => {
+          try {
+            await playerRef.current?.seekTo(lastTimeRef.current, true);
+            await playerRef.current?.playVideo();
+          } catch (err) {
+            console.warn("Autoplay blocked or failed resume:", err);
+          }
+        }, 1000);
+
+        return () => clearTimeout(timeout);
       }
     };
 
