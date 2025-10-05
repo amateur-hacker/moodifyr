@@ -28,7 +28,26 @@ const AddToMoodlistDialog = ({
 }: {
   open: boolean;
   onOpenChange: Dispatch<SetStateAction<boolean>>;
-  moodlists: SelectMoodlistModel[] | null;
+  // moodlists: SelectMoodlistModel[] | null;
+  moodlists:
+    | (
+        | {
+            type: "owned";
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+          }
+        | {
+            type: "followed";
+            id: string;
+            name: string;
+            ownerId: string;
+            followedAt: Date;
+          }
+      )[]
+    | null;
   songId: string;
   song: SongSchema;
 }) => {
