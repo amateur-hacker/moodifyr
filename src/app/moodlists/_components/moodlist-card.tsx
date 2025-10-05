@@ -28,6 +28,7 @@ import { authClient } from "@/lib/auth-client";
 import { DeleteMoodlistDialog } from "./delete-moodlist-dialog";
 import { RenameMoodlistDialog } from "./rename-moodlist-dialog";
 import { ShareMoodlistDialog } from "./share-moodlist-dialog";
+import { PropagationStopper } from "@/components/prevent-default-propagation";
 
 // import { authClient } from "@/lib/auth-client";
 
@@ -136,12 +137,7 @@ const MoodlistCard = ({
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: <_>
-    // biome-ignore lint/a11y/useKeyWithClickEvents: <_>
-    <div
-      className="size-32 sm:size-40 bg-gradient-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center relative overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="size-32 sm:size-40 bg-gradient-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center relative overflow-hidden">
       <Music className="size-16" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -215,35 +211,37 @@ const MoodlistCard = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {moodlistType === "owned" && (
-        <>
-          <RenameMoodlistDialog
-            open={isRenameMoodlistDialogOpen}
-            onOpenChange={setIsRenameMoodlistDialogOpen}
-            prevMoodlistName={prevMoodlistName}
-            moodlistId={moodlistId}
-          />
-          <DeleteMoodlistDialog
-            open={isDeleteMoodlistDialogOpen}
-            onOpenChange={setIsDeleteMoodlistDialogOpen}
-            moodlistName={prevMoodlistName}
-            moodlistId={moodlistId}
-          />
-        </>
-      )}
-      <ShareMoodlistDialog
-        open={isShareMoodlistDialogOpen}
-        onOpenChange={setIsShareMoodlistDialogOpen}
-        link={`${origin}/moodlists/user/${moodlistType === "owned" ? userId : ownerId}/${moodlistId}`}
-      />
-      {moodlistType === "followed" && (
-        <div className="absolute left-0 top-0 h-16 w-16">
-          <div className="absolute transform -rotate-45 bg-accent text-center text-white font-semibold py-1 left-[-52px] top-4 w-[170px]">
-            {/* {moodlistType === "owned" ? "owned" : "followed"} */}
-            followed
+      <PropagationStopper>
+        {moodlistType === "owned" && (
+          <>
+            <RenameMoodlistDialog
+              open={isRenameMoodlistDialogOpen}
+              onOpenChange={setIsRenameMoodlistDialogOpen}
+              prevMoodlistName={prevMoodlistName}
+              moodlistId={moodlistId}
+            />
+            <DeleteMoodlistDialog
+              open={isDeleteMoodlistDialogOpen}
+              onOpenChange={setIsDeleteMoodlistDialogOpen}
+              moodlistName={prevMoodlistName}
+              moodlistId={moodlistId}
+            />
+          </>
+        )}
+        <ShareMoodlistDialog
+          open={isShareMoodlistDialogOpen}
+          onOpenChange={setIsShareMoodlistDialogOpen}
+          link={`${origin}/moodlists/user/${moodlistType === "owned" ? userId : ownerId}/${moodlistId}`}
+        />
+        {moodlistType === "followed" && (
+          <div className="absolute left-0 top-0 h-16 w-16">
+            <div className="absolute transform -rotate-45 bg-accent text-center text-white font-semibold py-1 left-[-52px] top-4 w-[170px]">
+              {/* {moodlistType === "owned" ? "owned" : "followed"} */}
+              followed
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </PropagationStopper>
     </div>
   );
 };

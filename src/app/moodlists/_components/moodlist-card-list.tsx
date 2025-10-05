@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Typography } from "@/components/ui/typography";
-import type { SelectMoodlistModel } from "@/db/schema/moodlists";
+// import type { SelectMoodlistModel } from "@/db/schema/moodlists";
 import { MoodlistCard } from "./moodlist-card";
 
 const MoodlistCardList = ({
