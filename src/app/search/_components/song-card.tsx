@@ -54,7 +54,26 @@ type SongCardProps = {
   revalidate?: boolean;
   path?: string;
   isAlreadyFavourite?: boolean;
-  moodlists: SelectMoodlistModel[] | null;
+  // moodlists: SelectMoodlistModel[] | null;
+  moodlists:
+    | (
+        | {
+            type: "owned";
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+          }
+        | {
+            type: "followed";
+            id: string;
+            name: string;
+            ownerId: string;
+            followedAt: Date;
+          }
+      )[]
+    | null;
 };
 const SongCard = ({
   song,
