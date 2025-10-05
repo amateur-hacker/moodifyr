@@ -1,6 +1,6 @@
 import type { FavouriteSongSchema, SearchSongSchema } from "@/app/_types";
 import { SongCard } from "@/app/search/_components/song-card";
-import type { SelectMoodlistModel } from "@/db/schema/moodlists";
+// import type { SelectMoodlistModel } from "@/db/schema/moodlists";
 
 // import { TypingAnimation } from "@/components/ui/typing-animation";
 
@@ -10,7 +10,26 @@ type SongListProps = {
   revalidate?: boolean;
   path?: string;
   showFavHearts?: boolean;
-  moodlists: SelectMoodlistModel[] | null;
+  // moodlists: SelectMoodlistModel[] | null;
+  moodlists:
+    | (
+        | {
+            type: "owned";
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+          }
+        | {
+            type: "followed";
+            id: string;
+            name: string;
+            ownerId: string;
+            followedAt: Date;
+          }
+      )[]
+    | null;
 };
 const SongList = async ({
   songs,
