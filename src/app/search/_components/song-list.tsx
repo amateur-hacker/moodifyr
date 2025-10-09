@@ -25,6 +25,8 @@ type SongListProps = {
             type: "followed";
             id: string;
             name: string;
+            ownerName: string;
+            ownerImage: string;
             ownerId: string;
             followedAt: Date;
           }

@@ -60,10 +60,13 @@ const getUserMoodlists = async () =>
           id: moodlists.id,
           name: moodlists.name,
           ownerId: moodlists.userId,
+          ownerName: users.name,
+          ownerImage: users.image,
           followedAt: moodlistFollowers.followedAt,
         })
         .from(moodlistFollowers)
         .innerJoin(moodlists, eq(moodlistFollowers.moodlistId, moodlists.id))
+        .innerJoin(users, eq(moodlists.userId, users.id))
         .where(eq(moodlistFollowers.userId, sessionUser.id));
 
       const merged = [
@@ -350,7 +353,7 @@ const getUserFollowedMoodlists = async () =>
           followedAt: moodlistFollowers.followedAt,
         })
         .from(moodlistFollowers)
-        .leftJoin(moodlists, eq(moodlistFollowers.moodlistId, moodlists.id))
+        .innerJoin(moodlists, eq(moodlistFollowers.moodlistId, moodlists.id))
         .where(eq(moodlistFollowers.userId, sessionUser.id));
 
       return rows;

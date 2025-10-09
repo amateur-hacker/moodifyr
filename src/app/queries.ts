@@ -13,6 +13,7 @@ import {
 } from "@/db/schema/user";
 import { executeQuery } from "@/db/utils";
 import { auth } from "@/lib/auth";
+import { users } from "@/db/schema/auth";
 
 const getUserSession = async () => {
   return executeQuery({
@@ -177,6 +178,27 @@ const getSongStatus = async ({ youtubeId }: { youtubeId: string }) => {
   });
 };
 
+const getUserById = async ({ userId }: { userId: string }) => {
+  return executeQuery({
+    queryFn: async () => {
+      // const user = await db.query.users.findFirst({
+      //   where: (user, { eq }) => eq(user.userId, sessionUser.id),
+      // });
+      const user = await db
+        .select({
+          name: users.name,
+          email: users.email,
+          image: users.image,
+        })
+        .from(users)
+        .where(eq(users.id, userId));
+      return user[0] ?? null;
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserById",
+  });
+};
+
 export {
   getUserSession,
   getUserSongSearchHistory,
@@ -185,4 +207,5 @@ export {
   getUserPreference,
   getUserAllPreferences,
   getSongStatus,
+  getUserById,
 };

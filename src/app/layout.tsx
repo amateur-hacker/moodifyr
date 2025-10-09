@@ -98,7 +98,9 @@ export default async function RootLayout({
             {/* <SplashCursor /> */}
             <Navbar />
             <AppSidebar />
-            <main className="w-full mt-15 px-6 py-4">{children}</main>
+            <main className="w-full mt-15 px-[var(--main-padding-x,6)] [--main-padding-x:6] [--main-padding-y:4] py-[var(--main-padding-y,4)]">
+              {children}
+            </main>
           </GlobalSongPlayer>
         </SidebarProvider>
       </body>

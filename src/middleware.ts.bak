@@ -1,0 +1,41 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { auth } from "@/lib/auth"; // adjust path if needed
+
+export async function middleware(req: NextRequest) {
+  const url = req.nextUrl.clone();
+  const pathname = url.pathname;
+
+  // Match patterns like:
+  // /moodlists/user/:userId
+  // /moodlists/user/:userId/:moodlistId
+  const match = pathname.match(/^\/moodlists\/user\/([^/]+)(?:\/([^/]+))?/);
+  if (!match) return NextResponse.next();
+
+  const [, userId, moodlistId] = match;
+
+  // 🔐 get current session
+  const session = await auth.api.getSession({ headers: req.headers });
+
+  if (!session?.user?.id) return NextResponse.next(); // no user logged in, skip
+
+  // ✅ if session user matches the URL user
+  if (session.user.id === userId) {
+    if (moodlistId) {
+      // redirect to /moodlists/:moodlistId
+      url.pathname = `/moodlists/${moodlistId}`;
+    } else {
+      // redirect to /moodlists
+      url.pathname = `/moodlists`;
+    }
+    return NextResponse.redirect(url);
+  }
+
+  // Otherwise, allow normal flow
+  return NextResponse.next();
+}
+
+// optional: limit scope so it doesn’t run on every route
+export const config = {
+  matcher: ["/moodlists/user/:path*"],
+};

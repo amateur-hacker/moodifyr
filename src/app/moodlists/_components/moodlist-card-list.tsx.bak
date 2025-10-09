@@ -1,0 +1,101 @@
+import Link from "next/link";
+import { Typography } from "@/components/ui/typography";
+// import type { SelectMoodlistModel } from "@/db/schema/moodlists";
+import { MoodlistCard } from "./moodlist-card";
+import Image from "next/image";
+
+const MoodlistCardList = ({
+  userId,
+  moodlists,
+  followedMoodlists,
+}: {
+  userId: string;
+  moodlists:
+    | (
+        | {
+            type: "owned";
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: string;
+          }
+        | {
+            type: "followed";
+            id: string;
+            name: string;
+            ownerName: string;
+            ownerImage: string;
+            ownerId: string;
+            followedAt: Date;
+          }
+      )[]
+    | null;
+
+  followedMoodlists:
+    | {
+        id: string | null;
+        name: string | null;
+        ownerId: string | null;
+        followedAt: Date;
+      }[]
+    | null;
+}) => {
+  return (
+    <>
+      {moodlists?.map((m) => (
+        <>
+          <Link href={`/moodlists/${m.id}`} key={m.id} className="space-y-2">
+            {m.type === "owned" ? (
+              <MoodlistCard
+                prevMoodlistName={m.name}
+                moodlistId={m.id}
+                userId={userId}
+                moodlistType={m.type}
+                isAlreadyFollowing={
+                  followedMoodlists?.some((fm) => fm.id === m.id) ?? false
+                }
+              />
+            ) : (
+              <MoodlistCard
+                prevMoodlistName={m.name}
+                moodlistId={m.id}
+                ownerId={m.ownerId}
+                ownerName={m.ownerName}
+                ownerImage={m.ownerImage}
+                moodlistType={m.type}
+                isAlreadyFollowing={
+                  followedMoodlists?.some((fm) => fm.id === m.id) ?? false
+                }
+              />
+            )}
+            <Typography variant="large" className="line-clamp-1 text-center">
+              {m.name}
+            </Typography>
+          </Link>
+          {m.type === "followed" && (
+            <Link href={`/moodlists/user/${m.ownerId}`}>
+              <div className="text-center flex flex-col gap-0.5 items-center">
+                <Image
+                  width="20"
+                  height="20"
+                  alt={`Owner ${m.ownerName} image`}
+                  className="rounded-full"
+                  src={m.ownerImage}
+                />
+                <Typography variant="muted">
+                  Created by
+                  <span className="line-clamp-1 max-w-[20ch]">
+                    {m.ownerName}
+                  </span>
+                </Typography>
+              </div>
+            </Link>
+          )}
+        </>
+      ))}
+    </>
+  );
+};
+
+export { MoodlistCardList };

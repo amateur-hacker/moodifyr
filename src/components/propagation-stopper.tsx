@@ -20,6 +20,12 @@ const PropagationStopper = ({
     <div
       {...props}
       onClick={(e) => {
+        if (
+          (e.target as HTMLElement).closest("a") ||
+          (e.target as HTMLElement).closest("button[data-skip-propagation]")
+        ) {
+          return;
+        }
         preventDefaultPropagation(e);
         if (onClick) onClick(e);
       }}
