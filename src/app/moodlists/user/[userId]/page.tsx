@@ -26,7 +26,7 @@ const MoodlistsPage = async ({
   ]);
 
   return (
-    <div className="w-full [--main-padding-x:0]">
+    <div className="w-full">
       {user && (
         <div className="w-full h-[200px] border-b-2 mb-4 flex justify-center items-center relative">
           <div className="w-max mx-auto flex gap-5 items-center bg-transparent absolute z-10">
@@ -42,7 +42,7 @@ const MoodlistsPage = async ({
           <Galaxy mouseInteraction={false} />
         </div>
       )}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] place-items-center gap-5 px-6">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] place-items-center gap-5">
         <MoodlistCardList
           moodlists={moodlists}
           userId={userId}

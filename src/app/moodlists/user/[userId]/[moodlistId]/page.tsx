@@ -41,7 +41,7 @@ const UserMoodlistPage = async ({
   }));
 
   return (
-    <div className="w-full [--main-padding-x:0]">
+    <div className="w-full">
       {user && (
         <div className="w-full h-[200px] border-b-2 mb-4 flex justify-center items-center relative">
           <div className="w-max mx-auto flex gap-5 items-center bg-transparent absolute z-10">
@@ -57,38 +57,36 @@ const UserMoodlistPage = async ({
           <Galaxy mouseInteraction={false} />
         </div>
       )}
-      <div className="px-6">
-        <div className="w-max mx-auto">
-          <Badge variant="outline">
-            <Smile
-              className="-ms-0.5 text-emerald-500"
-              size={12}
-              aria-hidden="true"
-            />
-            Moodlist
-          </Badge>
-        </div>
-        <Typography variant="h2" className="font-playful text-center mb-4">
-          {moodlistSongs.name}
-        </Typography>
-        <div className="w-full space-y-5 mx-auto max-w-3xl">
-          <Suspense
-            fallback={
-              <div className="space-y-[1.3125rem]">
-                {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
-                  <SongCardLoader key={`loader-${id}`} />
-                ))}
-              </div>
-            }
-          >
-            <MoodlistSongList
-              songs={moodlistSongs.songs}
-              moodlistName={moodlistSongs.name}
-              moodlistId={moodlistId}
-            />
-            <SongsSetter songs={songs} />
-          </Suspense>
-        </div>
+      <div className="w-max mx-auto">
+        <Badge variant="outline">
+          <Smile
+            className="-ms-0.5 text-emerald-500"
+            size={12}
+            aria-hidden="true"
+          />
+          Moodlist
+        </Badge>
+      </div>
+      <Typography variant="h2" className="font-playful text-center mb-4">
+        {moodlistSongs.name}
+      </Typography>
+      <div className="w-full space-y-5 mx-auto max-w-3xl">
+        <Suspense
+          fallback={
+            <div className="space-y-[1.3125rem]">
+              {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
+                <SongCardLoader key={`loader-${id}`} />
+              ))}
+            </div>
+          }
+        >
+          <MoodlistSongList
+            songs={moodlistSongs.songs}
+            moodlistName={moodlistSongs.name}
+            moodlistId={moodlistId}
+          />
+          <SongsSetter songs={songs} />
+        </Suspense>
       </div>
     </div>
   );
