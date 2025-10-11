@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { SongFullscreenPlayerView } from "@/app/_components/song-fullscreen-player-view";
 import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
 import { useSongPlayer } from "@/app/_context/song-player-context";
+import { getSongInstanceId } from "@/app/_utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const SongPlayerBar = () => {
@@ -36,8 +37,13 @@ const SongPlayerBar = () => {
   useScrollLock(isPlayerFullScreen);
 
   const currentIndex = currentSong
-    ? songs.findIndex((s) => s.id === currentSong.id)
+    ? songs.findIndex(
+        (s) => getSongInstanceId(s) === getSongInstanceId(currentSong),
+      )
     : -1;
+  // const currentIndex = currentSong
+  //   ? songs.findIndex((s) => s.id === currentSong.id)
+  //   : -1;
 
   const handleSeek = async (val: number[]) => {
     if (!playerRef.current) return;

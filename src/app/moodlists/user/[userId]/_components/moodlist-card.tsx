@@ -107,12 +107,7 @@ export const MoodlistCard = ({
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: <_>
-    // biome-ignore lint/a11y/useKeyWithClickEvents: <_>
-    <div
-      className="size-32 sm:size-40 bg-gradient-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center relative"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div className="size-32 sm:size-40 bg-gradient-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center relative">
       <Music className="size-16" />
 
       <DropdownMenu>

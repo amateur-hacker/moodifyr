@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import type React from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ const ShareLinkDialog = ({
   link,
 }: {
   open: boolean;
-  onOpenChange: Dispatch<SetStateAction<boolean>>;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   link: string;
 }) => {
   return (

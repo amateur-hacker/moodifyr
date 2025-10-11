@@ -111,7 +111,6 @@ export function SongPlayerProvider({
 
   const isCurrentSong = (song: SongWithUniqueIdSchema) => {
     if (!currentSong) return false;
-    console.log(currentSong);
     return getUniqueSongId(currentSong) === getUniqueSongId(song);
   };
 

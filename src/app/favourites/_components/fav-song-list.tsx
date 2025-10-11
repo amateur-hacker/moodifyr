@@ -1,20 +1,16 @@
 import type { FavouriteSongSchema } from "@/app/_types";
 import { FavouriteSongCard } from "@/app/favourites/_components/fav-song-card";
+import { getUserMoodlists } from "@/app/moodlists/queries";
 import { GlitchText } from "@/components/ui/shadcn-io/glitch-text";
 // import { Typography } from "@/components/ui/typography";
 
 type FavouriteSongListProps = {
   songs: FavouriteSongSchema[] | null;
-  favouriteSongs: FavouriteSongSchema[] | null;
-  revalidate?: boolean;
-  path?: string;
-  showFavHearts?: boolean;
+  moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 };
 const FavouriteSongList = async ({
   songs,
-  favouriteSongs,
-  revalidate = false,
-  path = "/fav-songs",
+  moodlists,
 }: FavouriteSongListProps) => {
   return (
     <div className="pb-[var(--player-height,80px)]">
@@ -31,12 +27,7 @@ const FavouriteSongList = async ({
       {/* </GlitchText> */}
       {songs?.map((song, i) => (
         <div key={song.id} className="flex flex-col">
-          <FavouriteSongCard
-            song={song}
-            favouriteSongs={favouriteSongs}
-            revalidate={revalidate}
-            path={path}
-          />
+          <FavouriteSongCard song={song} moodlists={moodlists} />
           {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
         </div>
       ))}

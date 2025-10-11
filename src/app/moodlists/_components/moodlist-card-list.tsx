@@ -97,6 +97,8 @@ const MoodlistCardList = ({
             <Link
               href={`/moodlists/user/${m.ownerId}`}
               className="flex flex-col items-center gap-1 text-center mt-1 no-hover:underline has-hover:hover:underline"
+              target="_blank"
+              rel="noreferrer"
             >
               <Image
                 width={20}

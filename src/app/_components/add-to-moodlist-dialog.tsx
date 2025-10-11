@@ -1,8 +1,11 @@
 "use client";
 
-import { type Dispatch, type SetStateAction, useState } from "react";
+import type React from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import type { SongSchema } from "@/app/_types";
 import { addUserSongToMoodlist } from "@/app/moodlists/actions";
+import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,8 +19,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { SelectMoodlistModel } from "@/db/schema/moodlists";
-import type { SongSchema } from "@/app/_types";
 
 const AddToMoodlistDialog = ({
   open,
@@ -27,27 +28,9 @@ const AddToMoodlistDialog = ({
   song,
 }: {
   open: boolean;
-  onOpenChange: Dispatch<SetStateAction<boolean>>;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   // moodlists: SelectMoodlistModel[] | null;
-  moodlists:
-    | (
-        | {
-            type: "owned";
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            userId: string;
-          }
-        | {
-            type: "followed";
-            id: string;
-            name: string;
-            ownerId: string;
-            followedAt: Date;
-          }
-      )[]
-    | null;
+  moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
   songId: string;
   song: SongSchema;
 }) => {
@@ -56,11 +39,15 @@ const AddToMoodlistDialog = ({
   );
   const [loading, setLoading] = useState(false);
 
+  const ownedMoodlists = moodlists?.filter((m) => m.type === "owned") ?? null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMoodlist) return;
 
-    const moodlistObj = moodlists?.find((m) => m.id === selectedMoodlist);
+    const selectedMoodlistItem = ownedMoodlists?.find(
+      (m) => m.id === selectedMoodlist,
+    );
 
     setLoading(true);
     try {
@@ -73,7 +60,8 @@ const AddToMoodlistDialog = ({
       if (response.success) {
         toast.success(
           <span>
-            Added to <strong>{moodlistObj?.name ?? "Unknown"}</strong> moodlist
+            Added to <strong>{selectedMoodlistItem?.name ?? "Unknown"}</strong>{" "}
+            moodlist
           </span>,
         );
         onOpenChange(false);
@@ -82,7 +70,8 @@ const AddToMoodlistDialog = ({
           toast.warning(
             <span>
               Already exists in{" "}
-              <strong>{moodlistObj?.name ?? "Unknown"}</strong> moodlist
+              <strong>{selectedMoodlistItem?.name ?? "Unknown"}</strong>{" "}
+              moodlist
             </span>,
           );
         }
@@ -91,8 +80,8 @@ const AddToMoodlistDialog = ({
       console.error(err);
       toast.error(
         <span>
-          Failed to add to <strong>{moodlistObj?.name ?? "Unknown"}</strong>{" "}
-          moodlist
+          Failed to add to{" "}
+          <strong>{selectedMoodlistItem?.name ?? "Unknown"}</strong> moodlist
         </span>,
       );
     } finally {
@@ -120,9 +109,9 @@ const AddToMoodlistDialog = ({
               className="gap-2"
               value={selectedMoodlist}
               onValueChange={setSelectedMoodlist}
-              defaultValue={moodlists?.[0]?.id ?? ""}
+              defaultValue={ownedMoodlists?.[0]?.id ?? ""}
             >
-              {moodlists?.map((m) => (
+              {ownedMoodlists?.map((m) => (
                 <div
                   className="border-input has-data-[state=checked]:border-primary/50 has-data-[state=checked]:bg-accent relative flex w-full items-center gap-2 rounded-md border px-4 py-3 shadow-xs outline-none"
                   key={m.id}

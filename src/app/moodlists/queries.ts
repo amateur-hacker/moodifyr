@@ -50,10 +50,19 @@ const getMoodlistById = async ({ id }: Pick<MoodlistSchema, "id">) =>
 const getUserMoodlists = async () =>
   executeQuery({
     queryFn: async ({ sessionUser }) => {
-      const owned = await db.query.moodlists.findMany({
-        where: eq(moodlists.userId, sessionUser.id),
-        orderBy: (m, { asc }) => [asc(m.createdAt)],
-      });
+      // const owned = await db.query.moodlists.findMany({
+      //   where: eq(moodlists.userId, sessionUser.id),
+      //   orderBy: (m, { asc }) => [asc(m.createdAt)],
+      // });
+      const owned = await db
+        .select({
+          id: moodlists.id,
+          name: moodlists.name,
+          userId: moodlists.userId,
+        })
+        .from(moodlists)
+        .where(eq(moodlists.userId, sessionUser.id))
+        .orderBy(asc(moodlists.createdAt));
 
       const followed = await db
         .select({
@@ -62,7 +71,6 @@ const getUserMoodlists = async () =>
           ownerId: moodlists.userId,
           ownerName: users.name,
           ownerImage: users.image,
-          followedAt: moodlistFollowers.followedAt,
         })
         .from(moodlistFollowers)
         .innerJoin(moodlists, eq(moodlistFollowers.moodlistId, moodlists.id))

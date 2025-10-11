@@ -12,9 +12,9 @@ const MoodlistCardList = ({
   userId: string;
   followedMoodlists:
     | {
-        id: string | null;
-        name: string | null;
-        ownerId: string | null;
+        id: string;
+        name: string;
+        ownerId: string;
         followedAt: Date;
       }[]
     | null;
@@ -22,22 +22,20 @@ const MoodlistCardList = ({
   return (
     <>
       {moodlists?.map((m) => (
-        <Link
-          href={`/moodlists/user/${userId}/${m.id}`}
-          key={m.id}
-          className="space-y-2"
-        >
-          <MoodlistCard
-            userId={userId}
-            moodlistId={m.id}
-            isAlreadyFollowing={
-              followedMoodlists?.some((fm) => fm.id === m.id) ?? false
-            }
-          />
-          <Typography variant="large" className="line-clamp-1 text-center">
-            {m.name}
-          </Typography>
-        </Link>
+        <div key={m.id} className="space-y-2">
+          <Link href={`/moodlists/user/${userId}/${m.id}`}>
+            <MoodlistCard
+              userId={userId}
+              moodlistId={m.id}
+              isAlreadyFollowing={
+                followedMoodlists?.some((fm) => fm.id === m.id) ?? false
+              }
+            />
+            <Typography variant="large" className="line-clamp-1 text-center">
+              {m.name}
+            </Typography>
+          </Link>
+        </div>
       ))}
     </>
   );

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { FavouriteSongList } from "@/app/favourites/_components/fav-song-list";
+import { getUserMoodlists } from "@/app/moodlists/queries";
 import { getUserFavouriteSongs, getUserSession } from "@/app/queries";
 import { Typography } from "@/components/ui/typography";
 
@@ -17,14 +18,17 @@ const FavSongsPage = async () => {
       </div>
     );
   }
-  const favSongs = (await getUserFavouriteSongs()) ?? null;
+  const [favouriteSongs, moodlists] = await Promise.all([
+    getUserFavouriteSongs().then((res) => res ?? null),
+    getUserMoodlists().then((res) => res ?? null),
+  ]);
 
   return (
     <div className="w-full">
       <Typography variant="h2" className="font-playful text-center mb-4">
         Favourites
       </Typography>
-      {favSongs?.length ? (
+      {favouriteSongs?.length ? (
         <div className="w-full space-y-5 mx-auto max-w-3xl">
           <Suspense
             fallback={
@@ -35,13 +39,8 @@ const FavSongsPage = async () => {
               </div>
             }
           >
-            <SongsSetter songs={favSongs} />
-            <FavouriteSongList
-              songs={favSongs}
-              favouriteSongs={favSongs}
-              revalidate={true}
-              path="fav-songs"
-            />
+            <SongsSetter songs={favouriteSongs} />
+            <FavouriteSongList songs={favouriteSongs} moodlists={moodlists} />
           </Suspense>
         </div>
       ) : (

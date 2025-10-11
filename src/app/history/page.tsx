@@ -3,6 +3,7 @@ import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { HistorySongList } from "@/app/history/_components/history-song-list";
 import { getUserSongPlayHistory } from "@/app/history/queries";
+import { getUserMoodlists } from "@/app/moodlists/queries";
 import { getUserSession } from "@/app/queries";
 import { Typography } from "@/components/ui/typography";
 
@@ -19,7 +20,10 @@ const HistoryPage = async () => {
     );
   }
 
-  const songHistory = (await getUserSongPlayHistory()) ?? null;
+  const [songHistory, moodlists] = await Promise.all([
+    getUserSongPlayHistory().then((res) => res ?? null),
+    getUserMoodlists().then((res) => res ?? null),
+  ]);
 
   const initialSongs = songHistory ? Object.values(songHistory).flat() : null;
 
@@ -40,7 +44,7 @@ const HistoryPage = async () => {
             }
           >
             <SongsSetter songs={initialSongs} />
-            <HistorySongList songs={songHistory} />
+            <HistorySongList history={songHistory} moodlists={moodlists} />
           </Suspense>
         </div>
       ) : (

@@ -61,7 +61,7 @@ const MoodlistCard = ({
     useState(false);
   const [origin, setOrigin] = useState("");
   const [isFollowing, setIsFollowing] = useState(isAlreadyFollowing);
-  const [isProcessing, setIsProcessing] = useState(false); // <-- loading state
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { useSession } = authClient;
   const { data: session } = useSession();

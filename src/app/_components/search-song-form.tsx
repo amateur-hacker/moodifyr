@@ -135,7 +135,7 @@ const SearchSongForm = () => {
 
           <Input
             ref={inputRef}
-            className="sticky inset-x-0 top-0 pl-3 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
+            className="sticky inset-x-0 top-0 pl-3 pr-7 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}

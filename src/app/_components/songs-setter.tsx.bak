@@ -3,13 +3,13 @@
 import { useEffect } from "react";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
-import { getSongInstanceId } from "@/app/_utils";
 
 type SongsSetterProps = { songs: SongWithUniqueIdSchema[] | null };
 
 export function SongsSetter({ songs }: SongsSetterProps) {
   const { setSongs, currentSong } = useSongPlayer();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
     if (!songs?.length) return;
 
@@ -18,16 +18,14 @@ export function SongsSetter({ songs }: SongsSetterProps) {
       return;
     }
 
-    const exists = songs.some(
-      (s) => getSongInstanceId(s) === getSongInstanceId(currentSong),
-    );
+    const exists = songs.some((s) => s.id === currentSong.id);
 
     if (exists) {
       setSongs(songs);
     } else {
       setSongs([currentSong, ...songs]);
     }
-  }, [songs, setSongs, currentSong]);
+  }, [songs, setSongs]);
 
   return null;
 }

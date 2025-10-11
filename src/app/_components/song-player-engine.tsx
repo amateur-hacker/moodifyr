@@ -80,14 +80,14 @@ export function SongPlayerEngine() {
           lastTrackedIdRef.current !== currentSongRef.current.id
         ) {
           lastTrackedIdRef.current = currentSongRef.current.id;
-          await trackUserSongPlayHistory({
-            song: {
-              id: currentSongRef.current.id,
-              title: currentSongRef.current.title,
-              thumbnail: currentSongRef.current.thumbnail,
-              duration: currentSongRef.current.duration,
-            },
-          });
+          // await trackUserSongPlayHistory({
+          //   song: {
+          //     id: currentSongRef.current.id,
+          //     title: currentSongRef.current.title,
+          //     thumbnail: currentSongRef.current.thumbnail,
+          //     duration: currentSongRef.current.duration,
+          //   },
+          // });
         }
         break;
       }

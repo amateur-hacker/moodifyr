@@ -7,7 +7,6 @@ import { getUserById } from "@/app/queries";
 
 const MoodlistsPage = async () => {
   const session = (await getUserSession()) ?? null;
-  const moodlists = (await getUserMoodlists()) ?? null;
 
   if (!session?.user) {
     return (
@@ -18,6 +17,7 @@ const MoodlistsPage = async () => {
       </div>
     );
   }
+  const moodlists = (await getUserMoodlists()) ?? null;
   const followedMoodlists = (await getUserFollowedMoodlists()) ?? null;
   // const user = await getUserById({ id: session.user.id });
   // console.log(user);

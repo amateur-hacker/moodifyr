@@ -3,11 +3,11 @@ import { SearchSongForm } from "@/app/_components/search-song-form";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { getUserFavouriteSongs } from "@/app/queries";
-import { SongList } from "@/app/search/_components/song-list";
 import { searchSong } from "@/app/search/api";
 import { getUserMoodlists } from "../moodlists/queries";
 import { GlitchText } from "@/components/ui/shadcn-io/glitch-text";
 import { WordRotate } from "@/components/ui/word-rotate";
+import { SearchSongList } from "./_components/search-song-list";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -67,7 +67,7 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
               </div>
             }
           >
-            <SongList
+            <SearchSongList
               songs={songs}
               favouriteSongs={favouriteSongs}
               moodlists={moodlists}
