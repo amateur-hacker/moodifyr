@@ -20,8 +20,6 @@ const MoodlistCardList = ({
             type: "owned";
             id: string;
             name: string;
-            createdAt: Date;
-            updatedAt: Date;
             userId: string;
           }
         | {
@@ -31,7 +29,6 @@ const MoodlistCardList = ({
             ownerName: string;
             ownerImage: string;
             ownerId: string;
-            followedAt: Date;
           }
       )[]
     | null;
