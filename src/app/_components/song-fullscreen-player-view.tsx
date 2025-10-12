@@ -32,7 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 import { useFavourites } from "../_context/favourite-context";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
@@ -97,11 +97,10 @@ const SongFullscreenPlayerView = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  const user = useUser();
 
   const handleToggleFavourite = async () => {
-    if (!session?.user) {
+    if (!user) {
       toast("Sign in to save your favourite songs", {
         action: {
           label: "Sign in",
@@ -175,6 +174,21 @@ const SongFullscreenPlayerView = ({
   const getRepeatButtonVariant = () => {
     return mode === "repeat-all" || mode === "repeat-one" ? "default" : "ghost";
   };
+
+  // useEffect(() => {
+  //   const handlePopState = () => {
+  //     if (isFullScreen) {
+  //       toggleFullScreen(); // close the fullscreen player
+  //       window.removeEventListener("popstate", handlePopState); // remove after first use
+  //     }
+  //   };
+  //
+  //   window.addEventListener("popstate", handlePopState);
+  //
+  //   return () => {
+  //     window.removeEventListener("popstate", handlePopState);
+  //   };
+  // }, [isFullScreen, toggleFullScreen]);
 
   return (
     <Card

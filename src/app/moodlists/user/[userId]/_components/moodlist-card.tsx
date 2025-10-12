@@ -12,7 +12,7 @@ import {
   followUserMoodlist,
   unfollowUserMoodlist,
 } from "@/app/moodlists/actions";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 import { toast } from "sonner";
 import { googleSignInUser } from "@/app/fn";
 import { useRouter } from "next/navigation";
@@ -29,8 +29,7 @@ export const MoodlistCard = ({
   moodlistId,
   isAlreadyFollowing,
 }: MoodlistCardProps) => {
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  const user = useUser();
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(isAlreadyFollowing);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,7 +45,7 @@ export const MoodlistCard = ({
 
   const handleFollow = async () => {
     try {
-      if (!session?.user) {
+      if (!user) {
         toast("Sign in to follow", {
           action: { label: "Sign In", onClick: handleAuthRedirect },
           duration: 5000,
@@ -78,7 +77,7 @@ export const MoodlistCard = ({
 
   const handleUnfollow = async () => {
     try {
-      if (!session?.user) {
+      if (!user) {
         toast("Sign in to unfollow", {
           action: { label: "Sign In", onClick: handleAuthRedirect },
           duration: 5000,

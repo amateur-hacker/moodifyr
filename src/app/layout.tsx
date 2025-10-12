@@ -15,6 +15,10 @@ import { AppSidebar } from "@/app/_components/app-sidebar";
 import { GlobalSongPlayer } from "@/app/_components/global-song-player";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { FavouriteProvider } from "@/app/_context/favourite-context";
+import { UserProvider } from "./_context/user-context";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { SelectUserModel } from "@/db/schema/auth";
 
 // import { SplashCursor } from "@/components/splash-cursor";
 // import { cookies } from "next/headers";
@@ -85,26 +89,33 @@ export default async function RootLayout({
 }>) {
   // const cookieStore = await cookies();
   // const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const user = session?.user as SelectUserModel;
+
   return (
     <html lang="en">
       <body className={`${fontsVariable} antialiased`}>
-        <SidebarProvider defaultOpen={false}>
-          <FavouriteProvider>
-            <GlobalSongPlayer>
-              <NextTopLoader color={"var(--primary)"} showSpinner={false} />
-              <Toaster
-                closeButton
-                richColors
-                position="top-center"
-                className="pointer-events-auto"
-              />
-              {/* <SplashCursor /> */}
-              <Navbar />
-              <AppSidebar />
-              <main className="w-full mt-15 px-6 py-4">{children}</main>
-            </GlobalSongPlayer>
-          </FavouriteProvider>
-        </SidebarProvider>
+        <UserProvider user={user}>
+          <SidebarProvider defaultOpen={false}>
+            <FavouriteProvider>
+              <GlobalSongPlayer>
+                <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+                <Toaster
+                  closeButton
+                  richColors
+                  position="top-center"
+                  className="pointer-events-auto"
+                />
+                {/* <SplashCursor /> */}
+                <Navbar />
+                <AppSidebar />
+                <main className="w-full mt-15 px-6 py-4">{children}</main>
+              </GlobalSongPlayer>
+            </FavouriteProvider>
+          </SidebarProvider>
+        </UserProvider>
       </body>
     </html>
   );

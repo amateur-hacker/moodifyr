@@ -1,12 +1,11 @@
 "use client";
 
-import { mergeRefs, useClickOutside } from "@mantine/hooks";
-import { ChevronLeft, Search, X } from "lucide-react";
+import { useClickOutside } from "@mantine/hooks";
+import { Search, X, History } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { useFloatSearchBar } from "@/app/_context/float-search-bar-context";
 import {
   removeUserSongSearchHistory,
   trackUserSongSearchHistory,
@@ -24,12 +23,7 @@ import { Input } from "@/components/ui/input";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { encodeQueryParam } from "@/lib/utils";
 
-type SearchSongFormProps = {
-  inputRef?: React.Ref<HTMLInputElement>;
-};
-
-const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
-  const { close } = useFloatSearchBar();
+const SearchSongForm = () => {
   const searchParams = useSearchParams();
   const querySearchParam = searchParams.get("q") || "";
 
@@ -38,6 +32,8 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
   const [history, setHistory] = useState<{ id: string; query: string }[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const shouldOpen = isInputFocused && query.length === 0;
 
@@ -45,11 +41,8 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const router = useRouter();
 
-  const [localInput, setLocalInput] = useState<HTMLInputElement | null>(null);
-  const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
-
   useClickOutside(() => setIsInputFocused(false), null, [
-    localInput,
+    inputRef?.current,
     contentEl,
   ]);
 
@@ -76,12 +69,13 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
+    const trimmedQuery = query.trim();
     try {
-      localInput?.blur();
-      if (query?.length) {
-        trackUserSongSearchHistory({ query });
+      inputRef?.current?.blur();
+      if (trimmedQuery?.length) {
+        trackUserSongSearchHistory({ query: trimmedQuery });
       }
-      navigateWithQuery(query);
+      navigateWithQuery(trimmedQuery);
     } catch (error) {
       toast.error("Something went wrong while searching");
       console.error("Search navigation error:", error);
@@ -90,7 +84,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
 
   const handleClear = () => {
     setQuery("");
-    localInput?.focus();
+    inputRef?.current?.focus();
   };
 
   const handleRemoveHistory = async (id: string) => {
@@ -107,7 +101,7 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
     if (text === "Removed") return;
     setQuery(text);
     try {
-      localInput?.blur();
+      inputRef?.current?.blur();
       navigateWithQuery(text);
       await trackUserSongSearchHistory({ query: text });
     } catch (error) {
@@ -132,17 +126,17 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
       <TopLoader isLoading={isPending} />
       <form className="w-full flex" onSubmit={handleSearch}>
         <div className="relative w-full bg-background rounded-s-md rounded-e-md">
-          <button
-            className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer block sm:hidden z-20"
-            onClick={close}
-            type="button"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
+          {/* <button */}
+          {/*   className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer block sm:hidden z-20" */}
+          {/*   onClick={close} */}
+          {/*   type="button" */}
+          {/* > */}
+          {/*   <ChevronLeft className="size-5" /> */}
+          {/* </button> */}
 
           <Input
-            ref={mergeRefs(setLocalInput, inputRef)}
-            className="sticky inset-x-0 top-0 pl-8 pr-8 sm:pl-3 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
+            ref={inputRef}
+            className="sticky inset-x-0 top-0 pl-3 pr-7 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
@@ -202,12 +196,15 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
                         if (idx > 0) {
                           items[idx - 1]?.focus();
                         } else {
-                          localInput?.focus();
+                          inputRef?.current?.focus();
                         }
                       }
                     }}
                   >
-                    <span>{item.query}</span>
+                    <div className="flex gap-2 items-center">
+                      <History />
+                      <span>{item.query}</span>
+                    </div>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -215,8 +212,9 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
                         handleRemoveHistory(item.id);
                       }}
                       className="ml-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Remove"
                     >
-                      <X className="size-4" />
+                      <X className="size-4" aria-hidden />
                     </button>
                   </DropdownMenuItem>
                 ))
@@ -229,21 +227,22 @@ const SearchSongForm = ({ inputRef }: SearchSongFormProps) => {
               type="button"
               onClick={handleClear}
               className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer z-20"
-              aria-label="Clear search"
+              title="Clear Search"
             >
-              <X className="size-5" />
+              <X className="size-5" aria-hidden />
             </button>
           )}
         </div>
 
         <Button
           variant="ghost"
-          className="flex h-9 w-9 items-center justify-center rounded-none rounded-e-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border focus-visible:ring-[1px]"
-          aria-label="Submit search"
+          size="icon"
+          className="flex items-center justify-center rounded-none rounded-e-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border focus-visible:ring-[1px]"
           type="submit"
           disabled={isPending}
+          title="Search"
         >
-          <Search size={16} strokeWidth={2} />
+          <Search size={16} aria-hidden />
         </Button>
       </form>
     </>

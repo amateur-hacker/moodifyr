@@ -27,7 +27,7 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 
 const items = [
   { title: "Home", url: "/", icon: Home, protected: true },
@@ -51,15 +51,16 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  // const { useSession } = authClient;
+  // const { data: session } = useSession();
+  const user = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [origin, setOrigin] = useState("");
 
   const handleNavClick = (url: string, isProtected: boolean) => {
-    if (isProtected && !session?.user) {
+    if (isProtected && !user) {
       toast("Sign in to access this page", {
         id: "signin-toast",
         action: {

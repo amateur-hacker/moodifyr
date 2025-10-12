@@ -25,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 import { DeleteMoodlistDialog } from "./delete-moodlist-dialog";
 import { RenameMoodlistDialog } from "./rename-moodlist-dialog";
 import { ShareMoodlistDialog } from "./share-moodlist-dialog";
@@ -63,8 +63,7 @@ const MoodlistCard = ({
   const [isFollowing, setIsFollowing] = useState(isAlreadyFollowing);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  const user = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -82,7 +81,7 @@ const MoodlistCard = ({
 
   const handleFollow = async () => {
     try {
-      if (!session?.user) {
+      if (!user) {
         toast("Sign in to follow", {
           action: { label: "Sign In", onClick: handleAuthRedirect },
           duration: 5000,
@@ -114,7 +113,7 @@ const MoodlistCard = ({
 
   const handleUnfollow = async () => {
     try {
-      if (!session?.user) {
+      if (!user) {
         toast("Sign in to unfollow", {
           action: { label: "Sign In", onClick: handleAuthRedirect },
           duration: 5000,

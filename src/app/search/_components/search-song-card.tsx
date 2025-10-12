@@ -11,7 +11,7 @@ import type { SearchSongSchema, SongSchema } from "@/app/_types";
 import { toggleUserFavouriteSong } from "@/app/actions";
 import { googleSignInUser } from "@/app/fn";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 
 const SearchSongCard = ({
   song,
@@ -40,11 +40,10 @@ const SearchSongCard = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  const user = useUser();
 
   const handleToggleFavourite = async () => {
-    if (!session?.user) {
+    if (!user) {
       toast("Sign in to save your favourite songs", {
         action: {
           label: "Sign in",

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { googleSignInUser } from "@/app/fn";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 import {
   followUserMoodlist,
   unfollowUserMoodlist,
@@ -23,8 +23,7 @@ const FollowButton = ({
 }) => {
   const [isFollowing, setIsFollowing] = useState(isAlreadyFollowing);
   const router = useRouter();
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  const user = useUser();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAuthRedirect = async () => {
@@ -38,7 +37,7 @@ const FollowButton = ({
 
   const handleFollow = async () => {
     try {
-      if (!session?.user) {
+      if (!user) {
         toast("Sign in to follow", {
           action: { label: "Sign In", onClick: handleAuthRedirect },
           duration: 5000,
@@ -70,7 +69,7 @@ const FollowButton = ({
 
   const handleUnfollow = async () => {
     try {
-      if (!session?.user) {
+      if (!user) {
         toast("Sign in to unfollow", {
           action: { label: "Sign In", onClick: handleAuthRedirect },
           duration: 5000,

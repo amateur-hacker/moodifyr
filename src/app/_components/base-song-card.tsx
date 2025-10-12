@@ -121,7 +121,7 @@ export function BaseSongCard({
         </div>
       </button>
 
-      <div className="flex flex-col justify-center gap-1">
+      <div className="flex flex-col justify-center gap-1 overflow-hidden">
         <Typography variant="body-small" className="line-clamp-1">
           {song.title}
         </Typography>

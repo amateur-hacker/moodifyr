@@ -1,7 +1,7 @@
 "use client";
 
-import { useClickOutside } from "@mantine/hooks";
-import { Search, X } from "lucide-react";
+import { useClickOutside, useInViewport } from "@mantine/hooks";
+import { History, Loader2, Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState, useTransition } from "react";
@@ -10,9 +10,13 @@ import {
   removeUserSongSearchHistory,
   trackUserSongSearchHistory,
 } from "@/app/actions";
-import { getUserSongSearchHistory } from "@/app/queries";
+import {
+  getUserSongSearchHistory,
+  getSongSearchSuggestions,
+} from "@/app/queries";
 import { TopLoader } from "@/components/top-loader";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,23 +26,35 @@ import {
 import { Input } from "@/components/ui/input";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { encodeQueryParam } from "@/lib/utils";
+import { useDebouncedValue } from "@mantine/hooks";
+import { useUser } from "@/app/_context/user-context";
 
 const SearchSongForm = () => {
   const searchParams = useSearchParams();
   const querySearchParam = searchParams.get("q") || "";
 
   const [query, setQuery] = useState(querySearchParam);
+  const [debouncedQuery] = useDebouncedValue(query, 500);
   const [isPending, startTransition] = useTransition();
-  const [history, setHistory] = useState<{ id: string; query: string }[]>([]);
+  const [history, setHistory] = useState<
+    { id: string; query: string; isOwnQuery?: string }[]
+  >([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [contentEl, setContentEl] = useState<HTMLDivElement | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const shouldOpen = isInputFocused && query.length === 0;
+  const shouldOpen = isInputFocused;
+  const shouldShowUserHistory = !debouncedQuery.trim();
+
+  const user = useUser();
+  const userId = user?.id ?? null;
 
   useScrollLock(shouldOpen);
-
   const router = useRouter();
 
   useClickOutside(() => setIsInputFocused(false), null, [
@@ -46,15 +62,57 @@ const SearchSongForm = () => {
     contentEl,
   ]);
 
-  useEffect(() => {
-    if (!shouldOpen) return;
+  const { ref: bottomRef, inViewport } = useInViewport();
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setHistory([]);
     setLoadingHistory(true);
 
-    getUserSongSearchHistory({ page: 1, limit: 10 })
-      .then((res) => setHistory(res ?? []))
+    const fetch = shouldShowUserHistory
+      ? getUserSongSearchHistory({ page: 1, limit: 10 })
+      : getSongSearchSuggestions({
+          query: debouncedQuery.trim(),
+          page: 1,
+          limit: 10,
+          userId,
+        });
+
+    fetch
+      .then((res) => {
+        setHistory(res ?? []);
+        setHasMore((res?.length ?? 0) >= 10);
+      })
       .finally(() => setLoadingHistory(false));
-  }, [shouldOpen]);
+  }, [debouncedQuery, shouldShowUserHistory]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    if (inViewport && hasMore && !loadingMore) {
+      setLoadingMore(true);
+
+      const fetchNext = shouldShowUserHistory
+        ? getUserSongSearchHistory({ page: page + 1, limit: 10 })
+        : getSongSearchSuggestions({
+            query: debouncedQuery.trim(),
+            page: page + 1,
+            limit: 10,
+            userId,
+          });
+
+      fetchNext
+        .then((res) => {
+          if (res?.length) {
+            setHistory((prev) => [...prev, ...res]);
+            setPage((p) => p + 1);
+          }
+          if (!res?.length || res.length < 10) setHasMore(false);
+        })
+        .finally(() => setLoadingMore(false));
+    }
+  }, [inViewport, debouncedQuery, hasMore, loadingMore, shouldShowUserHistory]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -69,12 +127,13 @@ const SearchSongForm = () => {
 
   const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
+    const trimmedQuery = query.trim();
     try {
       inputRef?.current?.blur();
-      if (query?.length) {
-        trackUserSongSearchHistory({ query });
+      if (trimmedQuery?.length) {
+        trackUserSongSearchHistory({ query: trimmedQuery.toLocaleLowerCase() });
       }
-      navigateWithQuery(query);
+      navigateWithQuery(trimmedQuery);
     } catch (error) {
       toast.error("Something went wrong while searching");
       console.error("Search navigation error:", error);
@@ -98,11 +157,12 @@ const SearchSongForm = () => {
 
   const handleSelectHistory = async (text: string) => {
     if (text === "Removed") return;
-    setQuery(text);
+    const trimmed = text.trim();
+    setQuery(trimmed);
     try {
       inputRef?.current?.blur();
-      navigateWithQuery(text);
-      await trackUserSongSearchHistory({ query: text });
+      navigateWithQuery(trimmed);
+      await trackUserSongSearchHistory({ query: trimmed });
     } catch (error) {
       toast.error("Something went wrong while searching");
       console.error("Search navigation error:", error);
@@ -125,26 +185,16 @@ const SearchSongForm = () => {
       <TopLoader isLoading={isPending} />
       <form className="w-full flex" onSubmit={handleSearch}>
         <div className="relative w-full bg-background rounded-s-md rounded-e-md">
-          {/* <button */}
-          {/*   className="absolute left-2 top-1/2 -translate-y-1/2 cursor-pointer block sm:hidden z-20" */}
-          {/*   onClick={close} */}
-          {/*   type="button" */}
-          {/* > */}
-          {/*   <ChevronLeft className="size-5" /> */}
-          {/* </button> */}
-
           <Input
             ref={inputRef}
             className="sticky inset-x-0 top-0 pl-3 pr-7 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
-            // onFocus={() => setIsInputFocused(true)}
             onFocus={() => {
               const timer = setTimeout(() => {
                 setIsInputFocused(true);
               }, 300);
-
               return () => clearTimeout(timer);
             }}
             onKeyDown={handleKeyDown}
@@ -164,7 +214,7 @@ const SearchSongForm = () => {
             <DropdownMenuContent
               ref={setContentEl}
               align="start"
-              className="w-[var(--radix-dropdown-menu-trigger-width)] p-0"
+              className="w-[var(--radix-dropdown-menu-trigger-width)] p-0 max-h-60 overflow-y-auto"
               // @ts-expect-error shadcn typing mismatch
               onOpenAutoFocus={(e) => e.preventDefault()}
               onCloseAutoFocus={(e) => e.preventDefault()}
@@ -172,48 +222,76 @@ const SearchSongForm = () => {
               {history.length === 0 && !loadingHistory ? (
                 <DropdownMenuItem disabled>No history</DropdownMenuItem>
               ) : (
-                history.map((item, idx) => (
-                  <DropdownMenuItem
-                    key={item.id}
-                    className={`flex justify-between items-center cursor-pointer ${
-                      item.query === "Removed" ? "text-muted-foreground" : ""
-                    }`}
-                    // onPointerLeave={(event) => event.preventDefault()}
-                    // onPointerMove={(event) => event.preventDefault()}
-                    onSelect={(e) => {
-                      e.preventDefault();
-                      handleSelectHistory(item.query);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "ArrowUp") {
+                <>
+                  {history.map((item, idx) => (
+                    <DropdownMenuItem
+                      key={item.id}
+                      className={`flex justify-between items-center group ${
+                        item.query === "Removed"
+                          ? "text-muted-foreground opacity-50"
+                          : ""
+                      }`}
+                      onSelect={(e) => {
                         e.preventDefault();
-                        const items = Array.from(
-                          contentEl?.querySelectorAll<HTMLElement>(
-                            '[role="menuitem"]',
-                          ) || [],
-                        );
-                        if (idx > 0) {
-                          items[idx - 1]?.focus();
-                        } else {
-                          inputRef?.current?.focus();
-                        }
-                      }
-                    }}
-                  >
-                    <span>{item.query}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveHistory(item.id);
+                        handleSelectHistory(item.query);
                       }}
-                      className="ml-2 text-muted-foreground hover:text-foreground cursor-pointer"
-                      title="Remove"
+                      onKeyDown={(e) => {
+                        if (e.key === "ArrowUp") {
+                          e.preventDefault();
+                          const items = Array.from(
+                            contentEl?.querySelectorAll<HTMLElement>(
+                              '[role="menuitem"]',
+                            ) || [],
+                          );
+                          if (idx > 0) {
+                            items[idx - 1]?.focus();
+                          } else {
+                            inputRef?.current?.focus();
+                          }
+                        }
+                      }}
                     >
-                      <X className="size-4" aria-hidden />
-                    </button>
-                  </DropdownMenuItem>
-                ))
+                      <div className="flex gap-2 items-center">
+                        {shouldShowUserHistory || item?.isOwnQuery ? (
+                          <History />
+                        ) : (
+                          <Search />
+                        )}
+                        <span>{item.query}</span>
+                      </div>
+                      {(shouldShowUserHistory || item?.isOwnQuery) && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveHistory(item.id);
+                          }}
+                          className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-hover-always:group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
+                          title="Remove"
+                          disabled={item.query === "Removed"}
+                        >
+                          <X className="size-4 text-inherit" aria-hidden />
+                        </button>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+
+                  {hasMore && (
+                    <div
+                      ref={bottomRef}
+                      className="flex items-center justify-center py-2 text-sm text-muted-foreground"
+                    >
+                      {loadingMore ? (
+                        <div className="flex items-center gap-2">
+                          <Spinner />
+                          Loading...
+                        </div>
+                      ) : (
+                        "Scroll for more"
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

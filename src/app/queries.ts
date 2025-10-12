@@ -1,6 +1,6 @@
 "use server";
 
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import z from "zod";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
@@ -30,12 +30,12 @@ const getUserSongSearchHistory = ({
   page = 1,
   limit = 10,
 }: {
-  page: number;
-  limit: number;
-}) => {
+  page?: number;
+  limit?: number;
+} = {}) => {
   const getUserSongSearchHistorySchema = z.object({
     page: z.number().int().min(1),
-    limit: z.number().int().min(10).max(20),
+    limit: z.number().int().min(1).max(10),
   });
   const { page: parsedPage, limit: parsedLimit } =
     getUserSongSearchHistorySchema.parse({ page, limit });
@@ -46,15 +46,82 @@ const getUserSongSearchHistory = ({
 
       const history = await db.query.songSearchHistory.findMany({
         where: eq(songSearchHistory.userId, sessionUser?.id as string),
-        orderBy: [desc(songSearchHistory.searchedAt)],
         limit: parsedLimit,
         offset,
+        orderBy: [desc(songSearchHistory.searchedAt)],
       });
 
       return history;
     },
     isProtected: true,
-    serverErrorMessage: "getSongSearchHistory",
+    serverErrorMessage: "getUserSongSearchHistory",
+  });
+};
+
+const getSongSearchSuggestions = async ({
+  query,
+  page = 1,
+  limit = 10,
+  userId,
+}: {
+  query: string;
+  page?: number;
+  limit?: number;
+  userId: string | null;
+}) => {
+  const getUserSongSearchHistorySchema = z.object({
+    query: z.string().min(1),
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1).max(10),
+    userId: z.string().nullable(),
+  });
+  const {
+    query: parsedQuery,
+    page: parsedPage,
+    limit: parsedLimit,
+    userId: parsedUserId,
+  } = getUserSongSearchHistorySchema.parse({ query, page, limit, userId });
+
+  return executeQuery({
+    queryFn: async () => {
+      const offset = (parsedPage - 1) * parsedLimit;
+
+      const suggestions = await db.query.songSearchHistory.findMany({
+        where: sql`LOWER(query) LIKE ${parsedQuery.toLowerCase()} || '%'`,
+        limit: parsedLimit,
+        offset,
+        orderBy: [desc(songSearchHistory.searchedAt)],
+      });
+
+      // const updatedSuggestions = suggestions
+      //   .map((item) => ({
+      //     ...item,
+      //     isOwnQuery: item.userId === parsedUserId,
+      //   }))
+      //   .filter((item, index, arr) => {
+      //     const duplicateIndex = arr.findIndex(
+      //       (i) => i.query.toLowerCase() === item.query.toLowerCase(),
+      //     );
+      //     return duplicateIndex === index || item.isOwnQuery;
+      //   });
+
+      const seenQueries = new Set<string>();
+      const updatedSuggestions = [];
+
+      for (const item of suggestions) {
+        const q = item.query.toLowerCase();
+        const isOwn = item.userId === parsedUserId;
+
+        if (!seenQueries.has(q) || isOwn) {
+          updatedSuggestions.push({ ...item, isOwnQuery: isOwn });
+          seenQueries.add(q);
+        }
+      }
+
+      return updatedSuggestions;
+    },
+    isProtected: false,
+    serverErrorMessage: "getSongSearchSuggestions",
   });
 };
 
@@ -203,6 +270,7 @@ const getUserById = async ({ userId }: { userId: string }) => {
 export {
   getUserSession,
   getUserSongSearchHistory,
+  getSongSearchSuggestions,
   getUserLastPlayedSong,
   getUserFavouriteSongs,
   getUserPreference,

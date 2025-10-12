@@ -111,8 +111,8 @@ const sessionsRelations = relations(sessions, ({ one }) => ({
 type Role = (typeof rolesEnum.enumValues)[number];
 
 const userSchema = createInsertSchema(users).omit({
-  createdAt: true,
-  updatedAt: true,
+  // createdAt: true,
+  // updatedAt: true,
 });
 type UserSchema = z.infer<typeof userSchema>;
 type SelectUserModel = InferSelectModel<typeof users>;

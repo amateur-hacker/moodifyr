@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Typography } from "@/components/ui/typography";
-import { authClient } from "@/lib/auth-client";
+import { useUser } from "@/app/_context/user-context";
 import { cn } from "@/lib/utils";
 import { removeUserSongFromMoodlist } from "../../actions";
 
@@ -53,8 +53,7 @@ const MoodlistSongCard = ({
   const [origin, setOrigin] = useState("");
   const [isPending, setIsPending] = useState(false);
 
-  const { useSession } = authClient;
-  const { data: session } = useSession();
+  const user = useUser();
 
   useEffect(() => {
     setIsClient(true);
