@@ -126,8 +126,9 @@ export function SongCard(props: SongCardProps) {
                   ? "opacity-100"
                   : "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
               )}
+              title="Open Menu"
             >
-              <EllipsisIcon size={16} />
+              <EllipsisIcon size={16} aria-hidden />
             </Button>
           </DropdownMenuTrigger>
           {dropdownItems && (
@@ -150,6 +151,11 @@ export function SongCard(props: SongCardProps) {
             size="default"
             animate={props.shouldHeartButtonAnimate}
             disabled={props.shouldHeartButtonDisabled}
+            title={
+              !props.shouldHeartButtonActive
+                ? "Add to favourite"
+                : "Remove from favourite"
+            }
           />
         )}
       </div>

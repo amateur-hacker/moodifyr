@@ -208,8 +208,9 @@ const SearchSongForm = () => {
                         handleRemoveHistory(item.id);
                       }}
                       className="ml-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Remove"
                     >
-                      <X className="size-4" />
+                      <X className="size-4" aria-hidden />
                     </button>
                   </DropdownMenuItem>
                 ))
@@ -222,21 +223,22 @@ const SearchSongForm = () => {
               type="button"
               onClick={handleClear}
               className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer z-20"
-              aria-label="Clear search"
+              title="Clear Search"
             >
-              <X className="size-5" />
+              <X className="size-5" aria-hidden />
             </button>
           )}
         </div>
 
         <Button
           variant="ghost"
-          className="flex h-9 w-9 items-center justify-center rounded-none rounded-e-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border focus-visible:ring-[1px]"
-          aria-label="Submit search"
+          size="icon"
+          className="flex items-center justify-center rounded-none rounded-e-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer border border-border focus-visible:ring-[1px]"
           type="submit"
           disabled={isPending}
+          title="Search"
         >
-          <Search size={16} strokeWidth={2} />
+          <Search size={16} aria-hidden />
         </Button>
       </form>
     </>

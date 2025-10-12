@@ -214,6 +214,22 @@ export function SongPlayerEngine() {
 
             if (
               currentSongRef.current &&
+              currentTime >= 5 &&
+              lastTrackedIdRef.current !== currentSongRef.current.id
+            ) {
+              lastTrackedIdRef.current = currentSongRef.current.id;
+              await trackUserSongPlayHistory({
+                song: {
+                  id: currentSongRef.current.id,
+                  title: currentSongRef.current.title,
+                  thumbnail: currentSongRef.current.thumbnail,
+                  duration: currentSongRef.current.duration,
+                },
+              });
+            }
+
+            if (
+              currentSongRef.current &&
               duration > 0 &&
               currentTime >= duration * 0.6 &&
               lastAnalyticsIdRef.current !== currentSongRef.current.id

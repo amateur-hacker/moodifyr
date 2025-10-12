@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { AddToMoodlistDialog } from "@/app/_components/add-to-moodlist-dialog";
 import { ShareLinkDialog } from "@/app/_components/share-link-dialog";
 import { SongCard } from "@/app/_components/song-card";
+import { useFavourites } from "@/app/_context/favourite-context";
 import type { SearchSongSchema, SongSchema } from "@/app/_types";
-import { googleSignInUser, toggleUserFavouriteSong } from "@/app/fn";
+import { toggleUserFavouriteSong } from "@/app/actions";
+import { googleSignInUser } from "@/app/fn";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { authClient } from "@/lib/auth-client";
 
@@ -20,13 +22,20 @@ const SearchSongCard = ({
   isAlreadyFavourite?: boolean;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 }) => {
-  const [isFavourite, setIsFavourite] = useState(isAlreadyFavourite);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
     useState(false);
   const [baseUrl, setBaseUrl] = useState("");
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const {
+    favouriteSongs,
+    setFavourite,
+    isFavouritePending,
+    setFavouritePending,
+  } = useFavourites();
+
+  const isFavourite = favouriteSongs[song.id] ?? isAlreadyFavourite;
+  const isPending = isFavouritePending[song.id] ?? false;
 
   const router = useRouter();
   const pathname = usePathname();
@@ -35,9 +44,6 @@ const SearchSongCard = ({
   const { data: session } = useSession();
 
   const handleToggleFavourite = async () => {
-    setHasInteracted(true);
-    setIsPending(true);
-
     if (!session?.user) {
       toast("Sign in to save your favourite songs", {
         action: {
@@ -62,22 +68,23 @@ const SearchSongCard = ({
       return;
     }
 
-    const prevState = isFavourite;
-    setIsFavourite(!prevState);
+    setHasInteracted(true);
+    setFavouritePending(song.id, true);
+    setFavourite(song.id, !isFavourite);
 
     try {
       const result = await toggleUserFavouriteSong({ song });
 
       if (!result) {
-        setIsFavourite(prevState);
+        setFavourite(song.id, isFavourite);
         toast.error("Failed to update favourite. Try again.");
       }
     } catch (error) {
-      setIsFavourite(prevState);
+      setFavourite(song.id, isFavourite);
       console.error("Error toggling favourite:", error);
       toast.error("Failed to update favourite. Try again.");
     } finally {
-      setIsPending(true);
+      setFavouritePending(song.id, false);
     }
   };
 

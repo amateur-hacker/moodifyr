@@ -81,7 +81,8 @@ const getUserFavouriteSongs = () => {
         })
         .from(favouriteSongs)
         .innerJoin(songs, eq(favouriteSongs.songId, songs.id))
-        .where(eq(favouriteSongs.userId, sessionUser.id));
+        .where(eq(favouriteSongs.userId, sessionUser.id))
+        .orderBy(desc(favouriteSongs.favouritedAt));
 
       return favourites.map((fav) => ({
         id: fav.songId,

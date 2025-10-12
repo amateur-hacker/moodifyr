@@ -15,6 +15,10 @@ import {
 } from "@/db/schema/user";
 import { executeAction } from "@/db/utils";
 import { auth } from "@/lib/auth";
+import type { SongSchema } from "@/app/_types";
+import { favouriteSongs, songSchema, songs } from "@/db/schema/song";
+import z from "zod";
+import { revalidatePath } from "next/cache";
 
 const signOutUser = async () => {
   return executeAction({
@@ -118,9 +122,88 @@ const saveUserPreference = async ({
   });
 };
 
+const toggleUserFavouriteSong = async ({
+  song,
+  revalidate,
+  path,
+}: {
+  song: SongSchema;
+  revalidate?: boolean;
+  path?: string;
+}) => {
+  const toggleUserFavouriteSongSchema = z.object({
+    song: songSchema.omit({ category: true }),
+    revalidate: z.boolean().default(false),
+    path: z.string().default("/fav-songs"),
+  });
+  const {
+    song: parsedSong,
+    revalidate: parsedRevalidate,
+    path: parsedPath,
+  } = toggleUserFavouriteSongSchema.parse({
+    song,
+    revalidate,
+    path,
+  });
+
+  return executeAction({
+    actionFn: async ({ sessionUser }) => {
+      const userId = sessionUser.id;
+
+      const existingSong = await db
+        .select()
+        .from(songs)
+        .where(eq(songs.id, parsedSong.id))
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      if (!existingSong) {
+        await db.insert(songs).values({
+          id: parsedSong.id,
+          title: parsedSong.title,
+          thumbnail: parsedSong.thumbnail,
+          duration: parsedSong.duration,
+        });
+      }
+
+      const [alreadyFavourite] = await db
+        .select()
+        .from(favouriteSongs)
+        .where(
+          and(
+            eq(favouriteSongs.userId, userId),
+            eq(favouriteSongs.songId, parsedSong.id),
+          ),
+        )
+        .limit(1);
+
+      if (alreadyFavourite) {
+        await db
+          .delete(favouriteSongs)
+          .where(
+            and(
+              eq(favouriteSongs.userId, userId),
+              eq(favouriteSongs.songId, parsedSong.id),
+            ),
+          );
+      } else {
+        await db.insert(favouriteSongs).values({
+          songId: song.id,
+          userId,
+        });
+      }
+
+      if (parsedRevalidate) revalidatePath(parsedPath);
+    },
+    isProtected: true,
+    serverErrorMessage: "toggleUserFavouriteSong",
+  });
+};
+
 export {
   signOutUser,
   trackUserSongSearchHistory,
   removeUserSongSearchHistory,
   saveUserPreference,
+  toggleUserFavouriteSong,
 };

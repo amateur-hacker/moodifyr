@@ -42,10 +42,9 @@ const RenameMoodlistDialog = ({
   const handleUpdateMoodlistName = async (
     e: React.FormEvent<HTMLFormElement>,
   ) => {
+    e.preventDefault();
     setIsLoading(true);
     try {
-      e.preventDefault();
-
       const response = await updateUserMoodlistName({
         id: moodlistId,
         name: moodlistName,
@@ -111,6 +110,8 @@ const RenameMoodlistDialog = ({
               type="submit"
               className="flex-1 cursor-pointer"
               disabled={moodlistName === prevMoodlistName || isLoading}
+              data-skip-propagation
+              onClick={(e) => e.stopPropagation()}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">

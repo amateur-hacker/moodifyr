@@ -6,29 +6,36 @@ import { AddToMoodlistDialog } from "@/app/_components/add-to-moodlist-dialog";
 import { ShareLinkDialog } from "@/app/_components/share-link-dialog";
 import { SongCard } from "@/app/_components/song-card";
 import type { FavouriteSongSchema, SongSchema } from "@/app/_types";
-import { toggleUserFavouriteSong } from "@/app/fn";
+import { toggleUserFavouriteSong } from "@/app/actions";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
+import { useFavourites } from "@/app/_context/favourite-context";
 
 const FavouriteSongCard = ({
   song,
   moodlists,
 }: {
   song: FavouriteSongSchema;
-  isAlreadyFavourite?: boolean;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 }) => {
-  const [isFavourite, setIsFavourite] = useState(true);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
     useState(false);
   const [baseUrl, setBaseUrl] = useState("");
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [isPending, setIsPending] = useState(false);
+  const {
+    favouriteSongs,
+    setFavourite,
+    isFavouritePending,
+    setFavouritePending,
+  } = useFavourites();
+
+  const isFavourite = favouriteSongs[song.id] ?? true;
+  const isPending = isFavouritePending[song.id] ?? false;
 
   const handleRemoveFromFavourites = async () => {
     setHasInteracted(true);
-    setIsPending(true);
-    setIsFavourite(false);
+    setFavouritePending(song.id, true);
+    setFavourite(song.id, !isFavourite);
 
     try {
       const result = await toggleUserFavouriteSong({
@@ -38,15 +45,15 @@ const FavouriteSongCard = ({
       });
 
       if (!result) {
-        setIsFavourite(true);
+        setFavourite(song.id, true);
         toast.error("Failed to remove from favourites. Try again.");
       }
     } catch (error) {
-      setIsFavourite(true);
+      setFavourite(song.id, true);
       console.error("Error removing favourite:", error);
       toast.error("Failed to remove from favourites. Try again.");
     } finally {
-      setIsPending(true);
+      setFavouritePending(song.id, false);
     }
   };
 

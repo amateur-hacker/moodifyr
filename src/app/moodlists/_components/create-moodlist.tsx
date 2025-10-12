@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PlusIcon, Smile } from "lucide-react";
-
 import {
   Dialog,
   DialogClose,
@@ -18,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createUserMoodlist } from "@/app/moodlists/actions"; // adjust path
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { Typography } from "@/components/ui/typography";
 
 export const CreateMoodlist = ({ className }: { className?: string }) => {
@@ -38,15 +37,22 @@ export const CreateMoodlist = ({ className }: { className?: string }) => {
         toast.error(response?.message);
       }
     } catch (err) {
-      if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("Failed to create moodlist");
-      }
+      const errorMsg = getErrorMessage(err);
+      toast(errorMsg);
+      // if (err instanceof Error) {
+      //   toast.error(err.message);
+      // } else {
+      //   toast.error("Failed to create moodlist");
+      // }
     } finally {
       setIsPending(false);
     }
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    setInputValue("");
+  }, [isOpen]);
 
   return (
     <div>

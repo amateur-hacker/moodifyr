@@ -44,6 +44,7 @@ const SongMiniPlayerView = ({
   return (
     <Card
       className="p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none relative flex-row justify-between cursor-pointer"
+      title="Open Fullscreen View"
       onClick={toggleFullScreen}
     >
       <motion.div
@@ -78,8 +79,9 @@ const SongMiniPlayerView = ({
           onClick={handlePrevious}
           disabled={currentIndex <= 0}
           className="size-8 cursor-pointer"
+          title="Play Backward"
         >
-          <SkipBack className="size-4" />
+          <SkipBack className="size-4" aria-hidden />
         </Button>
 
         <Button
@@ -88,13 +90,14 @@ const SongMiniPlayerView = ({
           onClick={handlePlay}
           className="rounded-full size-10 cursor-pointer"
           disabled={isLoading}
+          title={!isPlaying ? "Play" : "Pause"}
         >
           {isLoading ? (
             <div className="size-5 animate-spin rounded-full border-2 border-white border-b-transparent" />
           ) : isPlaying ? (
-            <Pause className="size-5" />
+            <Pause className="size-5" aria-hidden />
           ) : (
-            <Play className="size-5" />
+            <Play className="size-5" aria-hidden />
           )}
         </Button>
 
@@ -105,8 +108,9 @@ const SongMiniPlayerView = ({
           // disabled={currentIndex === songs.length - 1}
           disabled={mode === "normal" && currentIndex >= songs.length - 1}
           className="size-8 cursor-pointer"
+          title="Play Forward"
         >
-          <SkipForward className="size-4" />
+          <SkipForward className="size-4" aria-hidden />
         </Button>
       </div>
     </Card>

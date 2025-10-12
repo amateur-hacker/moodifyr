@@ -1,15 +1,28 @@
+"use client";
+
 import {
   ChevronDown,
+  CirclePlus,
   EllipsisVertical,
+  Heart,
   Pause,
   Play,
   Repeat,
+  Share2,
   Shuffle,
   SkipBack,
   SkipForward,
 } from "lucide-react";
 import Image from "next/image";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { AddToMoodlistDialog } from "@/app/_components/add-to-moodlist-dialog";
+import { ShareLinkDialog } from "@/app/_components/share-link-dialog";
 import type { SongSchema } from "@/app/_types";
+import { toggleUserFavouriteSong } from "@/app/actions";
+import { googleSignInUser } from "@/app/fn";
+import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -19,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
+import { authClient } from "@/lib/auth-client";
+import { useFavourites } from "../_context/favourite-context";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
@@ -42,6 +57,8 @@ type SongFullscreenPlayerViewProps = {
   getVolumeIcon: (volume: number) => React.ReactElement;
   handleVolumeChange: (val: number[]) => void;
   toggleVolumeMute: (e: React.MouseEvent) => void;
+  isAlreadyFavourite: boolean;
+  moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 };
 
 const SongFullscreenPlayerView = ({
@@ -60,7 +77,81 @@ const SongFullscreenPlayerView = ({
   toggleMode,
   toggleFullScreen,
   isFullScreen,
+  isAlreadyFavourite,
+  moodlists,
 }: SongFullscreenPlayerViewProps) => {
+  const {
+    favouriteSongs,
+    setFavourite,
+    isFavouritePending,
+    setFavouritePending,
+  } = useFavourites();
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
+    useState(false);
+  const [baseUrl, setBaseUrl] = useState("");
+
+  const isFav = favouriteSongs[currentSong.id] ?? isAlreadyFavourite;
+  const isPending = isFavouritePending[currentSong.id] ?? false;
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { useSession } = authClient;
+  const { data: session } = useSession();
+
+  const handleToggleFavourite = async () => {
+    if (!session?.user) {
+      toast("Sign in to save your favourite songs", {
+        action: {
+          label: "Sign in",
+          onClick: async () => {
+            const queryString = searchParams?.toString();
+            const url = queryString
+              ? `${baseUrl}${pathname}?${queryString}`
+              : `${baseUrl}${pathname}`;
+            const response = await googleSignInUser({
+              callbackURL: url,
+              newUserCallbackURL: url,
+            });
+            if (response?.url) {
+              router.push(response.url);
+            }
+          },
+        },
+        description: "You need an account to favourite songs",
+        duration: 5000,
+      });
+      return;
+    }
+
+    setFavouritePending(currentSong.id, true);
+    setFavourite(currentSong.id, !isFav);
+
+    try {
+      const result = await toggleUserFavouriteSong({
+        song: currentSong,
+        revalidate: true,
+        path: "/search",
+      });
+
+      if (!result) {
+        setFavourite(currentSong.id, isFav);
+        toast.error("Failed to update favourite. Try again.");
+      }
+    } catch (error) {
+      setFavourite(currentSong.id, isFav);
+      console.error("Error toggling favourite:", error);
+      toast.error("Failed to update favourite. Try again.");
+    } finally {
+      setFavouritePending(currentSong.id, false);
+    }
+  };
+
+  useEffect(() => {
+    setBaseUrl(window.location.origin);
+  }, []);
+
   const formatTime = (seconds: number) => {
     if (!seconds || Number.isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
@@ -94,8 +185,9 @@ const SongFullscreenPlayerView = ({
         size="icon"
         onClick={toggleFullScreen}
         className="cursor-pointer absolute top-4 left-4"
+        title="Close Fullscreen View"
       >
-        <ChevronDown className="size-5" />
+        <ChevronDown className="size-5" aria-hidden />
       </Button>
 
       <DropdownMenu>
@@ -104,7 +196,7 @@ const SongFullscreenPlayerView = ({
             size="icon"
             variant="ghost"
             className="cursor-pointer absolute top-4 right-4"
-            aria-label="Open dropdown menu"
+            title="Open Menu"
           >
             <EllipsisVertical size={16} aria-hidden="true" />
           </Button>
@@ -115,8 +207,21 @@ const SongFullscreenPlayerView = ({
           sideOffset={4}
           alignOffset={-4}
         >
-          <DropdownMenuItem>Option 1</DropdownMenuItem>
-          <DropdownMenuItem>Option 2</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsAddToMoodlistDialogOpen(true)}>
+            <CirclePlus />
+            Add to Moodlist
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleToggleFavourite}
+            disabled={isPending}
+          >
+            <Heart />
+            {!isFav ? "Add to Favourite" : "Remove from Favourite"}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
+            <Share2 />
+            Share
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -140,8 +245,9 @@ const SongFullscreenPlayerView = ({
             size="icon"
             onClick={(e) => toggleMode(e, "shuffle")}
             className="size-10 cursor-pointer"
+            title={mode !== "shuffle" ? "Shuffle On" : "Shuffle Off"}
           >
-            <Shuffle className="size-5" />
+            <Shuffle className="size-5" aria-hidden />
           </Button>
 
           <Button
@@ -150,8 +256,9 @@ const SongFullscreenPlayerView = ({
             onClick={handlePrevious}
             disabled={currentIndex <= 0}
             className="cursor-pointer size-10"
+            title="Play Backward"
           >
-            <SkipBack className="size-5" />
+            <SkipBack className="size-5" aria-hidden />
           </Button>
 
           <Button
@@ -160,13 +267,14 @@ const SongFullscreenPlayerView = ({
             onClick={handlePlay}
             className="rounded-full size-14 cursor-pointer"
             disabled={isLoading}
+            title={!isPlaying ? "Play" : "Pause"}
           >
             {isLoading ? (
               <div className="size-7 animate-spin rounded-full border-2 border-white border-b-transparent" />
             ) : isPlaying ? (
-              <Pause className="size-7" />
+              <Pause className="size-7" aria-hidden />
             ) : (
-              <Play className="size-7" />
+              <Play className="size-7" aria-hidden />
             )}
           </Button>
 
@@ -176,8 +284,9 @@ const SongFullscreenPlayerView = ({
             onClick={handleNext}
             disabled={mode === "normal" && currentIndex >= songs.length - 1}
             className="cursor-pointer size-10"
+            title="Play Forward"
           >
-            <SkipForward className="size-5" />
+            <SkipForward className="size-5" aria-hidden />
           </Button>
 
           <Button
@@ -185,10 +294,20 @@ const SongFullscreenPlayerView = ({
             size="icon"
             onClick={handleRepeatClick}
             className="cursor-pointer size-10 relative"
+            title={
+              mode === "normal"
+                ? "Repeat"
+                : mode === "repeat-all"
+                  ? "Repeat One"
+                  : "Normal"
+            }
           >
-            <Repeat className="size-5" />
+            <Repeat className="size-5" aria-hidden />
             {mode === "repeat-one" && (
-              <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-xs rounded-full size-4 flex items-center justify-center font-medium">
+              <span
+                className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-xs rounded-full size-4 flex items-center justify-center font-medium"
+                aria-hidden
+              >
                 1
               </span>
             )}
@@ -209,6 +328,19 @@ const SongFullscreenPlayerView = ({
           </div>
         </div>
       </div>
+
+      <ShareLinkDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        link={`${baseUrl}/search?id=${currentSong.id}`}
+      />
+      <AddToMoodlistDialog
+        open={isAddToMoodlistDialogOpen}
+        onOpenChange={setIsAddToMoodlistDialogOpen}
+        moodlists={moodlists}
+        songId={currentSong.id}
+        song={currentSong as SongSchema}
+      />
     </Card>
   );
 };

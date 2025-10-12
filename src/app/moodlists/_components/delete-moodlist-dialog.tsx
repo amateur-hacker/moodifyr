@@ -30,7 +30,10 @@ const DeleteMoodlistDialog = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    e.stopPropagation();
     setIsDeleting(true);
     try {
       const response = await deleteUserMoodlist({ id: moodlistId });
@@ -84,6 +87,7 @@ const DeleteMoodlistDialog = ({
             className="flex-1 cursor-pointer"
             onClick={handleDelete}
             disabled={isDeleting}
+            data-skip-propagation
           >
             {isDeleting ? (
               <div className="flex items-center justify-center gap-2">

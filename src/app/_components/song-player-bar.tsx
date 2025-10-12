@@ -9,8 +9,16 @@ import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import { getSongInstanceId } from "@/app/_utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
+import type { getUserMoodlists } from "@/app/moodlists/queries";
+import type { FavouriteSongSchema, SongWithUniqueIdSchema } from "@/app/_types";
 
-const SongPlayerBar = () => {
+const SongPlayerBar = ({
+  favouriteSongs,
+  moodlists,
+}: {
+  favouriteSongs: FavouriteSongSchema[] | null;
+  moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
+}) => {
   const {
     currentSong,
     isPlaying,
@@ -144,6 +152,10 @@ const SongPlayerBar = () => {
     return <Volume2 className="size-5" />;
   };
 
+  const isSongFavourite = (song: SongWithUniqueIdSchema) => {
+    return favouriteSongs?.some((fav) => fav.id === song.id) ?? false;
+  };
+
   useEffect(() => {
     if (height > 0) {
       document.documentElement.style.setProperty(
@@ -189,6 +201,8 @@ const SongPlayerBar = () => {
           toggleVolumeMute={toggleVolumeMute}
           toggleFullScreen={toggleFullScreen}
           isFullScreen={isPlayerFullScreen}
+          isAlreadyFavourite={isSongFavourite(currentSong)}
+          moodlists={moodlists}
         />
       ) : (
         <SongMiniPlayerView

@@ -87,6 +87,7 @@ export function BaseSongCard({
           isCurrent &&
             "[--shadow-2xl:0px_1px_4px_0px_oklch(0.8109_0_0)] shadow-2xl",
         )}
+        title={!isPlaying ? "Play" : "Pause"}
       >
         <Image
           src={song.thumbnail}
@@ -110,12 +111,12 @@ export function BaseSongCard({
             isLoading ? (
               <div className="h-6 w-6 animate-spin rounded-full border-white border-b-2" />
             ) : isPlaying ? (
-              <Pause size={36} />
+              <Pause size={36} aria-hidden />
             ) : (
-              <Play size={36} />
+              <Play size={36} aria-hidden />
             )
           ) : (
-            <Play size={36} />
+            <Play size={36} aria-hidden />
           )}
         </div>
       </button>

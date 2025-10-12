@@ -1,19 +1,21 @@
 import type { Metadata, Viewport } from "next";
 import {
+  Aladin,
   Geist,
   Geist_Mono,
   Lora,
-  Press_Start_2P,
   Mystery_Quest,
-  Aladin,
+  Press_Start_2P,
 } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { AppSidebar } from "@/app/_components/app-sidebar";
 import { GlobalSongPlayer } from "@/app/_components/global-song-player";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/app/_components/app-sidebar";
+import { FavouriteProvider } from "@/app/_context/favourite-context";
+
 // import { SplashCursor } from "@/components/splash-cursor";
 // import { cookies } from "next/headers";
 
@@ -87,19 +89,21 @@ export default async function RootLayout({
     <html lang="en">
       <body className={`${fontsVariable} antialiased`}>
         <SidebarProvider defaultOpen={false}>
-          <GlobalSongPlayer>
-            <NextTopLoader color={"var(--primary)"} showSpinner={false} />
-            <Toaster
-              closeButton
-              richColors
-              position="top-center"
-              className="pointer-events-auto"
-            />
-            {/* <SplashCursor /> */}
-            <Navbar />
-            <AppSidebar />
-            <main className="w-full mt-15 px-6 py-4">{children}</main>
-          </GlobalSongPlayer>
+          <FavouriteProvider>
+            <GlobalSongPlayer>
+              <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+              <Toaster
+                closeButton
+                richColors
+                position="top-center"
+                className="pointer-events-auto"
+              />
+              {/* <SplashCursor /> */}
+              <Navbar />
+              <AppSidebar />
+              <main className="w-full mt-15 px-6 py-4">{children}</main>
+            </GlobalSongPlayer>
+          </FavouriteProvider>
         </SidebarProvider>
       </body>
     </html>
