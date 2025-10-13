@@ -105,18 +105,37 @@ const getSongSearchSuggestions = async ({
       //     return duplicateIndex === index || item.isOwnQuery;
       //   });
 
-      const seenQueries = new Set<string>();
-      const updatedSuggestions = [];
+      // const seenQueries = new Set<string>();
+      // const updatedSuggestions = [];
+      //
+      // for (const item of suggestions) {
+      //   const q = item.query.toLowerCase();
+      //   const isOwn = item.userId === parsedUserId;
+      //
+      //   if (!seenQueries.has(q) || isOwn) {
+      //     updatedSuggestions.push({ ...item, isOwnQuery: isOwn });
+      //     seenQueries.add(q);
+      //   }
+      // }
+      const uniqueSuggestionsMap = new Map<
+        string,
+        (typeof suggestions)[number] & { isOwnQuery: boolean }
+      >();
 
       for (const item of suggestions) {
         const q = item.query.toLowerCase();
         const isOwn = item.userId === parsedUserId;
 
-        if (!seenQueries.has(q) || isOwn) {
-          updatedSuggestions.push({ ...item, isOwnQuery: isOwn });
-          seenQueries.add(q);
+        const existing = uniqueSuggestionsMap.get(q);
+
+        if (!existing || isOwn) {
+          uniqueSuggestionsMap.set(q, { ...item, isOwnQuery: isOwn });
         }
       }
+
+      const updatedSuggestions = Array.from(uniqueSuggestionsMap.values()).sort(
+        (a, b) => Number(b.isOwnQuery) - Number(a.isOwnQuery),
+      );
 
       return updatedSuggestions;
     },

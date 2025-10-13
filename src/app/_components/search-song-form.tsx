@@ -28,6 +28,8 @@ import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { encodeQueryParam } from "@/lib/utils";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useUser } from "@/app/_context/user-context";
+import fuzzysort from "fuzzysort";
+import parse from "html-react-parser";
 
 const SearchSongForm = () => {
   const searchParams = useSearchParams();
@@ -48,13 +50,12 @@ const SearchSongForm = () => {
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const shouldOpen = isInputFocused;
   const shouldShowUserHistory = !debouncedQuery.trim();
 
   const user = useUser();
   const userId = user?.id ?? null;
 
-  useScrollLock(shouldOpen);
+  useScrollLock(isInputFocused);
   const router = useRouter();
 
   useClickOutside(() => setIsInputFocused(false), null, [
@@ -170,7 +171,7 @@ const SearchSongForm = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown" && shouldOpen) {
+    if (e.key === "ArrowDown" && isInputFocused) {
       e.preventDefault();
       queueMicrotask(() => {
         const firstItem =
@@ -178,6 +179,27 @@ const SearchSongForm = () => {
         firstItem?.focus();
       });
     }
+  };
+
+  // const highlightMatch = (text: string, query: string) => {
+  //   if (!query.trim()) return text;
+  //   const regex = new RegExp(`(${query})`, "ig");
+  //   const parts = text.split(regex);
+  //   return parts.map((part, i) =>
+  //     regex.test(part) ? <strong key={i}>{part}</strong> : part,
+  //   );
+  // };
+
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+
+    // Use fuzzysort.single to match a single string
+    const result = fuzzysort.single(query, text);
+
+    if (!result) return text;
+
+    // v3: result.highlight() returns string with pre/post tags
+    return result.highlight();
   };
 
   return (
@@ -203,7 +225,7 @@ const SearchSongForm = () => {
             spellCheck="false"
           />
 
-          <DropdownMenu open={shouldOpen} modal={false}>
+          <DropdownMenu open={isInputFocused} modal={false}>
             <DropdownMenuTrigger asChild>
               <div
                 aria-hidden
@@ -219,7 +241,7 @@ const SearchSongForm = () => {
               onOpenAutoFocus={(e) => e.preventDefault()}
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              {history.length === 0 && !loadingHistory ? (
+              {history.length === 0 && !loadingHistory && isInputFocused ? (
                 <DropdownMenuItem disabled>No history</DropdownMenuItem>
               ) : (
                 <>
@@ -234,10 +256,12 @@ const SearchSongForm = () => {
                       onSelect={(e) => {
                         e.preventDefault();
                         handleSelectHistory(item.query);
+                        setIsInputFocused(false);
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "ArrowUp") {
                           e.preventDefault();
+                          // setIsInputFocused(false);
                           const items = Array.from(
                             contentEl?.querySelectorAll<HTMLElement>(
                               '[role="menuitem"]',
@@ -253,11 +277,14 @@ const SearchSongForm = () => {
                     >
                       <div className="flex gap-2 items-center">
                         {shouldShowUserHistory || item?.isOwnQuery ? (
-                          <History />
+                          <History className="text-foreground" />
                         ) : (
-                          <Search />
+                          <Search className="text-foreground" />
                         )}
-                        <span>{item.query}</span>
+                        {/* <span>{item.query}</span> */}
+                        <span>
+                          {parse(highlightMatch(item.query, debouncedQuery))}
+                        </span>
                       </div>
                       {(shouldShowUserHistory || item?.isOwnQuery) && (
                         <button
@@ -266,7 +293,7 @@ const SearchSongForm = () => {
                             e.stopPropagation();
                             handleRemoveHistory(item.id);
                           }}
-                          className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-hover-always:group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
+                          className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
                           title="Remove"
                           disabled={item.query === "Removed"}
                         >
