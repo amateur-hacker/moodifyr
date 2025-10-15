@@ -41,7 +41,7 @@ const FavSongsPage = async () => {
               </div>
             }
           >
-            <SongsSetter songs={favouriteSongs} />
+            {/* <SongsSetter songs={favouriteSongs} /> */}
             <FavouriteSongList
               initialSongs={favouriteSongs}
               moodlists={moodlists}
