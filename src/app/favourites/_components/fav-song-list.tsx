@@ -10,6 +10,7 @@ import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { getUserFavouriteSongs } from "@/app/queries";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
+import { SongsSetter } from "@/app/_components/songs-setter";
 
 type FavouriteSongListProps = {
   initialSongs: FavouriteSongSchema[] | null;
@@ -27,14 +28,10 @@ const FavouriteSongList = ({
   const { favouriteSongs } = useFavourites();
   const { currentSong } = useSongPlayer();
   const firstRender = useRef(true);
+  const { isPlayerFullScreen } = useSongPlayer();
 
   useEffect(() => {
-    if (!currentSong) return;
-
-    if (currentSong.favouriteId) return;
-    console.log(currentSong);
-
-    if (firstRender.current) {
+    if (!currentSong || !isPlayerFullScreen || firstRender.current) {
       firstRender.current = false;
       return;
     }
@@ -50,13 +47,13 @@ const FavouriteSongList = ({
         return [normalizedSong, ...prev];
       }
 
-      if (!favouriteSongs[currentSong.id] && exists) {
-        return prev.filter((s) => s.id !== currentSong.id);
-      }
+      // if (!favouriteSongs[currentSong.id] && exists) {
+      //   return prev.filter((s) => s.id !== currentSong.id);
+      // }
 
       return prev;
     });
-  }, [currentSong, favouriteSongs]);
+  }, [currentSong, favouriteSongs, isPlayerFullScreen]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
@@ -82,6 +79,7 @@ const FavouriteSongList = ({
 
   return (
     <div className="pb-[var(--player-height,80px)]">
+      <SongsSetter songs={songs} />
       {songs?.length ? (
         songs?.map((song, i) => (
           <div key={song.id} className="flex flex-col">

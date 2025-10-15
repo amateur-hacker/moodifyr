@@ -45,7 +45,7 @@ const FavouriteSongCard = ({
         song,
       });
 
-      await wait(5);
+      // await wait(5);
 
       if (result) {
         onRemove?.(song.favouriteId);
