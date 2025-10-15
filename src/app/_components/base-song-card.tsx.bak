@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import type { SongWithUniqueIdSchema } from "../_types";
+import { checkIfPlayable } from "../utils";
 
 type BaseSongCardProps = {
   song: SongWithUniqueIdSchema;
@@ -50,6 +51,23 @@ export function BaseSongCard({
     onClickExtra?.(e);
 
     if (!song.id) return;
+    console.log(currentSong);
+    const prevSong = currentSong ?? null;
+    setSong(song);
+
+    try {
+      const playable = await checkIfPlayable({ songId: song.id });
+      if (!playable) {
+        toast.error("Song not available or removed by user");
+        setSong(prevSong, isPlaying);
+        return;
+      }
+    } catch (err) {
+      console.error("Error checking song status", err);
+      toast.error("Error checking song status");
+      setSong(prevSong, isPlaying);
+      return;
+    }
 
     if (!isCurrent) {
       setIsPlayerFullScreen(true);

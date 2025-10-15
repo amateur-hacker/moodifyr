@@ -8,6 +8,20 @@
       "when": 1759697712152,
       "tag": "0000_robust_iron_monger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1760477391855,
+      "tag": "0001_funny_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760486001412,
+      "tag": "0002_fancy_lorna_dane",
+      "breakpoints": true
     }
   ]
 }

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
-import { getSongInstanceId } from "@/app/_utils";
+import { getSongInstanceId } from "@/app/utils";
 
 type SongsSetterProps = { songs: SongWithUniqueIdSchema[] | null };
 

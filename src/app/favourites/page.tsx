@@ -19,7 +19,9 @@ const FavSongsPage = async () => {
     );
   }
   const [favouriteSongs, moodlists] = await Promise.all([
-    getUserFavouriteSongs().then((res) => res ?? null),
+    getUserFavouriteSongs({ page: 1, limit: 10, pagination: true }).then(
+      (res) => res ?? null,
+    ),
     getUserMoodlists().then((res) => res ?? null),
   ]);
 
@@ -28,8 +30,8 @@ const FavSongsPage = async () => {
       <Typography variant="h2" className="font-playful text-center mb-4">
         Favourites
       </Typography>
-      {favouriteSongs?.length ? (
-        <div className="w-full space-y-5 mx-auto max-w-3xl">
+      <div className="w-full space-y-5 mx-auto max-w-3xl">
+        {favouriteSongs?.length ? (
           <Suspense
             fallback={
               <div className="space-y-[1.3125rem]">
@@ -40,12 +42,17 @@ const FavSongsPage = async () => {
             }
           >
             <SongsSetter songs={favouriteSongs} />
-            <FavouriteSongList songs={favouriteSongs} moodlists={moodlists} />
+            <FavouriteSongList
+              initialSongs={favouriteSongs}
+              moodlists={moodlists}
+            />
           </Suspense>
-        </div>
-      ) : (
-        <Typography variant="lead">No Favourite Songs</Typography>
-      )}
+        ) : (
+          <Typography variant="lead" className="text-center">
+            No Favourite Songs
+          </Typography>
+        )}
+      </div>
     </div>
   );
 };

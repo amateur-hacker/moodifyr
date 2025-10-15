@@ -77,7 +77,7 @@ const SongMiniPlayerView = ({
           variant="ghost"
           size="icon"
           onClick={handlePrevious}
-          disabled={currentIndex <= 0}
+          // disabled={currentIndex <= 0}
           className="size-8 cursor-pointer"
           title="Play Backward"
         >

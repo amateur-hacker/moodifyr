@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { SongFullscreenPlayerView } from "@/app/_components/song-fullscreen-player-view";
 import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
 import { useSongPlayer } from "@/app/_context/song-player-context";
-import { getSongInstanceId } from "@/app/_utils";
+import { getSongInstanceId } from "@/app/utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
 import type { FavouriteSongSchema, SongWithUniqueIdSchema } from "@/app/_types";

@@ -6,6 +6,10 @@ import { executeApi } from "@/db/utils";
 import { env } from "@/lib/env";
 import { encodeQueryParam } from "@/lib/utils";
 
+type SearchSongResponse =
+  | { success: true; songs: SongSchema[] }
+  | { success: true; song: SongSchema }
+  | { success: false; message: string };
 const searchSong = async ({ query, id }: { query?: string; id?: string }) => {
   const searchSongSchema = z.object({
     query: z.string().min(1).optional(),
@@ -20,22 +24,18 @@ const searchSong = async ({ query, id }: { query?: string; id?: string }) => {
   });
 
   return executeApi({
-    apiFn: async (): Promise<
-      | { success: true; songs: SongSchema[] }
-      | { success: true; song: SongSchema }
-      | { success: false; message: string }
-    > => {
+    apiFn: async () => {
       const url = parsedQuery
         ? `${env.API_BASE_URL}/search?q=${encodeQueryParam(parsedQuery)}`
         : `${env.API_BASE_URL}/search?id=${parsedId}`;
 
-      const response = (
+      const response = (await (
         await fetch(url, {
           cache: "no-store",
           // cache: "force-cache",
           // next: { revalidate: 24 * 60 * 60 },
         })
-      ).json();
+      ).json()) as SearchSongResponse;
 
       return response;
     },

@@ -1,6 +1,6 @@
 import type { InferSelectModel } from "drizzle-orm";
-import { relations } from "drizzle-orm";
-import { pgTable } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import { pgTable, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import z from "zod";
 import { users } from "@/db/schema/auth";
@@ -43,15 +43,19 @@ const songAnalyticsPlayHistory = pgTable(
   }),
 );
 
-const songSearchHistory = pgTable("song_search_history", (t) => ({
-  id: t.uuid().defaultRandom().primaryKey().notNull(),
-  userId: t
-    .text()
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  query: t.text().notNull(),
-  searchedAt: t.timestamp().defaultNow().notNull(),
-}));
+const songSearchHistory = pgTable(
+  "song_search_history",
+  (t) => ({
+    id: t.uuid().defaultRandom().primaryKey().notNull(),
+    userId: t
+      .text()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    query: t.text().notNull(),
+    searchedAt: t.timestamp().defaultNow().notNull(),
+  }),
+  (t) => [index().on(t.query)],
+);
 
 const favouriteSongs = pgTable("favourite_songs", (t) => ({
   id: t.uuid().defaultRandom().primaryKey().notNull(),

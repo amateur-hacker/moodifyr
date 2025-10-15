@@ -193,12 +193,11 @@ const SearchSongForm = () => {
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
 
-    // Use fuzzysort.single to match a single string
     const result = fuzzysort.single(query, text);
+    console.log(result);
 
     if (!result) return text;
 
-    // v3: result.highlight() returns string with pre/post tags
     return result.highlight();
   };
 
@@ -225,7 +224,10 @@ const SearchSongForm = () => {
             spellCheck="false"
           />
 
-          <DropdownMenu open={isInputFocused} modal={false}>
+          <DropdownMenu
+            open={isInputFocused && history.length > 0}
+            modal={false}
+          >
             <DropdownMenuTrigger asChild>
               <div
                 aria-hidden
@@ -241,84 +243,88 @@ const SearchSongForm = () => {
               onOpenAutoFocus={(e) => e.preventDefault()}
               onCloseAutoFocus={(e) => e.preventDefault()}
             >
-              {history.length === 0 && !loadingHistory && isInputFocused ? (
-                <DropdownMenuItem disabled>No history</DropdownMenuItem>
-              ) : (
-                <>
-                  {history.map((item, idx) => (
-                    <DropdownMenuItem
-                      key={item.id}
-                      className={`flex justify-between items-center group ${
-                        item.query === "Removed"
-                          ? "text-muted-foreground opacity-50"
-                          : ""
-                      }`}
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        handleSelectHistory(item.query);
-                        setIsInputFocused(false);
+              {history.map((item, idx) => (
+                <DropdownMenuItem
+                  key={item.id}
+                  className={`flex justify-between items-center group ${
+                    item.query === "Removed"
+                      ? "text-muted-foreground opacity-50"
+                      : ""
+                  }`}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    handleSelectHistory(item.query);
+                    setIsInputFocused(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      // setIsInputFocused(false);
+                      const items = Array.from(
+                        contentEl?.querySelectorAll<HTMLElement>(
+                          '[role="menuitem"]',
+                        ) || [],
+                      );
+                      if (idx > 0) {
+                        items[idx - 1]?.focus();
+                      } else {
+                        inputRef?.current?.focus();
+                      }
+                    }
+                  }}
+                >
+                  <div className="flex gap-2 items-center">
+                    {shouldShowUserHistory || item?.isOwnQuery ? (
+                      <History className="text-foreground" />
+                    ) : (
+                      <Search className="text-foreground" />
+                    )}
+                    {/* <span>{item.query}</span> */}
+                    <span>
+                      {parse(highlightMatch(item.query, debouncedQuery))}
+                      {/* {highlightMatch(item.query, debouncedQuery)} */}
+                    </span>
+                  </div>
+                  {(shouldShowUserHistory || item?.isOwnQuery) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveHistory(item.id);
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowUp") {
-                          e.preventDefault();
-                          // setIsInputFocused(false);
-                          const items = Array.from(
-                            contentEl?.querySelectorAll<HTMLElement>(
-                              '[role="menuitem"]',
-                            ) || [],
-                          );
-                          if (idx > 0) {
-                            items[idx - 1]?.focus();
-                          } else {
-                            inputRef?.current?.focus();
-                          }
-                        }
-                      }}
+                      className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
+                      title="Remove"
+                      disabled={item.query === "Removed"}
                     >
-                      <div className="flex gap-2 items-center">
-                        {shouldShowUserHistory || item?.isOwnQuery ? (
-                          <History className="text-foreground" />
-                        ) : (
-                          <Search className="text-foreground" />
-                        )}
-                        {/* <span>{item.query}</span> */}
-                        <span>
-                          {parse(highlightMatch(item.query, debouncedQuery))}
-                        </span>
-                      </div>
-                      {(shouldShowUserHistory || item?.isOwnQuery) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveHistory(item.id);
-                          }}
-                          className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
-                          title="Remove"
-                          disabled={item.query === "Removed"}
-                        >
-                          <X className="size-4 text-inherit" aria-hidden />
-                        </button>
-                      )}
-                    </DropdownMenuItem>
-                  ))}
-
-                  {hasMore && (
-                    <div
-                      ref={bottomRef}
-                      className="flex items-center justify-center py-2 text-sm text-muted-foreground"
-                    >
-                      {loadingMore ? (
-                        <div className="flex items-center gap-2">
-                          <Spinner />
-                          Loading...
-                        </div>
-                      ) : (
-                        "Scroll for more"
-                      )}
-                    </div>
+                      <X className="size-4 text-inherit" aria-hidden />
+                    </button>
                   )}
-                </>
+                </DropdownMenuItem>
+              ))}
+
+              {/* {hasMore && ( */}
+              {/*   <div */}
+              {/*     ref={bottomRef} */}
+              {/*     className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2" */}
+              {/*   > */}
+              {/*     {loadingMore ? ( */}
+              {/*       <div className="flex items-center gap-2"> */}
+              {/*         <Spinner /> */}
+              {/*         Loading... */}
+              {/*       </div> */}
+              {/*     ) : ( */}
+              {/*       "Scroll for more" */}
+              {/*     )} */}
+              {/*   </div> */}
+              {/* )} */}
+              {(hasMore || loadingMore) && (
+                <div
+                  ref={bottomRef}
+                  className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2"
+                >
+                  <Spinner />
+                  Loading...
+                </div>
               )}
             </DropdownMenuContent>
           </DropdownMenu>

@@ -9,7 +9,6 @@ import {
   trackUserSongAnalyticsPlayHistory,
   trackUserSongPlayHistory,
 } from "@/app/search/actions";
-import { toast } from "sonner";
 
 export function SongPlayerEngine() {
   const {
@@ -72,29 +71,28 @@ export function SongPlayerEngine() {
         break;
       case 1: {
         setIsLoading(false);
-        setIsPlaying(true);
         const d = await playerRef.current.getDuration();
         setDuration(Number.isFinite(d) ? d : 0);
         // setIsPlaying(true);
 
-        // if (
-        //   currentSongRef.current &&
-        //   lastTrackedIdRef.current !== currentSongRef.current.id
-        // ) {
-        //   // lastTrackedIdRef.current = currentSongRef.current.id;
-        //   // await trackUserSongPlayHistory({
-        //   //   song: {
-        //   //     id: currentSongRef.current.id,
-        //   //     title: currentSongRef.current.title,
-        //   //     thumbnail: currentSongRef.current.thumbnail,
-        //   //     duration: currentSongRef.current.duration,
-        //   //   },
-        //   // });
-        // }
+        if (
+          currentSongRef.current &&
+          lastTrackedIdRef.current !== currentSongRef.current.id
+        ) {
+          lastTrackedIdRef.current = currentSongRef.current.id;
+          // await trackUserSongPlayHistory({
+          //   song: {
+          //     id: currentSongRef.current.id,
+          //     title: currentSongRef.current.title,
+          //     thumbnail: currentSongRef.current.thumbnail,
+          //     duration: currentSongRef.current.duration,
+          //   },
+          // });
+        }
         break;
       }
       case 2:
-        setIsPlaying(false);
+        // setIsPlaying(false);
         break;
       case 0: {
         const currentIndex = songsRef.current.findIndex(
@@ -250,18 +248,16 @@ export function SongPlayerEngine() {
       intervalRef.current = setInterval(async () => {
         try {
           const currentTime = await playerRef.current?.getCurrentTime();
-          if (currentTime == null) return;
+          if (currentTime != null) {
+            lastTimeRef.current = currentTime;
+            setProgress(currentTime);
 
-          lastTimeRef.current = currentTime;
-          setProgress(currentTime);
-
-          if (
-            currentSongRef.current &&
-            currentTime >= Math.min(5, duration * 0.1) &&
-            lastTrackedIdRef.current !== currentSongRef.current.id
-          ) {
-            lastTrackedIdRef.current = currentSongRef.current.id;
-            try {
+            if (
+              currentSongRef.current &&
+              currentTime >= 5 &&
+              lastTrackedIdRef.current !== currentSongRef.current.id
+            ) {
+              lastTrackedIdRef.current = currentSongRef.current.id;
               await trackUserSongPlayHistory({
                 song: {
                   id: currentSongRef.current.id,
@@ -270,34 +266,22 @@ export function SongPlayerEngine() {
                   duration: currentSongRef.current.duration,
                 },
               });
-            } catch (err) {
-              console.error(
-                `Error tracking song play history for "${currentSongRef.current.title}":`,
-                err,
-              );
             }
-          }
 
-          if (
-            currentSongRef.current &&
-            duration > 0 &&
-            currentTime >= duration * 0.6 &&
-            lastAnalyticsIdRef.current !== currentSongRef.current.id
-          ) {
-            lastAnalyticsIdRef.current = currentSongRef.current.id;
-            try {
+            if (
+              currentSongRef.current &&
+              duration > 0 &&
+              currentTime >= duration * 0.6 &&
+              lastAnalyticsIdRef.current !== currentSongRef.current.id
+            ) {
+              lastAnalyticsIdRef.current = currentSongRef.current.id;
               await trackUserSongAnalyticsPlayHistory({
                 song: currentSongRef.current,
               });
-            } catch (err) {
-              console.error(
-                `Error tracking song analytics for "${currentSongRef.current.title}":`,
-                err,
-              );
             }
           }
         } catch (err) {
-          console.error("Error getting current time from playerRef:", err);
+          console.warn("Error getting current time:", err);
         }
       }, 1000);
     }
@@ -324,12 +308,8 @@ export function SongPlayerEngine() {
           await playerRef.current?.seekTo(lastTimeRef.current, true);
           await playerRef.current?.playVideo();
         } catch (err) {
-          console.warn("Background play blocked or failed to resume:", err);
+          console.warn("Autoplay blocked or failed resume:", err);
         }
-      }
-      if (document.visibilityState === "visible" && playerRef.current) {
-        const state = await playerRef.current.getPlayerState();
-        setIsPlaying(state === 1);
       }
     };
 

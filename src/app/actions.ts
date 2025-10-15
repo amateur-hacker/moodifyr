@@ -122,28 +122,12 @@ const saveUserPreference = async ({
   });
 };
 
-const toggleUserFavouriteSong = async ({
-  song,
-  revalidate,
-  path,
-}: {
-  song: SongSchema;
-  revalidate?: boolean;
-  path?: string;
-}) => {
+const toggleUserFavouriteSong = async ({ song }: { song: SongSchema }) => {
   const toggleUserFavouriteSongSchema = z.object({
     song: songSchema.omit({ category: true }),
-    revalidate: z.boolean().default(false),
-    path: z.string().default("/fav-songs"),
   });
-  const {
-    song: parsedSong,
-    revalidate: parsedRevalidate,
-    path: parsedPath,
-  } = toggleUserFavouriteSongSchema.parse({
+  const { song: parsedSong } = toggleUserFavouriteSongSchema.parse({
     song,
-    revalidate,
-    path,
   });
 
   return executeAction({
@@ -192,8 +176,6 @@ const toggleUserFavouriteSong = async ({
           userId,
         });
       }
-
-      if (parsedRevalidate) revalidatePath(parsedPath);
     },
     isProtected: true,
     serverErrorMessage: "toggleUserFavouriteSong",

@@ -1,9 +1,13 @@
 "use server";
 
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, type SQL, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import z from "zod";
-import type { SongWithUniqueIdSchema } from "@/app/_types";
+import type {
+  FavouriteSongSchema,
+  Prettify,
+  SongWithUniqueIdSchema,
+} from "@/app/_types";
 import { db } from "@/db";
 import { songSearchHistory } from "@/db/schema";
 import { favouriteSongs, songs } from "@/db/schema/song";
@@ -85,38 +89,44 @@ const getSongSearchSuggestions = async ({
   return executeQuery({
     queryFn: async () => {
       const offset = (parsedPage - 1) * parsedLimit;
+      const words = parsedQuery.toLowerCase().split(" ").filter(Boolean);
+
+      const { conditions, rankConditions } = words.reduce(
+        (acc, word, index) => {
+          acc.conditions.push(sql`(
+      ${songSearchHistory.query} ILIKE ${word} || '%' OR
+      ${songSearchHistory.query} ILIKE '% ' || ${word} || '%'
+    )`);
+
+          acc.rankConditions.push(sql`
+      WHEN split_part(${songSearchHistory.query}, ' ', 1) ILIKE ${word} || '%' THEN ${index} - 0.5
+      WHEN ${songSearchHistory.query} ILIKE ${word} || '%' THEN ${index}
+      WHEN ${songSearchHistory.query} ILIKE '% ' || ${word} || '%' THEN ${index} + 0.5
+    `);
+
+          return acc;
+        },
+        {
+          conditions: [] as SQL<unknown>[],
+          rankConditions: [] as SQL<unknown>[],
+        },
+      );
+
+      const whereClause = sql.join(conditions, sql` AND `);
+      const orderByRank = sql`CASE ${sql.join(rankConditions, sql` `)} ELSE ${words.length} END ASC`;
 
       const suggestions = await db.query.songSearchHistory.findMany({
-        where: sql`LOWER(query) LIKE ${parsedQuery.toLowerCase()} || '%'`,
+        // where: sql`LOWER(query) LIKE ${parsedQuery.toLowerCase()} || '%'`,
+        // where: sql`LOWER(query) LIKE '%' || ${parsedQuery.toLowerCase()} || '%'`,
+        // where: sql`${songSearchHistory.query} ILIKE ${parsedQuery.toLowerCase()} || '%'`,
+        // where: sql`to_tsvector('english', ${songSearchHistory.query}) @@ plainto_tsquery('english', ${parsedQuery.toLowerCase()})`,
+        where: whereClause,
         limit: parsedLimit,
         offset,
-        orderBy: [desc(songSearchHistory.searchedAt)],
+        // orderBy: [desc(songSearchHistory.searchedAt)],
+        orderBy: [orderByRank],
       });
 
-      // const updatedSuggestions = suggestions
-      //   .map((item) => ({
-      //     ...item,
-      //     isOwnQuery: item.userId === parsedUserId,
-      //   }))
-      //   .filter((item, index, arr) => {
-      //     const duplicateIndex = arr.findIndex(
-      //       (i) => i.query.toLowerCase() === item.query.toLowerCase(),
-      //     );
-      //     return duplicateIndex === index || item.isOwnQuery;
-      //   });
-
-      // const seenQueries = new Set<string>();
-      // const updatedSuggestions = [];
-      //
-      // for (const item of suggestions) {
-      //   const q = item.query.toLowerCase();
-      //   const isOwn = item.userId === parsedUserId;
-      //
-      //   if (!seenQueries.has(q) || isOwn) {
-      //     updatedSuggestions.push({ ...item, isOwnQuery: isOwn });
-      //     seenQueries.add(q);
-      //   }
-      // }
       const uniqueSuggestionsMap = new Map<
         string,
         (typeof suggestions)[number] & { isOwnQuery: boolean }
@@ -154,23 +164,64 @@ const getUserLastPlayedSong =
     return song as SongWithUniqueIdSchema;
   };
 
-const getUserFavouriteSongs = () => {
+const getUserFavouriteSongs = ({
+  page = 1,
+  limit = 10,
+  pagination = false,
+}: {
+  page?: number;
+  limit?: number;
+  pagination?: boolean;
+} = {}) => {
+  const getUserFavouriteSongsSchema = z.object({
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1).max(10),
+    pagination: z.boolean().default(false),
+  });
+
+  const {
+    page: parsedPage,
+    limit: parsedLimit,
+    pagination: parsedPagination,
+  } = getUserFavouriteSongsSchema.parse({ page, limit, pagination });
+
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
-      const favourites = await db
-        .select({
-          favouriteId: favouriteSongs.id,
-          songId: songs.id,
-          title: songs.title,
-          thumbnail: songs.thumbnail,
-          duration: songs.duration,
-        })
-        .from(favouriteSongs)
-        .innerJoin(songs, eq(favouriteSongs.songId, songs.id))
-        .where(eq(favouriteSongs.userId, sessionUser.id))
-        .orderBy(desc(favouriteSongs.favouritedAt));
+      let favourites: Prettify<
+        Omit<FavouriteSongSchema, "id"> & { songId: string }
+      >[] = [];
+      if (!parsedPagination) {
+        favourites = await db
+          .select({
+            favouriteId: favouriteSongs.id,
+            songId: songs.id,
+            title: songs.title,
+            thumbnail: songs.thumbnail,
+            duration: songs.duration,
+          })
+          .from(favouriteSongs)
+          .innerJoin(songs, eq(favouriteSongs.songId, songs.id))
+          .where(eq(favouriteSongs.userId, sessionUser.id))
+          .orderBy(desc(favouriteSongs.favouritedAt));
+      } else {
+        const offset = (parsedPage - 1) * parsedLimit;
+        favourites = await db
+          .select({
+            favouriteId: favouriteSongs.id,
+            songId: songs.id,
+            title: songs.title,
+            thumbnail: songs.thumbnail,
+            duration: songs.duration,
+          })
+          .from(favouriteSongs)
+          .innerJoin(songs, eq(favouriteSongs.songId, songs.id))
+          .where(eq(favouriteSongs.userId, sessionUser.id))
+          .orderBy(desc(favouriteSongs.favouritedAt))
+          .limit(parsedLimit)
+          .offset(offset);
+      }
 
-      return favourites.map((fav) => ({
+      const updatedFavourites = favourites.map((fav) => ({
         id: fav.songId,
         favouriteId: fav.favouriteId,
         title: fav.title,
@@ -180,6 +231,8 @@ const getUserFavouriteSongs = () => {
           seconds: fav.duration.seconds,
         },
       }));
+
+      return updatedFavourites;
     },
     isProtected: true,
     serverErrorMessage: "getUserFavouriteSongs",

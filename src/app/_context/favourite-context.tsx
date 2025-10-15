@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback } from "react";
 import type React from "react";
 
 type FavouriteContextType = {
-  favouriteSongs: Record<string, boolean>; // key = song.id
+  favouriteSongs: Record<string, boolean>;
   isFavouritePending: Record<string, boolean>;
   setFavourite: (songId: string, fav: boolean) => void;
   setFavouritePending: (songId: string, pending: boolean) => void;

@@ -130,8 +130,6 @@ const SongFullscreenPlayerView = ({
     try {
       const result = await toggleUserFavouriteSong({
         song: currentSong,
-        revalidate: true,
-        path: "/search",
       });
 
       if (!result) {
@@ -153,9 +151,18 @@ const SongFullscreenPlayerView = ({
 
   const formatTime = (seconds: number) => {
     if (!seconds || Number.isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
+
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`;
+    } else {
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
   };
 
   const handleRepeatClick = (e: React.MouseEvent) => {
@@ -268,7 +275,7 @@ const SongFullscreenPlayerView = ({
             variant="ghost"
             size="icon"
             onClick={handlePrevious}
-            disabled={currentIndex <= 0}
+            // disabled={currentIndex <= 0}
             className="cursor-pointer size-10"
             title="Play Backward"
           >

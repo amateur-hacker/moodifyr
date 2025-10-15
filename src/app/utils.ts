@@ -1,4 +1,5 @@
 import type { SongWithUniqueIdSchema } from "@/app/_types";
+import youtubePlayer from "youtube-player";
 
 const getSongInstanceId = (song: SongWithUniqueIdSchema) =>
   song.historyId ||

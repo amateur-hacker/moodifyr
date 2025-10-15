@@ -55,8 +55,8 @@ const decodePathParam = (param: string) => {
   );
 };
 
-const wait = async (duration: number = 1000) => {
-  return new Promise((resolve) => setTimeout(resolve, duration));
+const wait = async (duration: number = 1) => {
+  return new Promise((resolve) => setTimeout(resolve, duration * 1000));
 };
 
 export {

@@ -9,13 +9,16 @@ import type { FavouriteSongSchema, SongSchema } from "@/app/_types";
 import { toggleUserFavouriteSong } from "@/app/actions";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { useFavourites } from "@/app/_context/favourite-context";
+import { wait } from "@/lib/utils";
 
 const FavouriteSongCard = ({
   song,
   moodlists,
+  onRemove,
 }: {
   song: FavouriteSongSchema;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
+  onRemove: (id: string) => void;
 }) => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
@@ -40,11 +43,13 @@ const FavouriteSongCard = ({
     try {
       const result = await toggleUserFavouriteSong({
         song,
-        revalidate: true,
-        path: "/favourites",
       });
 
-      if (!result) {
+      await wait(5);
+
+      if (result) {
+        onRemove?.(song.favouriteId);
+      } else {
         setFavourite(song.id, true);
         toast.error("Failed to remove from favourites. Try again.");
       }

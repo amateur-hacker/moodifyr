@@ -1,36 +1,108 @@
+"use client";
+
+import { useInViewport } from "@mantine/hooks";
+import { useEffect, useState } from "react";
+import { useFavourites } from "@/app/_context/favourite-context";
+import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { FavouriteSongSchema } from "@/app/_types";
 import { FavouriteSongCard } from "@/app/favourites/_components/fav-song-card";
-import { getUserMoodlists } from "@/app/moodlists/queries";
-import { GlitchText } from "@/components/ui/shadcn-io/glitch-text";
-// import { Typography } from "@/components/ui/typography";
+import type { getUserMoodlists } from "@/app/moodlists/queries";
+import { getUserFavouriteSongs } from "@/app/queries";
+import { Spinner } from "@/components/ui/spinner";
+import { Typography } from "@/components/ui/typography";
 
 type FavouriteSongListProps = {
-  songs: FavouriteSongSchema[] | null;
+  initialSongs: FavouriteSongSchema[] | null;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 };
-const FavouriteSongList = async ({
-  songs,
+const FavouriteSongList = ({
+  initialSongs,
   moodlists,
 }: FavouriteSongListProps) => {
+  const { ref: bottomRef, inViewport } = useInViewport();
+  const [songs, setSongs] = useState(initialSongs ?? []);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { favouriteSongs } = useFavourites();
+  const { currentSong } = useSongPlayer();
+
+  useEffect(() => {
+    if (!currentSong) return;
+    console.log(currentSong);
+
+    setSongs((prev) => {
+      const exists = prev.find((s) => s.id === currentSong.id);
+
+      const normalizedSong: FavouriteSongSchema = {
+        ...currentSong,
+        favouriteId: currentSong.favouriteId || "",
+      };
+
+      if (favouriteSongs[currentSong.id] && !exists) {
+        return [normalizedSong, ...prev];
+      }
+
+      if (!favouriteSongs[currentSong.id] && exists) {
+        return prev.filter((s) => s.id !== currentSong.id);
+      }
+
+      return prev;
+    });
+  }, [currentSong, favouriteSongs]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    if (inViewport && hasMore && !loadingMore) {
+      setLoadingMore(true);
+
+      getUserFavouriteSongs({
+        page: page + 1,
+        limit: 10,
+        pagination: true,
+      })
+        .then((res) => {
+          console.log(res);
+          if (res?.length) {
+            setSongs((prev) => [...prev, ...res]);
+            setPage((p) => p + 1);
+          }
+          if (!res?.length || res.length < 10) setHasMore(false);
+        })
+        .finally(() => setLoadingMore(false));
+    }
+  }, [inViewport, hasMore, loadingMore]);
+
   return (
     <div className="pb-[var(--player-height,80px)]">
-      {/* <Typography variant="h2" className="mb-4 text-center font-retro"> */}
-      {/*   Favourites */}
-      {/* </Typography> */}
-      {/* <GlitchText */}
-      {/*   speed={1} */}
-      {/*   enableShadows={true} */}
-      {/*   enableOnHover={false} */}
-      {/*   className="mb-4 text-center after:left-0 after:right-0 after:m-auto after:translate-x-[10px] before:left-0 before:right-0 before:m-auto before:-translate-x-[10px]" */}
-      {/* > */}
-      {/*   Favourites */}
-      {/* </GlitchText> */}
-      {songs?.map((song, i) => (
-        <div key={song.id} className="flex flex-col">
-          <FavouriteSongCard song={song} moodlists={moodlists} />
-          {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
+      {songs?.length ? (
+        songs?.map((song, i) => (
+          <div key={song.id} className="flex flex-col">
+            <FavouriteSongCard
+              song={song}
+              moodlists={moodlists}
+              onRemove={(id) =>
+                setSongs((prev) => prev.filter((s) => s.favouriteId !== id))
+              }
+            />
+            {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
+          </div>
+        ))
+      ) : (
+        <Typography variant="lead" className="text-center">
+          No Favourite Songs
+        </Typography>
+      )}
+
+      {(hasMore || loadingMore) && (
+        <div
+          ref={bottomRef}
+          className="flex items-center justify-center py-2 mt-3 text-sm text-muted-foreground gap-2"
+        >
+          <Spinner />
+          Loading...
         </div>
-      ))}
+      )}
     </div>
   );
 };
