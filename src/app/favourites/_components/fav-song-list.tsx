@@ -1,7 +1,7 @@
 "use client";
 
 import { useInViewport } from "@mantine/hooks";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFavourites } from "@/app/_context/favourite-context";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { FavouriteSongSchema } from "@/app/_types";
@@ -26,20 +26,27 @@ const FavouriteSongList = ({
   const [loadingMore, setLoadingMore] = useState(false);
   const { favouriteSongs } = useFavourites();
   const { currentSong } = useSongPlayer();
+  const firstRender = useRef(true);
 
   useEffect(() => {
     if (!currentSong) return;
+
+    if (currentSong.favouriteId) return;
     console.log(currentSong);
+
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
 
     setSongs((prev) => {
       const exists = prev.find((s) => s.id === currentSong.id);
 
-      const normalizedSong: FavouriteSongSchema = {
-        ...currentSong,
-        favouriteId: currentSong.favouriteId || "",
-      };
-
       if (favouriteSongs[currentSong.id] && !exists) {
+        const normalizedSong: FavouriteSongSchema = {
+          ...currentSong,
+          favouriteId: currentSong.favouriteId || "",
+        };
         return [normalizedSong, ...prev];
       }
 

@@ -30,6 +30,7 @@ import { useDebouncedValue } from "@mantine/hooks";
 import { useUser } from "@/app/_context/user-context";
 import fuzzysort from "fuzzysort";
 import parse from "html-react-parser";
+import { RemoveScroll } from "react-remove-scroll";
 
 const SearchSongForm = () => {
   const searchParams = useSearchParams();
@@ -47,21 +48,31 @@ const SearchSongForm = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [shouldRefreshUserHistory, setShouldRefreshUserHistory] =
+    useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
   const shouldShowUserHistory = !debouncedQuery.trim();
+  const shouldShowDropdown =
+    isInputFocused && history.length > 0 && !loadingHistory;
 
   const user = useUser();
   const userId = user?.id ?? null;
 
-  useScrollLock(isInputFocused);
   const router = useRouter();
 
-  useClickOutside(() => setIsInputFocused(false), null, [
-    inputRef?.current,
-    contentEl,
-  ]);
+  // useClickOutside(() => setIsInputFocused(false), null, [
+  //   inputRef?.current,
+  //   contentEl,
+  // ]);
+
+  // useScrollLock(shouldShowDropdown);
+  useClickOutside(
+    () => setIsInputFocused(false),
+    ["click"],
+    [inputRef?.current, contentEl],
+  );
 
   const { ref: bottomRef, inViewport } = useInViewport();
 
@@ -113,7 +124,7 @@ const SearchSongForm = () => {
         })
         .finally(() => setLoadingMore(false));
     }
-  }, [inViewport, debouncedQuery, hasMore, loadingMore, shouldShowUserHistory]);
+  }, [inViewport, debouncedQuery, hasMore, loadingMore]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -153,7 +164,11 @@ const SearchSongForm = () => {
       ),
     );
     const res = await removeUserSongSearchHistory({ id });
-    if (!res?.success) toast.error("Failed to remove search history");
+    if (!res?.success) {
+      toast.error("Failed to remove search history");
+    } else {
+      setShouldRefreshUserHistory(true);
+    }
   };
 
   const handleSelectHistory = async (text: string) => {
@@ -171,7 +186,7 @@ const SearchSongForm = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "ArrowDown" && isInputFocused) {
+    if (e.key === "ArrowDown" && shouldShowDropdown) {
       e.preventDefault();
       queueMicrotask(() => {
         const firstItem =
@@ -198,7 +213,10 @@ const SearchSongForm = () => {
 
     if (!result) return text;
 
-    return result.highlight();
+    return result.highlight(
+      "<strong className='text-foreground'>",
+      "</strong>",
+    );
   };
 
   return (
@@ -213,6 +231,16 @@ const SearchSongForm = () => {
             type="search"
             onChange={handleChange}
             onFocus={() => {
+              if (shouldShowUserHistory && shouldRefreshUserHistory) {
+                setShouldRefreshUserHistory(false);
+                getUserSongSearchHistory({ page: 1, limit: 10 })
+                  .then((res) => {
+                    setHistory(res ?? []);
+                    setHasMore((res?.length ?? 0) >= 10);
+                  })
+                  .catch(() => toast.error("Failed to refresh search history"))
+                  .finally(() => setLoadingHistory(false));
+              }
               const timer = setTimeout(() => {
                 setIsInputFocused(true);
               }, 300);
@@ -224,110 +252,115 @@ const SearchSongForm = () => {
             spellCheck="false"
           />
 
-          <DropdownMenu
-            open={isInputFocused && history.length > 0}
-            modal={false}
-          >
-            <DropdownMenuTrigger asChild>
-              <div
-                aria-hidden
-                className="absolute inset-0 pointer-events-none"
-              />
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              ref={setContentEl}
-              align="start"
-              className="w-[var(--radix-dropdown-menu-trigger-width)] p-0 max-h-60 overflow-y-auto"
-              // @ts-expect-error shadcn typing mismatch
-              onOpenAutoFocus={(e) => e.preventDefault()}
-              onCloseAutoFocus={(e) => e.preventDefault()}
-            >
-              {history.map((item, idx) => (
-                <DropdownMenuItem
-                  key={item.id}
-                  className={`flex justify-between items-center group ${
-                    item.query === "Removed"
-                      ? "text-muted-foreground opacity-50"
-                      : ""
-                  }`}
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    handleSelectHistory(item.query);
-                    setIsInputFocused(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowUp") {
-                      e.preventDefault();
-                      // setIsInputFocused(false);
-                      const items = Array.from(
-                        contentEl?.querySelectorAll<HTMLElement>(
-                          '[role="menuitem"]',
-                        ) || [],
-                      );
-                      if (idx > 0) {
-                        items[idx - 1]?.focus();
-                      } else {
-                        inputRef?.current?.focus();
-                      }
-                    }
-                  }}
-                >
-                  <div className="flex gap-2 items-center">
-                    {shouldShowUserHistory || item?.isOwnQuery ? (
-                      <History className="text-foreground" />
-                    ) : (
-                      <Search className="text-foreground" />
-                    )}
-                    {/* <span>{item.query}</span> */}
-                    <span>
-                      {parse(highlightMatch(item.query, debouncedQuery))}
-                      {/* {highlightMatch(item.query, debouncedQuery)} */}
-                    </span>
-                  </div>
-                  {(shouldShowUserHistory || item?.isOwnQuery) && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveHistory(item.id);
-                      }}
-                      className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
-                      title="Remove"
-                      disabled={item.query === "Removed"}
-                    >
-                      <X className="size-4 text-inherit" aria-hidden />
-                    </button>
-                  )}
-                </DropdownMenuItem>
-              ))}
-
-              {/* {hasMore && ( */}
-              {/*   <div */}
-              {/*     ref={bottomRef} */}
-              {/*     className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2" */}
-              {/*   > */}
-              {/*     {loadingMore ? ( */}
-              {/*       <div className="flex items-center gap-2"> */}
-              {/*         <Spinner /> */}
-              {/*         Loading... */}
-              {/*       </div> */}
-              {/*     ) : ( */}
-              {/*       "Scroll for more" */}
-              {/*     )} */}
-              {/*   </div> */}
-              {/* )} */}
-              {(hasMore || loadingMore) && (
+          <RemoveScroll enabled={shouldShowDropdown}>
+            <DropdownMenu open={shouldShowDropdown} modal={false}>
+              <DropdownMenuTrigger asChild>
                 <div
-                  ref={bottomRef}
-                  className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2"
-                >
-                  <Spinner />
-                  Loading...
-                </div>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  aria-hidden
+                  className="absolute inset-0 pointer-events-none"
+                />
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent
+                ref={setContentEl}
+                align="start"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] p-0 max-h-60 overflow-y-auto"
+                // @ts-expect-error shadcn typing mismatch
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+              >
+                {history.map((item, idx) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    className={`flex justify-between items-center group ${
+                      item.query === "Removed"
+                        ? "text-muted-foreground opacity-50"
+                        : ""
+                    }`}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleSelectHistory(item.query);
+                      setIsInputFocused(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp") {
+                        e.preventDefault();
+                        // setIsInputFocused(false);
+                        const items = Array.from(
+                          contentEl?.querySelectorAll<HTMLElement>(
+                            '[role="menuitem"]',
+                          ) || [],
+                        );
+                        if (idx > 0) {
+                          items[idx - 1]?.focus();
+                        } else {
+                          inputRef?.current?.focus();
+                        }
+                      }
+                    }}
+                  >
+                    <div className="flex gap-2 items-center">
+                      {shouldShowUserHistory || item?.isOwnQuery ? (
+                        <History className="text-foreground" />
+                      ) : (
+                        <Search className="text-foreground" />
+                      )}
+                      {/* <span>{item.query}</span> */}
+                      <span
+                        className={
+                          shouldShowUserHistory
+                            ? "text-foreground"
+                            : "text-muted-foreground"
+                        }
+                      >
+                        {parse(highlightMatch(item.query, debouncedQuery))}
+                        {/* {highlightMatch(item.query, debouncedQuery)} */}
+                      </span>
+                    </div>
+                    {(shouldShowUserHistory || item?.isOwnQuery) && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveHistory(item.id);
+                        }}
+                        className="ml-2 not-has-hover:opacity-100 has-hover:opacity-0 group-hover-always:group-hover:opacity-100 group-focus-within:opacity-100 text-foreground cursor-pointer disabled:pointer-events-none disabled:opacity-50"
+                        title="Remove"
+                        disabled={item.query === "Removed"}
+                      >
+                        <X className="size-4 text-inherit" aria-hidden />
+                      </button>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+
+                {/* {hasMore && ( */}
+                {/*   <div */}
+                {/*     ref={bottomRef} */}
+                {/*     className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2" */}
+                {/*   > */}
+                {/*     {loadingMore ? ( */}
+                {/*       <div className="flex items-center gap-2"> */}
+                {/*         <Spinner /> */}
+                {/*         Loading... */}
+                {/*       </div> */}
+                {/*     ) : ( */}
+                {/*       "Scroll for more" */}
+                {/*     )} */}
+                {/*   </div> */}
+                {/* )} */}
+                {(hasMore || loadingMore) && (
+                  <div
+                    ref={bottomRef}
+                    className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2"
+                  >
+                    <Spinner />
+                    Loading...
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </RemoveScroll>
 
           {query && (
             <button

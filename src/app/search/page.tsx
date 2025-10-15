@@ -8,6 +8,7 @@ import { getUserMoodlists } from "../moodlists/queries";
 import { GlitchText } from "@/components/ui/shadcn-io/glitch-text";
 import { WordRotate } from "@/components/ui/word-rotate";
 import { SearchSongList } from "./_components/search-song-list";
+import { trackUserSongSearchHistory } from "../actions";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -18,6 +19,12 @@ type SearchPageProps = {
 };
 const SearchPage = async ({ searchParams }: SearchPageProps) => {
   const { q: searchQuery, id } = await searchParams;
+
+  if (searchQuery?.length) {
+    await trackUserSongSearchHistory({
+      query: searchQuery.toLocaleLowerCase(),
+    });
+  }
 
   const safeSearchSong = () =>
     !searchQuery && !id
