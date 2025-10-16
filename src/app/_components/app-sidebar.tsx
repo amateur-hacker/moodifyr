@@ -40,14 +40,14 @@ const items = [
     protected: true,
   },
   { title: "Moodlists", url: "/moodlists", icon: Smile, protected: true },
-  {
-    title: "Downloads",
-    url: "/downloads",
-    icon: HardDriveDownload,
-    protected: true,
-  },
+  // {
+  //   title: "Downloads",
+  //   url: "/downloads",
+  //   icon: HardDriveDownload,
+  //   protected: true,
+  // },
   { title: "History", url: "/history", icon: History, protected: true },
-  { title: "Settings", url: "/settings", icon: Settings, protected: true },
+  // { title: "Settings", url: "/settings", icon: Settings, protected: true },
 ];
 
 export function AppSidebar() {
