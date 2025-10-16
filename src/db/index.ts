@@ -10,7 +10,11 @@ const pool = new Pool({
   connectionString: env.DATABASE_URL,
 });
 
-// TODO: logger true
-export const db = drizzle(pool, { schema, logger: true, casing: "snake_case" });
+export const db = drizzle(pool, {
+  schema,
+  // logger: env.NODE_ENV === "development",
+  logger: false,
+  casing: "snake_case",
+});
 
 export type DB = typeof db;

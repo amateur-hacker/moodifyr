@@ -1,15 +1,62 @@
-import type { HistorySongSchema, Prettify } from "@/app/_types";
+"use client";
+
+import { useInViewport } from "@mantine/hooks";
+import { useEffect, useState } from "react";
+import type { HistorySongSchema } from "@/app/_types";
 import { HistorySongCard } from "@/app/history/_components/history-song-card";
+import { getUserSongPlayHistory } from "@/app/history/queries";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
+import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
-import type { getUserSongPlayHistory } from "@/app/history/queries";
 
 type HistorySongListProps = {
-  history: Awaited<ReturnType<typeof getUserSongPlayHistory>>;
+  initialHistory: Awaited<ReturnType<typeof getUserSongPlayHistory>>;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 };
-const HistorySongList = ({ history, moodlists }: HistorySongListProps) => {
-  if (!history) return null;
+const HistorySongList = ({
+  initialHistory,
+  moodlists,
+}: HistorySongListProps) => {
+  const { ref: bottomRef, inViewport } = useInViewport();
+  const [history, setHistory] = useState(initialHistory ?? {});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const mergeHistory = (
+    prev: Record<string, HistorySongSchema[]>,
+    next: Record<string, HistorySongSchema[]>,
+  ) => {
+    const merged = { ...prev };
+    for (const [date, songs] of Object.entries(next)) {
+      merged[date] = [...(merged[date] ?? []), ...songs];
+    }
+    return merged;
+  };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    if (inViewport && hasMore && !loadingMore) {
+      setLoadingMore(true);
+
+      getUserSongPlayHistory({ page: page + 1, limit: 10 })
+        .then((res) => {
+          if (res && Object.keys(res).length > 0) {
+            setHistory((prev) => mergeHistory(prev, res));
+            setPage((p) => p + 1);
+
+            const totalFetched = Object.values(res).reduce(
+              (acc, songs) => acc + songs.length,
+              0,
+            );
+            if (totalFetched < 10) setHasMore(false);
+          } else {
+            setHasMore(false);
+          }
+        })
+        .finally(() => setLoadingMore(false));
+    }
+  }, [inViewport, hasMore, loadingMore]);
 
   return (
     <div className="pb-[var(--player-height,80px)] space-y-10">
@@ -26,6 +73,16 @@ const HistorySongList = ({ history, moodlists }: HistorySongListProps) => {
           ))}
         </div>
       ))}
+
+      {(hasMore || loadingMore) && (
+        <div
+          ref={bottomRef}
+          className="flex items-center justify-center py-2 mt-3 text-sm text-muted-foreground gap-2"
+        >
+          <Spinner />
+          Loading...
+        </div>
+      )}
     </div>
   );
 };

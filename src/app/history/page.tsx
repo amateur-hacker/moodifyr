@@ -44,7 +44,10 @@ const HistoryPage = async () => {
             }
           >
             <SongsSetter songs={initialSongs} />
-            <HistorySongList history={songHistory} moodlists={moodlists} />
+            <HistorySongList
+              initialHistory={songHistory}
+              moodlists={moodlists}
+            />
           </Suspense>
         </div>
       ) : (

@@ -27,6 +27,7 @@ type SongPlayerContextProps = {
   songs: SongWithUniqueIdSchema[];
   setSongs: React.Dispatch<React.SetStateAction<SongWithUniqueIdSchema[]>>;
   isCurrentSong: (song: SongWithUniqueIdSchema) => boolean;
+  lastActionRef: React.RefObject<"manual" | "next" | "prev" | "auto" | null>;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
@@ -52,6 +53,9 @@ export function SongPlayerProvider({
   const [mode, setMode] = useState<SongPlayerMode>(initialMode ?? "normal");
   const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
   const [songs, setSongs] = useState<SongWithUniqueIdSchema[]>([]);
+  const lastActionRef = useRef<"manual" | "next" | "prev" | "auto" | null>(
+    null,
+  );
 
   const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
 
@@ -89,7 +93,7 @@ export function SongPlayerProvider({
       saveUserPreference({
         key: "lastPlayedSong",
         value: JSON.stringify(valueToSave),
-      });
+      }).catch((err) => console.warn("Failed to save last played song:", err));
     }
   };
 
@@ -138,6 +142,7 @@ export function SongPlayerProvider({
         songs,
         setSongs,
         isCurrentSong,
+        lastActionRef,
       }}
     >
       {children}

@@ -31,6 +31,7 @@ export function BaseSongCard({
     isLoading,
     setIsPlayerFullScreen,
     isCurrentSong,
+    lastActionRef,
   } = useSongPlayer();
 
   const [isClient, setIsClient] = useState(false);
@@ -51,15 +52,29 @@ export function BaseSongCard({
 
     if (!song.id) return;
 
-    if (!isCurrent) {
-      setIsPlayerFullScreen(true);
-      setSong(song);
-      return;
-    }
+    // if (!isCurrent) {
+    //   setIsPlayerFullScreen(true);
+    //   setSong(song);
+    //   return;
+    // }
+    //
+    // if (!isPlaying) setIsPlayerFullScreen(true);
+    // setSong(song);
+    // togglePlay(e);
 
-    if (!isPlaying) setIsPlayerFullScreen(true);
-    setSong(song);
-    togglePlay(e);
+    lastActionRef.current = "manual";
+
+    const shouldStartNewSong = !isCurrent;
+    const shouldOpenFullscreen = shouldStartNewSong || !isPlaying;
+
+    if (shouldOpenFullscreen) setIsPlayerFullScreen(true);
+
+    if (shouldStartNewSong) {
+      setSong(song, true);
+    } else {
+      setSong(song, true);
+      togglePlay(e);
+    }
   };
 
   return (

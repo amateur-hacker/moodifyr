@@ -25,6 +25,7 @@ export function SongPlayerEngine() {
     isPlaying,
     mode,
     songs,
+    lastActionRef,
   } = useSongPlayer();
 
   const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
@@ -149,6 +150,42 @@ export function SongPlayerEngine() {
     }
   };
 
+  // function handlePlayerError(
+  //   // biome-ignore lint/suspicious/noExplicitAny: <_>
+  //   event: CustomEvent<any> & { data: number },
+  // ) {
+  //   const code = event.data;
+  //   console.warn("YouTube Player Error:", code);
+  //
+  //   if (![100, 101, 150].includes(code)) return;
+  //
+  //   setIsLoading(false);
+  //   setIsPlaying(false);
+  //
+  //   const currentIndex = songsRef.current.findIndex(
+  //     (s) => s.id === currentSongRef.current?.id,
+  //   );
+  //
+  //   if (currentIndex !== -1 && currentIndex < songsRef.current.length - 1) {
+  //     const nextSong = songsRef.current[currentIndex + 1];
+  //     console.warn(
+  //       `Video unavailable (code ${code}), skipping to next song: ${nextSong.title}`,
+  //     );
+  //     setSong(nextSong);
+  //   } else if (
+  //     modeRef.current === "repeat-all" &&
+  //     songsRef.current.length > 0
+  //   ) {
+  //     const firstSong = songsRef.current[0];
+  //     console.warn(
+  //       `Video unavailable (code ${code}), looping to first song: ${firstSong.title}`,
+  //     );
+  //     setSong(firstSong);
+  //   } else {
+  //     console.warn("No next song available to skip to.");
+  //   }
+  // }
+
   function handlePlayerError(
     // biome-ignore lint/suspicious/noExplicitAny: <_>
     event: CustomEvent<any> & { data: number },
@@ -165,23 +202,48 @@ export function SongPlayerEngine() {
       (s) => s.id === currentSongRef.current?.id,
     );
 
-    if (currentIndex !== -1 && currentIndex < songsRef.current.length - 1) {
-      const nextSong = songsRef.current[currentIndex + 1];
-      console.warn(
-        `Video unavailable (code ${code}), skipping to next song: ${nextSong.title}`,
-      );
-      setSong(nextSong);
-    } else if (
-      modeRef.current === "repeat-all" &&
-      songsRef.current.length > 0
-    ) {
-      const firstSong = songsRef.current[0];
-      console.warn(
-        `Video unavailable (code ${code}), looping to first song: ${firstSong.title}`,
-      );
-      setSong(firstSong);
-    } else {
-      console.warn("No next song available to skip to.");
+    switch (lastActionRef.current) {
+      case "prev": {
+        console.warn(
+          `Prev song unavailable (code ${code}), skipping further back`,
+        );
+        if (currentIndex > 1) {
+          const prevSong = songsRef.current[currentIndex - 2];
+          setSong(prevSong);
+        } else {
+          toast.error("Previous song unavailable");
+        }
+        return;
+      }
+      case "manual":
+      case "next":
+      case "auto": {
+        // existing skip logic
+        if (currentIndex !== -1 && currentIndex < songsRef.current.length - 1) {
+          const nextSong = songsRef.current[currentIndex + 1];
+          console.warn(
+            `Video unavailable (code ${code}), skipping to next song: ${nextSong.title}`,
+          );
+          setSong(nextSong);
+        } else if (
+          modeRef.current === "repeat-all" &&
+          songsRef.current.length > 0
+        ) {
+          const firstSong = songsRef.current[0];
+          console.warn(
+            `Video unavailable (code ${code}), looping to first song: ${firstSong.title}`,
+          );
+          setSong(firstSong);
+        }
+        return;
+      }
+      // case "manual": {
+      //   toast.error("This song isn’t available.");
+      //   return;
+      // }
+      default:
+        console.warn("Unhandled player error context:", lastActionRef.current);
+        return;
     }
   }
 
