@@ -1,7 +1,14 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import type React from "react";
+import { getUserFavouriteSongs } from "../queries";
 
 type FavouriteContextType = {
   favouriteSongs: Record<string, boolean>;
@@ -19,6 +26,26 @@ export function FavouriteProvider({ children }: { children: React.ReactNode }) {
   const [isFavouritePending, setIsFavouritePending] = useState<
     Record<string, boolean>
   >({});
+
+  useEffect(() => {
+    async function fetchFavourites() {
+      try {
+        const res = await getUserFavouriteSongs();
+
+        if (res && Array.isArray(res)) {
+          const favMap = res.reduce<Record<string, boolean>>((acc, song) => {
+            acc[song.id] = true;
+            return acc;
+          }, {});
+          setFavouriteSongs(favMap);
+        }
+      } catch (err) {
+        console.error("Failed to fetch favourites:", err);
+      }
+    }
+
+    fetchFavourites();
+  }, []);
 
   const setFavourite = useCallback((songId: string, fav: boolean) => {
     setFavouriteSongs((prev) => ({ ...prev, [songId]: fav }));

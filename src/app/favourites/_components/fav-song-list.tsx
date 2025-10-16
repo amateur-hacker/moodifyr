@@ -28,10 +28,9 @@ const FavouriteSongList = ({
   const { favouriteSongs } = useFavourites();
   const { currentSong } = useSongPlayer();
   const firstRender = useRef(true);
-  const { isPlayerFullScreen } = useSongPlayer();
 
   useEffect(() => {
-    if (!currentSong || !isPlayerFullScreen || firstRender.current) {
+    if (!currentSong || firstRender.current) {
       firstRender.current = false;
       return;
     }
@@ -47,13 +46,13 @@ const FavouriteSongList = ({
         return [normalizedSong, ...prev];
       }
 
-      // if (!favouriteSongs[currentSong.id] && exists) {
-      //   return prev.filter((s) => s.id !== currentSong.id);
-      // }
+      if (!favouriteSongs[currentSong.id] && exists) {
+        return prev.filter((s) => s.id !== currentSong.id);
+      }
 
       return prev;
     });
-  }, [currentSong, favouriteSongs, isPlayerFullScreen]);
+  }, [currentSong, favouriteSongs]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
