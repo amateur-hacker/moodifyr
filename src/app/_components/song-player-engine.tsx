@@ -207,8 +207,8 @@ export function SongPlayerEngine() {
         console.warn(
           `Prev song unavailable (code ${code}), skipping further back`,
         );
-        if (currentIndex > 1) {
-          const prevSong = songsRef.current[currentIndex - 2];
+        if (currentIndex > 0) {
+          const prevSong = songsRef.current[currentIndex - 1];
           setSong(prevSong);
         } else {
           toast.error("Previous song unavailable");
