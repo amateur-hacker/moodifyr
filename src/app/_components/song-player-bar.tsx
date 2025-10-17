@@ -1,16 +1,17 @@
 "use client";
 
-import { useElementSize } from "@mantine/hooks";
-import { Volume, Volume1, Volume2, VolumeX } from "lucide-react";
-import { motion } from "motion/react";
-import { useEffect, useState } from "react";
 import { SongFullscreenPlayerView } from "@/app/_components/song-fullscreen-player-view";
 import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
 import { useSongPlayer } from "@/app/_context/song-player-context";
+import type { FavouriteSongSchema, SongWithUniqueIdSchema } from "@/app/_types";
+import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { getSongInstanceId } from "@/app/utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
-import type { getUserMoodlists } from "@/app/moodlists/queries";
-import type { FavouriteSongSchema, SongWithUniqueIdSchema } from "@/app/_types";
+import { useElementSize } from "@mantine/hooks";
+import { Volume, Volume1, Volume2, VolumeX } from "lucide-react";
+import { motion } from "motion/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const SongPlayerBar = ({
   favouriteSongs,
@@ -42,6 +43,9 @@ const SongPlayerBar = ({
   // const [isFullScreen, setIsFullScreen] = useState(false);
   const [volume, setVolume] = useState(100);
   const [prevVolume, setPrevVolume] = useState(100);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   useScrollLock(isPlayerFullScreen);
 
@@ -120,13 +124,48 @@ const SongPlayerBar = ({
 
   const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
 
+  // const toggleFullScreen = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //
+  //   if (!isPlayerFullScreen) {
+  //     setShowMiniProgress(false);
+  //   }
+  //   setIsPlayerFullScreen((prev) => !prev);
+  // };
+
   const toggleFullScreen = (e: React.MouseEvent) => {
     e.stopPropagation();
+
     if (!isPlayerFullScreen) {
       setShowMiniProgress(false);
+      setIsPlayerFullScreen(true);
+
+      const state = window.history.state;
+      if (!state?.fullscreen) {
+        window.history.pushState({ fullscreen: true }, "");
+      }
+    } else {
+      setIsPlayerFullScreen(false);
+
+      const state = window.history.state;
+      if (state?.fullscreen) {
+        window.history.back();
+      }
     }
-    setIsPlayerFullScreen((prev) => !prev);
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (isPlayerFullScreen) {
+        // Close fullscreen instead of navigating away
+        setIsPlayerFullScreen(false);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [isPlayerFullScreen]);
 
   const handleVolumeChange = (val: number[]) => {
     const newVolume = val[0];

@@ -18,7 +18,8 @@ import { FavouriteProvider } from "@/app/_context/favourite-context";
 import { UserProvider } from "./_context/user-context";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { SelectUserModel } from "@/db/schema/auth";
+import type { SelectUserModel } from "@/db/schema/auth";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 // import { SplashCursor } from "@/components/splash-cursor";
 // import { cookies } from "next/headers";
@@ -97,25 +98,27 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${fontsVariable} antialiased`}>
-        <UserProvider user={user}>
-          <SidebarProvider defaultOpen={false}>
-            <FavouriteProvider>
-              <GlobalSongPlayer>
-                <NextTopLoader color={"var(--primary)"} showSpinner={false} />
-                <Toaster
-                  closeButton
-                  richColors
-                  position="top-center"
-                  className="pointer-events-auto"
-                />
-                {/* <SplashCursor /> */}
-                <Navbar />
-                <AppSidebar />
-                <main className="w-full mt-15 px-6 py-4">{children}</main>
-              </GlobalSongPlayer>
-            </FavouriteProvider>
-          </SidebarProvider>
-        </UserProvider>
+        <NuqsAdapter>
+          <UserProvider user={user}>
+            <SidebarProvider defaultOpen={false}>
+              <FavouriteProvider>
+                <GlobalSongPlayer>
+                  <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+                  <Toaster
+                    closeButton
+                    richColors
+                    position="top-center"
+                    className="pointer-events-auto"
+                  />
+                  {/* <SplashCursor /> */}
+                  <Navbar />
+                  <AppSidebar />
+                  <main className="w-full mt-15 px-6 py-4">{children} </main>
+                </GlobalSongPlayer>
+              </FavouriteProvider>
+            </SidebarProvider>
+          </UserProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

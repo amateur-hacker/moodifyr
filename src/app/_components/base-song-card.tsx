@@ -67,7 +67,14 @@ export function BaseSongCard({
     const shouldStartNewSong = !isCurrent;
     const shouldOpenFullscreen = shouldStartNewSong || !isPlaying;
 
-    if (shouldOpenFullscreen) setIsPlayerFullScreen(true);
+    if (shouldOpenFullscreen) {
+      setIsPlayerFullScreen(true);
+
+      const state = window.history.state;
+      if (!state?.fullscreen) {
+        window.history.pushState({ fullscreen: true }, "");
+      }
+    }
 
     if (shouldStartNewSong) {
       setSong(song, true);

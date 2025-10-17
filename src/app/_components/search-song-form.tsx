@@ -209,7 +209,6 @@ const SearchSongForm = () => {
     if (!query.trim()) return text;
 
     const result = fuzzysort.single(query, text);
-    console.log(result);
 
     if (!result) return text;
 
