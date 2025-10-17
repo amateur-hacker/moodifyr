@@ -151,7 +151,8 @@ export function SongCard(props: SongCardProps) {
             size="default"
             animate={props.shouldHeartButtonAnimate}
             disabled={props.shouldHeartButtonDisabled}
-            className="disabled:pointer-events-none disabled:opacity-50"
+            // className="disabled:pointer-events-none disabled:opacity-50"
+            className="disabled:pointer-events-none"
             title={
               !props.shouldHeartButtonActive
                 ? "Add to favourite"

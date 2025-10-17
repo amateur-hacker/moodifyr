@@ -40,6 +40,11 @@ const FavouriteSongCard = ({
     setFavouritePending(song.id, true);
     setFavourite(song.id, !isFavourite);
 
+    const message = !isFavourite
+      ? "Added to favourites"
+      : "Removed from favourites";
+    toast.success(message, { id: song.id });
+
     try {
       const result = await toggleUserFavouriteSong({
         song,
@@ -51,12 +56,16 @@ const FavouriteSongCard = ({
         onRemove?.(song.favouriteId);
       } else {
         setFavourite(song.id, true);
-        toast.error("Failed to remove from favourites. Try again.");
+        toast.error("Failed to remove from favourites. Try again.", {
+          id: song.id,
+        });
       }
     } catch (error) {
       setFavourite(song.id, true);
       console.error("Error removing favourite:", error);
-      toast.error("Failed to remove from favourites. Try again.");
+      toast.error("Failed to remove from favourites. Try again.", {
+        id: song.id,
+      });
     } finally {
       setFavouritePending(song.id, false);
     }

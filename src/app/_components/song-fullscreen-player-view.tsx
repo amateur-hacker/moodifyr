@@ -127,6 +127,9 @@ const SongFullscreenPlayerView = ({
     setFavouritePending(currentSong.id, true);
     setFavourite(currentSong.id, !isFav);
 
+    const message = !isFav ? "Added to favourites" : "Removed from favourites";
+    toast.success(message, { id: currentSong.id });
+
     try {
       const result = await toggleUserFavouriteSong({
         song: currentSong,
@@ -134,12 +137,16 @@ const SongFullscreenPlayerView = ({
 
       if (!result) {
         setFavourite(currentSong.id, isFav);
-        toast.error("Failed to update favourite. Try again.");
+        toast.error("Failed to update favourite. Try again.", {
+          id: currentSong.id,
+        });
       }
     } catch (error) {
       setFavourite(currentSong.id, isFav);
       console.error("Error toggling favourite:", error);
-      toast.error("Failed to update favourite. Try again.");
+      toast.error("Failed to update favourite. Try again.", {
+        id: currentSong.id,
+      });
     } finally {
       setFavouritePending(currentSong.id, false);
     }
