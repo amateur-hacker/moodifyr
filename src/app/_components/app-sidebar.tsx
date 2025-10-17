@@ -47,7 +47,7 @@ const items = [
   //   protected: true,
   // },
   { title: "History", url: "/history", icon: History, protected: true },
-  // { title: "Settings", url: "/settings", icon: Settings, protected: true },
+  { title: "Settings", url: "/settings", icon: Settings, protected: true },
 ];
 
 export function AppSidebar() {
