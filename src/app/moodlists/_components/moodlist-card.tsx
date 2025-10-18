@@ -12,34 +12,28 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useUser } from "@/app/_context/user-context";
 import { googleSignInUser } from "@/app/fn";
+import { DeleteMoodlistDialog } from "@/app/moodlists/_components/delete-moodlist-dialog";
+import { RenameMoodlistDialog } from "@/app/moodlists/_components/rename-moodlist-dialog";
+import { ShareMoodlistDialog } from "@/app/moodlists/_components/share-moodlist-dialog";
 import {
   followUserMoodlist,
   unfollowUserMoodlist,
 } from "@/app/moodlists/actions";
+import { PropagationStopper } from "@/components/propagation-stopper";
 import { Button } from "@/components/ui/button";
-import { Typography } from "@/components/ui/typography";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useUser } from "@/app/_context/user-context";
-import { DeleteMoodlistDialog } from "./delete-moodlist-dialog";
-import { RenameMoodlistDialog } from "./rename-moodlist-dialog";
-import { ShareMoodlistDialog } from "./share-moodlist-dialog";
-import { PropagationStopper } from "@/components/propagation-stopper";
-import Image from "next/image";
-
-// import { authClient } from "@/lib/auth-client";
 
 const MoodlistCard = ({
   prevMoodlistName,
   moodlistId,
   userId,
-  ownerName,
-  ownerImage,
   ownerId,
   moodlistType,
   isAlreadyFollowing,
@@ -47,8 +41,6 @@ const MoodlistCard = ({
   prevMoodlistName: string;
   moodlistId: string;
   userId?: string;
-  ownerName?: string;
-  ownerImage?: string;
   ownerId?: string;
   moodlistType: string;
   isAlreadyFollowing: boolean;
@@ -92,7 +84,6 @@ const MoodlistCard = ({
       setIsProcessing(true);
       const response = await followUserMoodlist({
         moodlistId,
-        pathToRevalidate: "/moodlists",
       });
 
       if (response?.success) {
@@ -124,7 +115,6 @@ const MoodlistCard = ({
       setIsProcessing(true);
       const response = await unfollowUserMoodlist({
         moodlistId,
-        pathToRevalidate: "/moodlists",
       });
 
       if (response?.success) {
@@ -239,28 +229,6 @@ const MoodlistCard = ({
           link={`${origin}/moodlists/user/${moodlistType === "owned" ? userId : ownerId}/${moodlistId}`}
         />
       </PropagationStopper>
-      {/* {moodlistType === "followed" && ( */}
-      {/*   <div className="absolute left-0 top-0 h-16 w-16"> */}
-      {/*     <div className="absolute transform -rotate-45 bg-accent text-center text-white font-semibold py-1 left-[-52px] top-4 w-[170px]"> */}
-      {/*       followed */}
-      {/*     </div> */}
-      {/*   </div> */}
-      {/* )} */}
-      {/* {moodlistType === "followed" && ( */}
-      {/*   <div className="text-center absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col gap-0.5 items-center"> */}
-      {/*     <Image */}
-      {/*       width="20" */}
-      {/*       height="20" */}
-      {/*       alt={`Owner ${ownerName} image`} */}
-      {/*       className="rounded-full" */}
-      {/*       src={ownerImage} */}
-      {/*     /> */}
-      {/*     <Typography variant="muted"> */}
-      {/*       Created by */}
-      {/*       <span className="line-clamp-1 max-w-[20ch]">{ownerName}</span> */}
-      {/*     </Typography> */}
-      {/*   </div> */}
-      {/* )} */}
     </div>
   );
 };

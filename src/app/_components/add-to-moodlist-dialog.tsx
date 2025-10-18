@@ -29,7 +29,6 @@ const AddToMoodlistDialog = ({
 }: {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
-  // moodlists: SelectMoodlistModel[] | null;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
   songId: string;
   song: SongSchema;

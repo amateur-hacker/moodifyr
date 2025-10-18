@@ -1,7 +1,10 @@
 "use server";
 
-import { asc, eq, and } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
+import z from "zod";
 import { db } from "@/db";
+import { users } from "@/db/schema";
+import type { UserSchema } from "@/db/schema/auth";
 import {
   type MoodlistFollowerSchema,
   type MoodlistSchema,
@@ -13,9 +16,6 @@ import {
 } from "@/db/schema/moodlists";
 import { songs } from "@/db/schema/song";
 import { executeQuery } from "@/db/utils";
-import { users } from "@/db/schema";
-import { type UserSchema, userSchema } from "@/db/schema/auth";
-import z from "zod";
 
 const getMoodlistById = async ({ id }: Pick<MoodlistSchema, "id">) =>
   executeQuery({
@@ -35,25 +35,9 @@ const getMoodlistById = async ({ id }: Pick<MoodlistSchema, "id">) =>
     serverErrorMessage: "getMoodlistById",
   });
 
-// const getUserMoodlists = async () =>
-//   executeQuery({
-//     queryFn: async ({ sessionUser }) => {
-//       return db.query.moodlists.findMany({
-//         where: eq(moodlists.userId, sessionUser?.id as string),
-//         orderBy: (m, { asc }) => [asc(m.createdAt)],
-//       });
-//     },
-//     isProtected: true,
-//     serverErrorMessage: "getUserMoodlists",
-//   });
-
 const getUserMoodlists = async () =>
   executeQuery({
     queryFn: async ({ sessionUser }) => {
-      // const owned = await db.query.moodlists.findMany({
-      //   where: eq(moodlists.userId, sessionUser.id),
-      //   orderBy: (m, { asc }) => [asc(m.createdAt)],
-      // });
       const owned = await db
         .select({
           id: moodlists.id,
@@ -107,106 +91,6 @@ const getMoodlistsByUserId = async ({
     serverErrorMessage: "getMoodlistsByUserId",
   });
 };
-
-// const getMoodlistsByUsername = async ({
-//   username,
-// }: {
-//   username: UserSchema["name"];
-// }) => {
-//   const getMoodlistsByUsernameSchema = z.object({
-//     username: userSchema.shape.name,
-//   });
-//
-//   const { username: parsedUsername } = getMoodlistsByUsernameSchema.parse({
-//     username,
-//   });
-//
-//   return executeQuery({
-//     queryFn: async () => {
-//       return db
-//         .select({
-//           id: moodlists.id,
-//           name: moodlists.name,
-//           createdAt: moodlists.createdAt,
-//         })
-//         .from(moodlists)
-//         .leftJoin(users, eq(moodlists.userId, users.id))
-//         .where(eq(users.name, parsedUsername))
-//         .orderBy(asc(moodlists.createdAt));
-//     },
-//     isProtected: false,
-//     serverErrorMessage: "getMoodlistsByUsername",
-//   });
-// };
-
-// const getMoodlistSongs = async ({
-//   moodlistId,
-// }: Pick<MoodlistSongSchema, "moodlistId">) =>
-//   executeQuery({
-//     queryFn: async () => {
-//       return db
-//         .select()
-//         .from(moodlistSongs)
-//         .leftJoin(songs, eq(moodlistSongs.songId, songs.id))
-//         .where(eq(moodlistSongs.moodlistId, moodlistId));
-//     },
-//     isProtected: false,
-//     serverErrorMessage: "getMoodlistSongs",
-//   });
-
-// const getUserMoodlistSongs = async ({
-//   moodlistId,
-// }: Pick<MoodlistSongSchema, "moodlistId">) => {
-//   const getUserMoodlistSongsSchema = z.object({
-//     moodlistId: moodlistSongSchema.shape.id,
-//   });
-//   const { moodlistId: parsedMoodlistId } = getUserMoodlistSongsSchema.parse({
-//     moodlistId,
-//   });
-//
-//   return executeQuery({
-//     queryFn: async ({ sessionUser }) => {
-//       const moodlist = await db.query.moodlists.findFirst({
-//         where: and(
-//           eq(moodlists.id, parsedMoodlistId),
-//           eq(moodlists.userId, sessionUser.id),
-//         ),
-//         columns: {
-//           id: true,
-//           name: true,
-//         },
-//       });
-//
-//       if (!moodlist) return null;
-//
-//       const rows = await db
-//         .select({
-//           moodlistSongId: moodlistSongs.id,
-//           id: songs.id,
-//           title: songs.title,
-//           thumbnail: songs.thumbnail,
-//           duration: songs.duration,
-//         })
-//         .from(moodlistSongs)
-//         .innerJoin(songs, eq(moodlistSongs.songId, songs.id))
-//         .where(eq(moodlistSongs.moodlistId, parsedMoodlistId));
-//
-//       return {
-//         id: moodlist.id,
-//         name: moodlist.name,
-//         songs: rows.map((r) => ({
-//           id: r.id,
-//           moodlistSongId: r.moodlistSongId,
-//           title: r.title,
-//           thumbnail: r.thumbnail,
-//           duration: r.duration,
-//         })),
-//       };
-//     },
-//     isProtected: true,
-//     serverErrorMessage: "getUserMoodlistSongs",
-//   });
-// };
 
 const getUserMoodlistSongs = async ({
   moodlistId,
@@ -358,7 +242,6 @@ const getUserFollowedMoodlists = async () =>
           id: moodlists.id,
           name: moodlists.name,
           ownerId: moodlists.userId,
-          followedAt: moodlistFollowers.followedAt,
         })
         .from(moodlistFollowers)
         .innerJoin(moodlists, eq(moodlistFollowers.moodlistId, moodlists.id))

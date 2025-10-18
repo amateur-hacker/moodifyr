@@ -4,9 +4,9 @@ import { SongPlayerEngine } from "@/app/_components/song-player-engine";
 import { SongPlayerProvider } from "@/app/_context/song-player-context";
 import type { SongPlayerMode } from "@/app/_types";
 import {
+  getUserFavouriteSongs,
   getUserLastPlayedSong,
   getUserPreference,
-  getUserFavouriteSongs,
 } from "@/app/queries";
 import { getUserMoodlists } from "../moodlists/queries";
 

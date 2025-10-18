@@ -36,10 +36,15 @@ type VariantSpecificProps = {
     onShare: () => void;
     shouldRemoveFromHistoryItemDisabled: boolean;
   };
-  moodlist: {
-    moodlistType: "owned" | "followed";
-    onRemove: () => void;
-  };
+  moodlist:
+    | {
+        moodlistType: "owned";
+        onRemoveSongFromMoodlist: () => Promise<void>;
+        shouldRemoveSongFromMoodlistDisabled: boolean;
+      }
+    | {
+        moodlistType: "followed";
+      };
   favourite: {
     onRemoveFromFavourites: () => Promise<void>;
     onAddToMoodlist: () => void;
@@ -98,9 +103,13 @@ export function SongCard(props: SongCardProps) {
         );
 
       case "moodlist":
+        console.log(props.moodlistType);
         if (props.moodlistType === "owned") {
           return (
-            <DropdownMenuItem onClick={props.onRemove}>
+            <DropdownMenuItem
+              onClick={props.onRemoveSongFromMoodlist}
+              disabled={props.shouldRemoveSongFromMoodlistDisabled}
+            >
               <Trash2 size={16} /> Remove
             </DropdownMenuItem>
           );
@@ -111,6 +120,10 @@ export function SongCard(props: SongCardProps) {
         return null;
     }
   })();
+
+  if (variant === "moodlist" && props.moodlistType === "followed") {
+    return <BaseSongCard song={song} />;
+  }
 
   const rightContent =
     variant === "search" || variant === "favourite" ? (

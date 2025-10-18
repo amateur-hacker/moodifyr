@@ -2,6 +2,9 @@
 
 import { Edit } from "lucide-react";
 import type React from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { updateUserMoodlistName } from "@/app/moodlists/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,9 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateUserMoodlistName } from "../actions";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
 const RenameMoodlistDialog = ({

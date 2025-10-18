@@ -1,5 +1,10 @@
 "use client";
 
+import { useElementSize } from "@mantine/hooks";
+import { Volume, Volume1, Volume2, VolumeX } from "lucide-react";
+import { motion } from "motion/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { SongFullscreenPlayerView } from "@/app/_components/song-fullscreen-player-view";
 import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
 import { useSongPlayer } from "@/app/_context/song-player-context";
@@ -7,11 +12,6 @@ import type { FavouriteSongSchema, SongWithUniqueIdSchema } from "@/app/_types";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { getSongInstanceId } from "@/app/utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
-import { useElementSize } from "@mantine/hooks";
-import { Volume, Volume1, Volume2, VolumeX } from "lucide-react";
-import { motion } from "motion/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 const SongPlayerBar = ({
   favouriteSongs,
@@ -211,7 +211,7 @@ const SongPlayerBar = ({
   return (
     <motion.div
       ref={ref}
-      className="fixed bottom-0 left-0 right-0 z-50 will-change-transform will-change-height"
+      className="fixed bottom-0 left-0 right-0 z-[100] will-change-transform will-change-height"
       initial={false}
       animate={isPlayerFullScreen ? { height: "100%" } : { height: "75px" }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}

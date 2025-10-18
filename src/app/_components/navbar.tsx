@@ -1,6 +1,4 @@
 import Link from "next/link";
-// import { FloatSearchSongForm } from "@/app/_components/float-search-song-form";
-// import { SearchSongForm } from "@/app/_components/search-song-form";
 import { SignInButton } from "@/app/_components/signin-button";
 import { UserMenu } from "@/app/_components/user-menu";
 import { getUserSession } from "@/app/queries";
@@ -18,14 +16,7 @@ const Navbar = async () => {
         </Link>
       </div>
 
-      {/* <div className="max-w-2xl w-full relative hidden sm:block"> */}
-      {/*   <SearchSongForm /> */}
-      {/* </div> */}
-
       <div className="flex items-center gap-4 justify-end">
-        {/* <div className="block sm:hidden"> */}
-        {/*   <FloatSearchSongForm /> */}
-        {/* </div> */}
         {session ? <UserMenu session={session} /> : <SignInButton />}
       </div>
     </nav>

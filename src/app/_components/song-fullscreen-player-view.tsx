@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddToMoodlistDialog } from "@/app/_components/add-to-moodlist-dialog";
 import { ShareLinkDialog } from "@/app/_components/share-link-dialog";
+import { useUser } from "@/app/_context/user-context";
 import type { SongSchema } from "@/app/_types";
 import { toggleUserFavouriteSong } from "@/app/actions";
 import { googleSignInUser } from "@/app/fn";
@@ -32,7 +33,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
-import { useUser } from "@/app/_context/user-context";
 import { useFavourites } from "../_context/favourite-context";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
@@ -188,21 +188,6 @@ const SongFullscreenPlayerView = ({
   const getRepeatButtonVariant = () => {
     return mode === "repeat-all" || mode === "repeat-one" ? "default" : "ghost";
   };
-
-  // useEffect(() => {
-  //   const handlePopState = () => {
-  //     if (isFullScreen) {
-  //       toggleFullScreen(); // close the fullscreen player
-  //       window.removeEventListener("popstate", handlePopState); // remove after first use
-  //     }
-  //   };
-  //
-  //   window.addEventListener("popstate", handlePopState);
-  //
-  //   return () => {
-  //     window.removeEventListener("popstate", handlePopState);
-  //   };
-  // }, [isFullScreen, toggleFullScreen]);
 
   return (
     <Card

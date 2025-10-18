@@ -1,9 +1,11 @@
+import { CreateMoodlist } from "@/app/moodlists/_components/create-moodlist";
+import { MoodlistCardList } from "@/app/moodlists/_components/moodlist-card-list";
+import {
+  getUserFollowedMoodlists,
+  getUserMoodlists,
+} from "@/app/moodlists/queries";
+import { getUserSession } from "@/app/queries";
 import { Typography } from "@/components/ui/typography";
-import { getUserSession } from "../queries";
-import { CreateMoodlist } from "./_components/create-moodlist";
-import { MoodlistCardList } from "./_components/moodlist-card-list";
-import { getUserFollowedMoodlists, getUserMoodlists } from "./queries";
-import { getUserById } from "@/app/queries";
 
 const MoodlistsPage = async () => {
   const session = (await getUserSession()) ?? null;
@@ -19,8 +21,6 @@ const MoodlistsPage = async () => {
   }
   const moodlists = (await getUserMoodlists()) ?? null;
   const followedMoodlists = (await getUserFollowedMoodlists()) ?? null;
-  // const user = await getUserById({ id: session.user.id });
-  // console.log(user);
 
   return (
     <div className="space-y-10 mb-[var(--player-height,80px)]">

@@ -23,6 +23,13 @@ type FavouriteSongSchema = Prettify<
     favouriteId: string;
   }
 >;
+
+type MoodlistSongSchema = Prettify<
+  SongSchema & {
+    moodlistSongId: string;
+  }
+>;
+
 type SongWithUniqueIdSchema = Prettify<
   SongSchema &
     Partial<{
@@ -41,6 +48,7 @@ export type {
   SearchSongSchema,
   HistorySongSchema,
   FavouriteSongSchema,
+  MoodlistSongSchema,
   SongWithUniqueIdSchema,
   SongPlayerMode,
 };

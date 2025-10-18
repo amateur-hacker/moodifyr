@@ -1,6 +1,10 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
+import type React from "react";
+import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 import {
   Dialog,
   DialogContent,
@@ -10,10 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CopyButton } from "@/components/ui/copy-button";
-import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
-import Link from "next/link";
 import { Typography } from "@/components/ui/typography";
 
 const ShareMoodlistDialog = ({
@@ -22,7 +22,7 @@ const ShareMoodlistDialog = ({
   link,
 }: {
   open: boolean;
-  onOpenChange: Dispatch<SetStateAction<boolean>>;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   link: string;
 }) => {
   const allMoodlistsLink = link.substring(0, link.lastIndexOf("/"));

@@ -2,7 +2,7 @@
 
 import {
   Activity,
-  HardDriveDownload,
+  // HardDriveDownload,
   HeartPulse,
   History,
   Home,
@@ -14,6 +14,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useUser } from "@/app/_context/user-context";
 import { googleSignInUser } from "@/app/fn";
 import {
   Sidebar,
@@ -27,7 +28,6 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { useUser } from "@/app/_context/user-context";
 
 const items = [
   { title: "Home", url: "/", icon: Home, protected: true },
@@ -51,8 +51,6 @@ const items = [
 ];
 
 export function AppSidebar() {
-  // const { useSession } = authClient;
-  // const { data: session } = useSession();
   const user = useUser();
   const router = useRouter();
   const pathname = usePathname();

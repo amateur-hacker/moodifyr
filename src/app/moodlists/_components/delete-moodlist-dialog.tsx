@@ -2,6 +2,9 @@
 
 import { Trash } from "lucide-react";
 import type React from "react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { deleteUserMoodlist } from "@/app/moodlists/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,10 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { deleteUserMoodlist } from "../actions";
 
 const DeleteMoodlistDialog = ({
   open,

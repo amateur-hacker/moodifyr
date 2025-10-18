@@ -2,7 +2,6 @@
 
 import { LogOut, User } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signOutUser } from "@/app/actions";
 import { ButtonLoader } from "@/components/button-loader";
@@ -15,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth-client";
+import type { authClient } from "@/lib/auth-client";
 
 type UserMenuProps = {
   session: typeof authClient.$Infer.Session;
@@ -23,15 +22,12 @@ type UserMenuProps = {
 const UserMenu = ({ session }: UserMenuProps) => {
   const [isLoading, setIsLoading] = useState(false);
   // const router = useRouter();
-  // const { useSession } = authClient;
 
   const handleSignOut = async () => {
     setIsLoading(true);
     try {
       await signOutUser();
-      // await authClient.signOut();
       window.location.reload();
-      // refetch();
       // router.refresh();
     } finally {
       setIsLoading(false);
@@ -57,9 +53,6 @@ const UserMenu = ({ session }: UserMenuProps) => {
               {session.user.name.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          {/* <span className="font-medium text-sm hidden sm:block"> */}
-          {/*   {session.user.name} */}
-          {/* </span> */}
         </button>
       </DropdownMenuTrigger>
 

@@ -1,10 +1,13 @@
-import { MoodlistCardList } from "./_components/moodlist-card-list";
-import { getMoodlistsByUserId, getUserFollowedMoodlists } from "../../queries";
-import { getUserById, getUserSession } from "@/app/queries";
-import { redirect } from "next/navigation";
 import Image from "next/image";
-import { Typography } from "@/components/ui/typography";
+import { redirect } from "next/navigation";
+import {
+  getMoodlistsByUserId,
+  getUserFollowedMoodlists,
+} from "@/app/moodlists/queries";
+import { MoodlistCardList } from "@/app/moodlists/user/[userId]/_components/moodlist-card-list";
+import { getUserById, getUserSession } from "@/app/queries";
 import { Galaxy } from "@/components/galaxy";
+import { Typography } from "@/components/ui/typography";
 
 const MoodlistsPage = async ({
   params,
@@ -14,6 +17,16 @@ const MoodlistsPage = async ({
   const { userId } = await params;
 
   const session = await getUserSession();
+
+  if (!session?.user) {
+    return (
+      <div className="w-full">
+        <Typography variant="lead">
+          Please sign in to see your favourite songs.
+        </Typography>
+      </div>
+    );
+  }
 
   if (session?.user?.id === userId) {
     redirect("/moodlists");

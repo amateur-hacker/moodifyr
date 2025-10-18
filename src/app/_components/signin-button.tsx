@@ -7,8 +7,6 @@ import { googleSignInUser } from "@/app/fn";
 import { ButtonLoader } from "@/components/button-loader";
 import { Button } from "@/components/ui/button";
 
-// import { authClient } from "@/lib/auth-client";
-
 const SignInButton = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -23,12 +21,6 @@ const SignInButton = () => {
   const handleSignIn = async () => {
     setLoading(true);
     try {
-      // await authClient.signIn.social({
-      //   provider: "google",
-      //   callbackURL: `${origin}/${pathname}?${searchParams.toString()}`,
-      //   newUserCallbackURL: `${origin}/${pathname}?${searchParams.toString()}`,
-      // });
-      // router.refresh();
       const response = await googleSignInUser({
         callbackURL: `${origin}/${pathname}?${searchParams.toString()}`,
         newUserCallbackURL: `${origin}/${pathname}?${searchParams.toString()}`,

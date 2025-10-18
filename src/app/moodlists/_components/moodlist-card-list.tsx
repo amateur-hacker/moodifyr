@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { Typography } from "@/components/ui/typography";
-import { MoodlistCard } from "./moodlist-card";
+import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
-import { ChevronDown, ChevronUp, EyeOff, Eye } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { MoodlistCard } from "@/app/moodlists/_components/moodlist-card";
+import type {
+  getUserFollowedMoodlists,
+  getUserMoodlists,
+} from "@/app/moodlists/queries";
 import { Button } from "@/components/ui/button";
+import { Typography } from "@/components/ui/typography";
 
 const MoodlistCardList = ({
   userId,
@@ -14,70 +18,36 @@ const MoodlistCardList = ({
   followedMoodlists,
 }: {
   userId: string;
-  moodlists:
-    | (
-        | {
-            type: "owned";
-            id: string;
-            name: string;
-            userId: string;
-          }
-        | {
-            type: "followed";
-            id: string;
-            name: string;
-            ownerName: string;
-            ownerImage: string;
-            ownerId: string;
-          }
-      )[]
-    | null;
-
-  followedMoodlists:
-    | {
-        id: string;
-        name: string;
-        ownerId: string;
-        followedAt: Date;
-      }[]
-    | null;
+  moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
+  followedMoodlists: Awaited<ReturnType<typeof getUserFollowedMoodlists>>;
 }) => {
-  // const [openIds, setOpenIds] = useState<Set<string>>(new Set());
   const [showOwnerInfo, setShowOwnerInfo] = useState(false);
-
-  // if (!moodlists?.length) return null;
 
   const owned = moodlists?.filter((m) => m.type === "owned") ?? [];
   const followed = moodlists?.filter((m) => m.type === "followed") ?? [];
-
-  // const toggleOpen = (id: string) => {
-  //   setOpenIds((prev) => {
-  //     const newSet = new Set(prev);
-  //     if (newSet.has(id)) newSet.delete(id);
-  //     else newSet.add(id);
-  //     return newSet;
-  //   });
-  // };
 
   const toggleOpen = () => {
     setShowOwnerInfo((prev) => !prev);
   };
 
   const renderMoodlistCard = (m: NonNullable<typeof moodlists>[number]) => {
-    // const isOpen = openIds.has(m.id);
-
     return (
       <div key={m.id} className="space-y-2">
         <div className="flex flex-col">
-          <Link href={`/moodlists/${m.id}`} className="flex-1 relative">
+          <Link
+            href={
+              m.type === "owned"
+                ? `/moodlists/${m.id}`
+                : `/moodlists/user/${m.ownerId}/${m.id}`
+            }
+            className="flex-1 relative"
+          >
             <MoodlistCard
               prevMoodlistName={m.name}
               moodlistId={m.id}
               userId={userId}
               moodlistType={m.type}
               ownerId={m.type === "followed" ? m.ownerId : undefined}
-              ownerName={m.type === "followed" ? m.ownerName : undefined}
-              ownerImage={m.type === "followed" ? m.ownerImage : undefined}
               isAlreadyFollowing={
                 followedMoodlists?.some((fm) => fm.id === m.id) ?? false
               }

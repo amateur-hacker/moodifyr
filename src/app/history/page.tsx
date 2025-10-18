@@ -32,8 +32,8 @@ const HistoryPage = async () => {
       <Typography variant="h2" className="font-playful text-center mb-4">
         History
       </Typography>
-      {songHistory && Object.keys(songHistory).length ? (
-        <div className="w-full space-y-5 mx-auto max-w-3xl">
+      <div className="w-full space-y-5 mx-auto max-w-3xl">
+        {songHistory && Object.keys(songHistory).length ? (
           <Suspense
             fallback={
               <div className="space-y-[1.3125rem]">
@@ -49,10 +49,12 @@ const HistoryPage = async () => {
               moodlists={moodlists}
             />
           </Suspense>
-        </div>
-      ) : (
-        <Typography variant="lead">No Song History</Typography>
-      )}
+        ) : (
+          <Typography variant="lead" className="text-center">
+            No Song History
+          </Typography>
+        )}
+      </div>
     </div>
   );
 };

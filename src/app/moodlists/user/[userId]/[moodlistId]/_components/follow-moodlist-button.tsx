@@ -1,18 +1,18 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { UserMinus, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { googleSignInUser } from "@/app/fn";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/app/_context/user-context";
+import { googleSignInUser } from "@/app/fn";
 import {
   followUserMoodlist,
   unfollowUserMoodlist,
 } from "@/app/moodlists/actions";
-import { UserMinus, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const FollowButton = ({
+const FollowMoodlistButton = ({
   isAlreadyFollowing,
   moodlistId,
   userId,
@@ -48,20 +48,22 @@ const FollowButton = ({
       setIsProcessing(true);
       const response = await followUserMoodlist({
         moodlistId,
-        pathToRevalidate: "/moodlists",
       });
 
+      setIsFollowing(true);
+
       if (response?.success) {
-        setIsFollowing(true);
         toast.success("Followed!");
       } else if (response?.message?.includes("already following")) {
         toast.warning("Already Following!");
       } else {
+        setIsFollowing(false);
         toast.error("Follow failed!");
       }
     } catch (error) {
       console.error(error);
       toast.error("Follow failed!");
+      setIsFollowing(false);
     } finally {
       setIsProcessing(false);
     }
@@ -80,18 +82,19 @@ const FollowButton = ({
       setIsProcessing(true);
       const response = await unfollowUserMoodlist({
         moodlistId,
-        pathToRevalidate: "/moodlists",
       });
 
+      setIsFollowing(false);
       if (response?.success) {
-        setIsFollowing(false);
         toast.success("Unfollowed!");
       } else {
         toast.error("Unfollow failed!");
+        setIsFollowing(true);
       }
     } catch (error) {
       console.error(error);
       toast.error("Unfollow failed!");
+      setIsFollowing(true);
     } finally {
       setIsProcessing(false);
     }
@@ -126,4 +129,4 @@ const FollowButton = ({
   );
 };
 
-export { FollowButton };
+export { FollowMoodlistButton };

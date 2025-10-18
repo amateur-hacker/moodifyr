@@ -2,23 +2,22 @@
 
 import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import z from "zod";
+import type { Prettify, SongSchema } from "@/app/_types";
 import { db } from "@/db";
+import { songs } from "@/db/schema";
 import {
   type MoodlistFollowerSchema,
   type MoodlistSchema,
   type MoodlistSongSchema,
-  moodlistFollowerSchema,
   moodlistFollowers,
   moodlistSchema,
   moodlistSongSchema,
   moodlistSongs,
   moodlists,
 } from "@/db/schema/moodlists";
-import { executeAction } from "@/db/utils";
-import type { SongSchema, Prettify } from "../_types";
-import { songs } from "@/db/schema";
 import { songSchema } from "@/db/schema/song";
-import z from "zod";
+import { executeAction } from "@/db/utils";
 
 const createUserMoodlist = async ({ name }: Pick<MoodlistSchema, "name">) => {
   const createUserMoodlistSchema = moodlistSchema.pick({ name: true });
@@ -191,20 +190,12 @@ const removeUserSongFromMoodlist = async ({
 
 const followUserMoodlist = async ({
   moodlistId,
-  pathToRevalidate,
-}: Pick<MoodlistFollowerSchema, "moodlistId"> & {
-  pathToRevalidate: "/moodlists" | "/moodlists/user/[userId]";
-}) => {
+}: Pick<MoodlistFollowerSchema, "moodlistId">) => {
   const followUserMoodlistSchema = z.object({
     moodlistId: moodlistSchema.shape.id,
-    pathToRevalidate: z.enum(["/moodlists", "/moodlists/user/[userId]"]),
   });
-  const {
-    moodlistId: parsedMoodlistId,
-    pathToRevalidate: parsedPathToRevalidate,
-  } = followUserMoodlistSchema.parse({
+  const { moodlistId: parsedMoodlistId } = followUserMoodlistSchema.parse({
     moodlistId,
-    pathToRevalidate,
   });
 
   return executeAction({
@@ -225,7 +216,6 @@ const followUserMoodlist = async ({
         moodlistId: parsedMoodlistId,
         userId: sessionUser.id,
       });
-      revalidatePath(parsedPathToRevalidate);
     },
     isProtected: true,
     clientSuccessMessage: "Moodlist followed",
@@ -235,20 +225,12 @@ const followUserMoodlist = async ({
 
 const unfollowUserMoodlist = async ({
   moodlistId,
-  pathToRevalidate,
-}: Pick<MoodlistFollowerSchema, "moodlistId"> & {
-  pathToRevalidate: "/moodlists" | "/moodlists/user/[userId]";
-}) => {
+}: Pick<MoodlistFollowerSchema, "moodlistId">) => {
   const unfollowUserMoodlistSchema = z.object({
     moodlistId: moodlistSchema.shape.id,
-    pathToRevalidate: z.enum(["/moodlists", "/moodlists/user/[userId]"]),
   });
-  const {
-    moodlistId: parsedMoodlistId,
-    pathToRevalidate: parsedPathToRevalidate,
-  } = unfollowUserMoodlistSchema.parse({
+  const { moodlistId: parsedMoodlistId } = unfollowUserMoodlistSchema.parse({
     moodlistId,
-    pathToRevalidate,
   });
 
   return executeAction({
@@ -261,7 +243,6 @@ const unfollowUserMoodlist = async ({
             eq(moodlistFollowers.userId, sessionUser.id),
           ),
         );
-      revalidatePath(parsedPathToRevalidate);
     },
     isProtected: true,
     clientSuccessMessage: "Moodlist unfollowed",

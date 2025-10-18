@@ -1,6 +1,9 @@
 import Link from "next/link";
+import type {
+  getMoodlistsByUserId,
+  getUserFollowedMoodlists,
+} from "@/app/moodlists/queries";
 import { Typography } from "@/components/ui/typography";
-import type { SelectMoodlistModel } from "@/db/schema/moodlists";
 import { MoodlistCard } from "./moodlist-card";
 
 const MoodlistCardList = ({
@@ -8,16 +11,9 @@ const MoodlistCardList = ({
   userId,
   followedMoodlists,
 }: {
-  moodlists: SelectMoodlistModel[] | null;
   userId: string;
-  followedMoodlists:
-    | {
-        id: string;
-        name: string;
-        ownerId: string;
-        followedAt: Date;
-      }[]
-    | null;
+  moodlists: Awaited<ReturnType<typeof getMoodlistsByUserId>>;
+  followedMoodlists: Awaited<ReturnType<typeof getUserFollowedMoodlists>>;
 }) => {
   return (
     <>

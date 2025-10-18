@@ -60,9 +60,6 @@ const trackUserSongPlayHistory = async ({
         });
 
         if (existingPlay) {
-          // await tx
-          //   .delete(songPlayHistory)
-          //   .where(eq(songPlayHistory.id, existingPlay.id));
           await tx
             .update(songPlayHistory)
             .set({

@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
-import { SongsSetter } from "@/app/_components/songs-setter";
 import { FavouriteSongList } from "@/app/favourites/_components/fav-song-list";
 import { getUserMoodlists } from "@/app/moodlists/queries";
 import { getUserFavouriteSongs, getUserSession } from "@/app/queries";
@@ -41,7 +40,6 @@ const FavSongsPage = async () => {
               </div>
             }
           >
-            {/* <SongsSetter songs={favouriteSongs} /> */}
             <FavouriteSongList
               initialSongs={favouriteSongs}
               moodlists={moodlists}

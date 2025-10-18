@@ -1,5 +1,4 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart } from "lucide-react";
 
 const SongCardLoader = ({ showHeart = false }: { showHeart?: boolean }) => {
   return (

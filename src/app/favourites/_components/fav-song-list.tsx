@@ -1,7 +1,8 @@
 "use client";
 
 import { useInViewport } from "@mantine/hooks";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { SongsSetter } from "@/app/_components/songs-setter";
 import { useFavourites } from "@/app/_context/favourite-context";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { FavouriteSongSchema } from "@/app/_types";
@@ -10,7 +11,6 @@ import type { getUserMoodlists } from "@/app/moodlists/queries";
 import { getUserFavouriteSongs } from "@/app/queries";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
-import { SongsSetter } from "@/app/_components/songs-setter";
 
 type FavouriteSongListProps = {
   initialSongs: FavouriteSongSchema[] | null;

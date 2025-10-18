@@ -1,17 +1,19 @@
-import { SongsSetter } from "@/app/_components/songs-setter";
-import { getMoodlistById, getMoodlistSongsByUserId } from "../../../queries";
-import { MoodlistSongList } from "./_components/moodlist-song-list";
-import { SongCardLoader } from "@/app/_components/song-card-loader";
-import { Suspense } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Smile } from "lucide-react";
 import Image from "next/image";
-import { Typography } from "@/components/ui/typography";
-import { Music, Smile } from "lucide-react";
-import { getUserById, getUserSession } from "@/app/queries";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { SongCardLoader } from "@/app/_components/song-card-loader";
+import { SongsSetter } from "@/app/_components/songs-setter";
+import {
+  getMoodlistSongsByUserId,
+  getUserFollowedMoodlists,
+} from "@/app/moodlists/queries";
+import { FollowMoodlistButton } from "@/app/moodlists/user/[userId]/[moodlistId]/_components/follow-moodlist-button";
+import { MoodlistSongList } from "@/app/moodlists/user/[userId]/[moodlistId]/_components/moodlist-song-list";
+import { getUserById, getUserSession } from "@/app/queries";
 import { Galaxy } from "@/components/galaxy";
-import { FollowButton } from "./_components/follow-button";
-import { getUserFollowedMoodlists } from "../../../queries";
+import { Badge } from "@/components/ui/badge";
+import { Typography } from "@/components/ui/typography";
 
 const UserMoodlistPage = async ({
   params,
@@ -22,6 +24,16 @@ const UserMoodlistPage = async ({
 
   const session = await getUserSession();
 
+  if (!session?.user) {
+    return (
+      <div className="w-full">
+        <Typography variant="lead">
+          Please sign in to see your favourite songs.
+        </Typography>
+      </div>
+    );
+  }
+
   if (session?.user?.id === userId) {
     redirect(`/moodlists/${moodlistId}`);
   }
@@ -31,17 +43,6 @@ const UserMoodlistPage = async ({
     getUserById({ userId }).then((res) => res ?? null),
     getUserFollowedMoodlists().then((res) => res ?? null),
   ]);
-
-  // if (!moodlistSongs) return null;
-
-  const songs =
-    moodlistSongs?.songs.map((item) => ({
-      id: item.id,
-      moodlistSongId: item.moodlistSongId,
-      title: item.title,
-      thumbnail: item.thumbnail,
-      duration: item.duration,
-    })) ?? null;
 
   return (
     <div className="w-full">
@@ -60,28 +61,23 @@ const UserMoodlistPage = async ({
           <Galaxy mouseInteraction={false} />
         </div>
       )}
+      <div className="w-max mx-auto">
+        <Badge variant="outline">
+          <Smile
+            className="-ms-0.5 text-emerald-500"
+            size={12}
+            aria-hidden="true"
+          />
+          Moodlist
+        </Badge>
+      </div>
       {moodlistSongs && (
         <>
           <div className="flex items-center justify-center gap-2.5">
-            <div className="flex flex-col">
-              <div className="w-max mx-auto">
-                <Badge variant="outline">
-                  <Smile
-                    className="-ms-0.5 text-emerald-500"
-                    size={12}
-                    aria-hidden="true"
-                  />
-                  Moodlist
-                </Badge>
-              </div>
-              <Typography
-                variant="h2"
-                className="font-playful text-center mb-4"
-              >
-                {moodlistSongs.name}
-              </Typography>
-            </div>
-            <FollowButton
+            <Typography variant="h2" className="font-playful text-center">
+              {moodlistSongs.name}
+            </Typography>
+            <FollowMoodlistButton
               isAlreadyFollowing={
                 followedMoodlists?.some((fm) => fm.id === moodlistId) ?? false
               }
@@ -90,22 +86,28 @@ const UserMoodlistPage = async ({
             />
           </div>
           <div className="w-full space-y-5 mx-auto max-w-3xl">
-            <Suspense
-              fallback={
-                <div className="space-y-[1.3125rem]">
-                  {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
-                    <SongCardLoader key={`loader-${id}`} />
-                  ))}
-                </div>
-              }
-            >
-              <MoodlistSongList
-                songs={moodlistSongs.songs}
-                moodlistName={moodlistSongs.name}
-                moodlistId={moodlistId}
-              />
-              <SongsSetter songs={songs} />
-            </Suspense>
+            {moodlistSongs.songs.length > 0 ? (
+              <Suspense
+                fallback={
+                  <div className="space-y-[1.3125rem]">
+                    {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
+                      <SongCardLoader key={`loader-${id}`} />
+                    ))}
+                  </div>
+                }
+              >
+                <MoodlistSongList
+                  songs={moodlistSongs.songs}
+                  moodlistName={moodlistSongs.name}
+                  moodlistId={moodlistId}
+                />
+                <SongsSetter songs={moodlistSongs.songs} />
+              </Suspense>
+            ) : (
+              <Typography variant="lead" className="text-center">
+                No Moodlist Songs
+              </Typography>
+            )}
           </div>
         </>
       )}

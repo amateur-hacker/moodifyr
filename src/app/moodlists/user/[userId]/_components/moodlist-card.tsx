@@ -1,6 +1,15 @@
 "use client";
 
 import { EllipsisIcon, Music, UserMinus, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useUser } from "@/app/_context/user-context";
+import { googleSignInUser } from "@/app/fn";
+import {
+  followUserMoodlist,
+  unfollowUserMoodlist,
+} from "@/app/moodlists/actions";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,15 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  followUserMoodlist,
-  unfollowUserMoodlist,
-} from "@/app/moodlists/actions";
-import { useUser } from "@/app/_context/user-context";
-import { toast } from "sonner";
-import { googleSignInUser } from "@/app/fn";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
 
 interface MoodlistCardProps {
   userId: string;
@@ -56,7 +56,6 @@ export const MoodlistCard = ({
       setIsProcessing(true);
       const response = await followUserMoodlist({
         moodlistId,
-        pathToRevalidate: "/moodlists/user/[userId]",
       });
 
       if (response?.success) {
@@ -88,7 +87,6 @@ export const MoodlistCard = ({
       setIsProcessing(true);
       const response = await unfollowUserMoodlist({
         moodlistId,
-        pathToRevalidate: "/moodlists/user/[userId]",
       });
 
       if (response?.success) {

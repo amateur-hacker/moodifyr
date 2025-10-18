@@ -1,14 +1,13 @@
 import { Suspense } from "react";
-import { SearchSongForm } from "@/app/_components/search-song-form";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { getUserFavouriteSongs } from "@/app/queries";
+import { SearchSongForm } from "@/app/search/_components/search-song-form";
 import { searchSong } from "@/app/search/api";
-import { getUserMoodlists } from "../moodlists/queries";
-import { GlitchText } from "@/components/ui/shadcn-io/glitch-text";
 import { WordRotate } from "@/components/ui/word-rotate";
-import { SearchSongList } from "./_components/search-song-list";
 import { trackUserSongSearchHistory } from "../actions";
+import { getUserMoodlists } from "../moodlists/queries";
+import { SearchSongList } from "./_components/search-song-list";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {
@@ -54,15 +53,6 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
     <div className="w-full">
       <div className="w-full space-y-5 mx-auto max-w-3xl">
         <SearchSongForm />
-
-        {/* <GlitchText */}
-        {/*   speed={1} */}
-        {/*   enableShadows={true} */}
-        {/*   enableOnHover={false} */}
-        {/*   className="mb-4 text-center after:left-0 after:right-0 after:m-auto after:translate-x-[10px] before:left-0 before:right-0 before:m-auto before:-translate-x-[10px] !cursor-default" */}
-        {/* > */}
-        {/*   {!songResult?.success ? "Search" : "Enjoy"} */}
-        {/* </GlitchText> */}
 
         {songResult?.success ? (
           <Suspense

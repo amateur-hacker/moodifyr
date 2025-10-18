@@ -1,22 +1,29 @@
 "use client";
 
-import { useClickOutside, useInViewport } from "@mantine/hooks";
-import { History, Loader2, Search, X } from "lucide-react";
+import {
+  useClickOutside,
+  useDebouncedValue,
+  useInViewport,
+} from "@mantine/hooks";
+import fuzzysort from "fuzzysort";
+import parse from "html-react-parser";
+import { History, Search, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { RemoveScroll } from "react-remove-scroll";
 import { toast } from "sonner";
+import { useUser } from "@/app/_context/user-context";
 import {
   removeUserSongSearchHistory,
   trackUserSongSearchHistory,
 } from "@/app/actions";
 import {
-  getUserSongSearchHistory,
   getSongSearchSuggestions,
+  getUserSongSearchHistory,
 } from "@/app/queries";
 import { TopLoader } from "@/components/top-loader";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,13 +31,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { Spinner } from "@/components/ui/spinner";
 import { encodeQueryParam } from "@/lib/utils";
-import { useDebouncedValue } from "@mantine/hooks";
-import { useUser } from "@/app/_context/user-context";
-import fuzzysort from "fuzzysort";
-import parse from "html-react-parser";
-import { RemoveScroll } from "react-remove-scroll";
+
+// import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 const SearchSongForm = () => {
   const searchParams = useSearchParams();
@@ -61,11 +65,6 @@ const SearchSongForm = () => {
   const userId = user?.id ?? null;
 
   const router = useRouter();
-
-  // useClickOutside(() => setIsInputFocused(false), null, [
-  //   inputRef?.current,
-  //   contentEl,
-  // ]);
 
   // useScrollLock(shouldShowDropdown);
   useClickOutside(
@@ -139,6 +138,7 @@ const SearchSongForm = () => {
 
   const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
+    setIsInputFocused(false);
     const trimmedQuery = query.trim();
     try {
       inputRef?.current?.blur();
@@ -196,15 +196,6 @@ const SearchSongForm = () => {
     }
   };
 
-  // const highlightMatch = (text: string, query: string) => {
-  //   if (!query.trim()) return text;
-  //   const regex = new RegExp(`(${query})`, "ig");
-  //   const parts = text.split(regex);
-  //   return parts.map((part, i) =>
-  //     regex.test(part) ? <strong key={i}>{part}</strong> : part,
-  //   );
-  // };
-
   const highlightMatch = (text: string, query: string) => {
     if (!query.trim()) return text;
 
@@ -225,7 +216,7 @@ const SearchSongForm = () => {
         <div className="relative w-full bg-background rounded-s-md rounded-e-md">
           <Input
             ref={inputRef}
-            className="sticky inset-x-0 top-0 pl-3 pr-7 rounded-none z-10 rounded-s-md focus-visible:ring-[1px]"
+            className="sticky inset-x-0 top-0 pl-3 pr-7 rounded-none rounded-s-md focus-visible:ring-[1px]"
             placeholder="Search for song..."
             type="search"
             onChange={handleChange}
@@ -284,7 +275,6 @@ const SearchSongForm = () => {
                     onKeyDown={(e) => {
                       if (e.key === "ArrowUp") {
                         e.preventDefault();
-                        // setIsInputFocused(false);
                         const items = Array.from(
                           contentEl?.querySelectorAll<HTMLElement>(
                             '[role="menuitem"]',
@@ -298,22 +288,21 @@ const SearchSongForm = () => {
                       }
                     }}
                   >
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center overflow-hidden">
                       {shouldShowUserHistory || item?.isOwnQuery ? (
                         <History className="text-foreground" />
                       ) : (
                         <Search className="text-foreground" />
                       )}
-                      {/* <span>{item.query}</span> */}
                       <span
-                        className={
+                        className={`truncate ${
                           shouldShowUserHistory
                             ? "text-foreground"
                             : "text-muted-foreground"
                         }
+                            `}
                       >
                         {parse(highlightMatch(item.query, debouncedQuery))}
-                        {/* {highlightMatch(item.query, debouncedQuery)} */}
                       </span>
                     </div>
                     {(shouldShowUserHistory || item?.isOwnQuery) && (
@@ -333,21 +322,6 @@ const SearchSongForm = () => {
                   </DropdownMenuItem>
                 ))}
 
-                {/* {hasMore && ( */}
-                {/*   <div */}
-                {/*     ref={bottomRef} */}
-                {/*     className="flex items-center justify-center py-2 text-sm text-muted-foreground gap-2" */}
-                {/*   > */}
-                {/*     {loadingMore ? ( */}
-                {/*       <div className="flex items-center gap-2"> */}
-                {/*         <Spinner /> */}
-                {/*         Loading... */}
-                {/*       </div> */}
-                {/*     ) : ( */}
-                {/*       "Scroll for more" */}
-                {/*     )} */}
-                {/*   </div> */}
-                {/* )} */}
                 {(hasMore || loadingMore) && (
                   <div
                     ref={bottomRef}
@@ -365,7 +339,7 @@ const SearchSongForm = () => {
             <button
               type="button"
               onClick={handleClear}
-              className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer z-20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
               title="Clear Search"
             >
               <X className="size-5" aria-hidden />

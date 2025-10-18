@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { PlusIcon, Smile } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { createUserMoodlist } from "@/app/moodlists/actions";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -12,13 +15,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createUserMoodlist } from "@/app/moodlists/actions"; // adjust path
-import { toast } from "sonner";
-import { cn, getErrorMessage } from "@/lib/utils";
 import { Typography } from "@/components/ui/typography";
+import { cn, getErrorMessage } from "@/lib/utils";
 
 export const CreateMoodlist = ({ className }: { className?: string }) => {
   const [inputValue, setInputValue] = useState("");
