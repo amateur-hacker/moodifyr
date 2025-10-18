@@ -40,6 +40,7 @@ const UserMenu = ({ session }: UserMenuProps) => {
         <button
           className="flex items-center gap-2 focus:outline-none cursor-pointer"
           type="button"
+          title="Open User Menu"
         >
           <Avatar className="h-8 w-8">
             <AvatarImage
