@@ -86,15 +86,18 @@ const MoodlistCard = ({
         moodlistId,
       });
 
+      setIsFollowing(true);
+
       if (response?.success) {
-        setIsFollowing(true);
         toast.success("Followed!");
       } else if (response?.message?.includes("already following")) {
         toast.warning("Already Following!");
       } else {
+        setIsFollowing(false);
         toast.error("Follow failed!");
       }
     } catch (error) {
+      setIsFollowing(false);
       console.error(error);
       toast.error("Follow failed!");
     } finally {
@@ -117,13 +120,16 @@ const MoodlistCard = ({
         moodlistId,
       });
 
+      setIsFollowing(false);
+
       if (response?.success) {
-        setIsFollowing(false);
         toast.success("Unfollowed!");
       } else {
         toast.error("Unfollow failed!");
+        setIsFollowing(true);
       }
     } catch (error) {
+      setIsFollowing(true);
       console.error(error);
       toast.error("Unfollow failed!");
     } finally {
@@ -140,7 +146,7 @@ const MoodlistCard = ({
             size="icon"
             variant="ghost"
             className="shadow-none absolute top-0.5 right-0.5 cursor-pointer"
-            aria-label="Open edit menu"
+            title="Open menu"
           >
             <EllipsisIcon size={16} aria-hidden="true" />
           </Button>

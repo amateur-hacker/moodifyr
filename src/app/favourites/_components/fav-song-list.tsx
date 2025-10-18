@@ -65,7 +65,6 @@ const FavouriteSongList = ({
         pagination: true,
       })
         .then((res) => {
-          console.log(res);
           if (res?.length) {
             setSongs((prev) => [...prev, ...res]);
             setPage((p) => p + 1);

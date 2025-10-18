@@ -65,7 +65,11 @@ export const CreateMoodlist = ({ className }: { className?: string }) => {
           {/*   <PlusIcon className="-ms-1" size={16} aria-hidden="true" /> */}
           {/*   Create Moodlist */}
           {/* </Button> */}
-          <Button variant="outline" className="w-max h-max p-0 gap-2 flex-col">
+          <Button
+            variant="outline"
+            className="w-max h-max p-0 gap-2 flex-col"
+            title="Create Moodlist"
+          >
             <div className={cn("cursor-pointer", className)}>
               <PlusIcon className="size-16" aria-hidden="true" />
             </div>

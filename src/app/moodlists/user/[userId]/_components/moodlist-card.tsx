@@ -58,15 +58,18 @@ export const MoodlistCard = ({
         moodlistId,
       });
 
+      setIsFollowing(true);
+
       if (response?.success) {
-        setIsFollowing(true);
         toast.success("Followed!");
       } else if (response?.message?.includes("already following")) {
         toast.warning("Already Following!");
       } else {
         toast.error("Follow failed!");
+        setIsFollowing(false);
       }
     } catch (error) {
+      setIsFollowing(false);
       console.error(error);
       toast.error("Follow failed!");
     } finally {
@@ -89,13 +92,16 @@ export const MoodlistCard = ({
         moodlistId,
       });
 
+      setIsFollowing(false);
+
       if (response?.success) {
-        setIsFollowing(false);
         toast.success("Unfollowed!");
       } else {
         toast.error("Unfollow failed!");
+        setIsFollowing(true);
       }
     } catch (error) {
+      setIsFollowing(true);
       console.error(error);
       toast.error("Unfollow failed!");
     } finally {

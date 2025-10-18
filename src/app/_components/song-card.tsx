@@ -103,7 +103,6 @@ export function SongCard(props: SongCardProps) {
         );
 
       case "moodlist":
-        console.log(props.moodlistType);
         if (props.moodlistType === "owned") {
           return (
             <DropdownMenuItem

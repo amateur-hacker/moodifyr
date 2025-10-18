@@ -61,9 +61,9 @@ const FollowMoodlistButton = ({
         toast.error("Follow failed!");
       }
     } catch (error) {
+      setIsFollowing(false);
       console.error(error);
       toast.error("Follow failed!");
-      setIsFollowing(false);
     } finally {
       setIsProcessing(false);
     }
