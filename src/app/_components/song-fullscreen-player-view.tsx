@@ -219,6 +219,7 @@ const SongFullscreenPlayerView = ({
           align="end"
           sideOffset={4}
           alignOffset={-4}
+          className="z-[100]"
         >
           <DropdownMenuItem onClick={() => setIsAddToMoodlistDialogOpen(true)}>
             <CirclePlus />

@@ -1,4 +1,4 @@
-import { Search, LucideHeartPulse, LucideHistory, Smile } from "lucide-react";
+import { LucideHeartPulse, LucideHistory, Search, Smile } from "lucide-react";
 import Link from "next/link";
 import { getUserSession } from "@/app/queries";
 import { Typography } from "@/components/ui/typography";

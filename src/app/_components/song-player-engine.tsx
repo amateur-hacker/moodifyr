@@ -336,7 +336,68 @@ export function SongPlayerEngine() {
     setIsLoading(true);
     setProgress(0);
     playerRef.current.loadVideoById(youtubeId);
-  }, [youtubeId, setIsLoading, setProgress]);
+  }, [youtubeId]);
+
+  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  // useEffect(() => {
+  //   if (!playerRef.current || !youtubeId) return;
+  //
+  //   setIsLoading(true);
+  //   setProgress(0);
+  //   playerRef.current.loadVideoById(youtubeId);
+  //
+  //   let retryCount = 0;
+  //   let stuckTimer: NodeJS.Timeout | null = null;
+  //
+  //   const handleRetryCheck = async () => {
+  //     if (!playerRef.current) return;
+  //     const state = await playerRef.current.getPlayerState();
+  //
+  //     if (state === 1) {
+  //       // Playback started
+  //       // setIsLoading(false);
+  //       // setIsPlaying(true);
+  //       console.log("Playback started!");
+  //       if (stuckTimer) clearTimeout(stuckTimer);
+  //     } else if (state === 3 || state === -1) {
+  //       // Still buffering or unstarted
+  //       stuckTimer = setTimeout(() => {
+  //         retryCount += 1;
+  //         if (retryCount <= 3) {
+  //           console.warn(`Retry attempt ${retryCount}...`);
+  //           playerRef.current?.loadVideoById(youtubeId);
+  //           handleRetryCheck(); // check again after retry
+  //         } else {
+  //           setIsLoading(false);
+  //           toast.error("Slow internet detected. Unable to start playback.", {
+  //             action: {
+  //               label: "Retry Now",
+  //               onClick: () => {
+  //                 retryCount = 0;
+  //                 setIsLoading(true);
+  //                 playerRef.current?.loadVideoById(youtubeId);
+  //                 handleRetryCheck();
+  //               },
+  //             },
+  //           });
+  //         }
+  //       }, 3000);
+  //     }
+  //   };
+  //
+  //   // Subscribe to player state changes
+  //   playerRef.current.on("stateChange", handleRetryCheck);
+  //
+  //   // Start initial check
+  //   handleRetryCheck();
+  //
+  //   return () => {
+  //     if (stuckTimer) clearTimeout(stuckTimer);
+  //     try {
+  //       playerRef.current?.off("stateChange", handleRetryCheck);
+  //     } catch {}
+  //   };
+  // }, [youtubeId]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
