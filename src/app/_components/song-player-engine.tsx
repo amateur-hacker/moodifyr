@@ -10,6 +10,7 @@ import {
   trackUserSongAnalyticsPlayHistory,
   trackUserSongPlayHistory,
 } from "@/app/search/actions";
+import { generateShuffleQueue } from "@/app/utils";
 
 export function SongPlayerEngine() {
   const {
@@ -26,6 +27,7 @@ export function SongPlayerEngine() {
     mode,
     songs,
     lastActionRef,
+    lastPlayedSongIdRef,
   } = useSongPlayer();
 
   const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
@@ -37,6 +39,34 @@ export function SongPlayerEngine() {
   const lastTimeRef = useRef(0);
   const lastTrackedIdRef = useRef<string | null>(null);
   const lastAnalyticsIdRef = useRef<string | null>(null);
+  const shuffleQueueRef = useRef<SongWithUniqueIdSchema[]>([]);
+  const shuffleIndexRef = useRef<number>(-1);
+
+  // expose them globally via context
+  useEffect(() => {
+    // if your song context supports it:
+    // you can attach them so SongPlayerBar can use them
+    Object.assign(playerRef.current || {}, {
+      shuffleQueueRef,
+      shuffleIndexRef,
+    });
+  }, [playerRef]);
+
+  // function generateShuffleQueue(
+  //   songs: SongWithUniqueIdSchema[],
+  //   current?: SongWithUniqueIdSchema | null,
+  //   lastPlayedSongId?: string | null,
+  // ) {
+  //   if (!songs.length) return [];
+  //
+  //   const remaining = songs.filter(
+  //     (s) => s.id !== current?.id && s.id !== lastPlayedSongId,
+  //   );
+  //
+  //   const shuffled = [...remaining].sort(() => Math.random() - 0.5);
+  //
+  //   return current ? [current, ...shuffled] : shuffled;
+  // }
 
   useEffect(() => {
     songsRef.current = songs;
@@ -117,17 +147,47 @@ export function SongPlayerEngine() {
           return;
         }
 
+        // if (modeRef.current === "shuffle") {
+        //   const otherSongs = songsRef.current.filter(
+        //     (s) => s.id !== currentSongRef.current?.id,
+        //   );
+        //   if (otherSongs.length > 0) {
+        //     const randomSong =
+        //       otherSongs[Math.floor(Math.random() * otherSongs.length)];
+        //     setSong(randomSong);
+        //   } else {
+        //     setSong(currentSongRef.current);
+        //   }
+        //   return;
+        // }
+
         if (modeRef.current === "shuffle") {
-          const otherSongs = songsRef.current.filter(
-            (s) => s.id !== currentSongRef.current?.id,
-          );
-          if (otherSongs.length > 0) {
-            const randomSong =
-              otherSongs[Math.floor(Math.random() * otherSongs.length)];
-            setSong(randomSong);
-          } else {
-            setSong(currentSongRef.current);
+          // if queue empty or not initialized
+          if (shuffleQueueRef.current.length === 0) {
+            shuffleQueueRef.current = generateShuffleQueue(
+              songsRef.current,
+              currentSongRef.current,
+              lastPlayedSongIdRef.current,
+            );
+            shuffleIndexRef.current = 0;
           }
+
+          // Move to next index
+          shuffleIndexRef.current += 1;
+
+          // If reached end, reshuffle new queue
+          if (shuffleIndexRef.current >= shuffleQueueRef.current.length) {
+            shuffleQueueRef.current = generateShuffleQueue(
+              songsRef.current,
+              currentSongRef.current,
+              lastPlayedSongIdRef.current,
+            );
+            shuffleIndexRef.current = 0;
+          }
+
+          // Set next song
+          const nextSong = shuffleQueueRef.current[shuffleIndexRef.current];
+          setSong(nextSong);
           return;
         }
 
@@ -352,6 +412,7 @@ export function SongPlayerEngine() {
   //   const handleRetryCheck = async () => {
   //     if (!playerRef.current) return;
   //     const state = await playerRef.current.getPlayerState();
+  //     console.log(state);
   //
   //     if (state === 1) {
   //       // Playback started
@@ -381,7 +442,7 @@ export function SongPlayerEngine() {
   //             },
   //           });
   //         }
-  //       }, 3000);
+  //       }, 5000);
   //     }
   //   };
   //
@@ -394,6 +455,7 @@ export function SongPlayerEngine() {
   //   return () => {
   //     if (stuckTimer) clearTimeout(stuckTimer);
   //     try {
+  //       // @ts-expect-error
   //       playerRef.current?.off("stateChange", handleRetryCheck);
   //     } catch {}
   //   };

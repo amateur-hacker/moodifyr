@@ -69,7 +69,7 @@ const SearchSongForm = () => {
   // useScrollLock(shouldShowDropdown);
   useClickOutside(
     () => setIsInputFocused(false),
-    ["click"],
+    ["click", "mousedown"],
     [inputRef?.current, contentEl],
   );
 

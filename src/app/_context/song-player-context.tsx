@@ -19,7 +19,13 @@ type SongPlayerContextProps = {
   progress: number;
   setDuration: React.Dispatch<React.SetStateAction<number>>;
   duration: number;
-  playerRef: React.RefObject<ReturnType<typeof youtubePlayer> | null>;
+  playerRef: React.RefObject<
+    | (ReturnType<typeof youtubePlayer> & {
+        shuffleQueueRef?: React.RefObject<SongWithUniqueIdSchema[]>;
+        shuffleIndexRef?: React.RefObject<number>;
+      })
+    | null
+  >;
   mode: SongPlayerMode;
   setMode: (mode: SongPlayerMode) => Promise<void>;
   setIsPlayerFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,6 +34,7 @@ type SongPlayerContextProps = {
   setSongs: React.Dispatch<React.SetStateAction<SongWithUniqueIdSchema[]>>;
   isCurrentSong: (song: SongWithUniqueIdSchema) => boolean;
   lastActionRef: React.RefObject<"manual" | "next" | "prev" | "auto" | null>;
+  lastPlayedSongIdRef: React.RefObject<string | null>;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
@@ -57,7 +64,15 @@ export function SongPlayerProvider({
     null,
   );
 
-  const playerRef = useRef<ReturnType<typeof youtubePlayer> | null>(null);
+  const playerRef = useRef<
+    | (ReturnType<typeof youtubePlayer> & {
+        shuffleQueueRef?: React.RefObject<SongWithUniqueIdSchema[]>;
+        shuffleIndexRef?: React.RefObject<number>;
+      })
+    | null
+  >(null);
+
+  const lastPlayedSongIdRef = useRef<string | null>(null);
 
   const handleSetMode = async (mode: SongPlayerMode) => {
     setMode(mode);
@@ -76,6 +91,11 @@ export function SongPlayerProvider({
 
   const setSong = (song: SongWithUniqueIdSchema | null, isPlaying = true) => {
     if (!song) return;
+
+    if (currentSong) {
+      lastPlayedSongIdRef.current = currentSong.id;
+    }
+
     setCurrentSong(song);
     setYoutubeId(song.id);
     setIsPlaying(isPlaying);
@@ -143,6 +163,7 @@ export function SongPlayerProvider({
         setSongs,
         isCurrentSong,
         lastActionRef,
+        lastPlayedSongIdRef,
       }}
     >
       {children}
