@@ -1,5 +1,6 @@
 "use client";
 
+import { Smile } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -90,13 +91,19 @@ const AddToMoodlistDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <div className="mb-2 flex flex-col gap-2">
+      <DialogContent className="sm:max-w-md">
+        <div className="mb-2 flex items-center flex-col gap-2">
+          <div
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border"
+            aria-hidden="true"
+          >
+            <Smile className="opacity-80" size={16} />
+          </div>
           <DialogHeader>
-            <DialogTitle className="text-left">
+            <DialogTitle className="text-center">
               Choose your moodlist
             </DialogTitle>
-            <DialogDescription className="text-left">
+            <DialogDescription className="text-center">
               Pick one of the following moodlist.
             </DialogDescription>
           </DialogHeader>
@@ -142,7 +149,7 @@ const AddToMoodlistDialog = ({
             <Button
               type="submit"
               className="flex-1 cursor-pointer"
-              disabled={loading}
+              disabled={loading || !ownedMoodlists?.length}
             >
               {loading ? "Adding..." : "Add"}
             </Button>

@@ -87,7 +87,7 @@ export function SongPlayerProvider({
     if (!song) return;
 
     setCurrentSong(song);
-    setYoutubeId(song.id);
+    setYoutubeId(song.id.replace(/^dashboard-/, ""));
     setIsPlaying(isPlaying);
 
     const newId = getUniqueSongId(song);

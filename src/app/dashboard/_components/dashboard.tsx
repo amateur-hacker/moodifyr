@@ -2,8 +2,11 @@
 
 import { Pause, Play } from "lucide-react";
 import Image from "next/image";
+import { normalizeText } from "normalize-text";
 import { use, useEffect, useState } from "react";
+import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/_context/song-player-context";
+import type { SongSchema } from "@/app/_types";
 import { DateRangePicker } from "@/app/dashboard/_components/date-range-picker";
 import { DateRangePresetSelect } from "@/app/dashboard/_components/date-range-preset-select";
 import { DashboardAnalyticsContext } from "@/app/dashboard/_context/dashboard-analytics-context";
@@ -14,10 +17,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import { Typography } from "@/components/ui/typography";
+import { cn } from "@/lib/utils";
 
 type TopSong = {
-  title: string;
-  thumbnail: string;
+  song: SongSchema;
   mood: string | null;
   times: number;
 };
@@ -28,7 +31,16 @@ const Dashboard = () => {
   );
   const [topSongs, setTopSongs] = useState<TopSong[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isPlaying } = useSongPlayer();
+  const [isClient, setIsClient] = useState(false);
+  const {
+    isLoading,
+    isPlaying,
+    setSong,
+    currentSong,
+    togglePlay,
+    lastActionRef,
+    setIsPlayerFullScreen,
+  } = useSongPlayer();
 
   useEffect(() => {
     if (!startDate || !endDate || isPending) {
@@ -53,8 +65,31 @@ const Dashboard = () => {
     fetchData();
   }, [startDate, endDate, isPending]);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const handleClick = (
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    song: SongSchema,
+  ) => {
+    lastActionRef.current = "manual";
+
+    if (!isPlaying) {
+      setIsPlayerFullScreen(true);
+
+      const state = window.history.state;
+      if (!state?.fullscreen) {
+        window.history.pushState({ fullscreen: true }, "");
+      }
+    }
+
+    setSong(song, true);
+    togglePlay(e);
+  };
+
   return (
-    <div className="space-y-6 flex flex-col h-[calc(100vh-3.8rem)] pb-[var(--player-height,80px)]">
+    <div className="space-y-6 flex flex-col min-h-[calc(100vh-3.8rem)] pb-[var(--player-height,80px)]">
       <div className="flex w-full flex-col justify-between gap-2 px-4 sm:flex-row sm:gap-0">
         <DateRangePicker />
         <DateRangePresetSelect />
@@ -97,11 +132,11 @@ const Dashboard = () => {
         <CardHeader>
           <h3 className="text-lg font-bold">Top Played Songs</h3>
         </CardHeader>
-        <CardContent className="grid gap-4">
+        <CardContent className="grid gap-4 px-4">
           {loading ? (
             [...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center gap-4 w-full">
-                <Skeleton className="h-12.5 w-12.5 rounded-md" />
+                <Skeleton className="h-15 w-30 rounded-md" />
                 <div className="space-y-2 w-full">
                   <Skeleton className="h-4 w-full max-w-72" />
                   <Skeleton className="h-3 w-13" />
@@ -109,32 +144,62 @@ const Dashboard = () => {
               </div>
             ))
           ) : topSongs?.length > 0 ? (
-            topSongs.map((s, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <Image
-                  src={s.thumbnail as string}
-                  alt={s.title as string}
-                  width={50}
-                  height={50}
-                  className="rounded-sm border"
-                />
-                <div>
+            topSongs.map((t, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-4 group p-2 overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => handleClick(e, t.song)}
+                  className={cn(
+                    "relative w-[120px] h-[60px] aspect-[2/1.2] cursor-pointer rounded-md",
+                    currentSong?.id === t.song.id &&
+                      "[--shadow-2xl:0px_1px_4px_0px_oklch(0.8109_0_0)] shadow-2xl",
+                  )}
+                  title={!isPlaying ? "Play" : "Pause"}
+                >
+                  <Image
+                    src={t.song.thumbnail}
+                    alt={t.song.title}
+                    fill
+                    className="rounded-md object-cover transition-all duration-200 ease-out group-hover-always:group-hover:brightness-[0.8]"
+                  />
+                  <div
+                    className={cn(
+                      "absolute inset-0 flex items-center justify-center rounded-md transition-all duration-200",
+                      currentSong?.id === t.song.id
+                        ? "bg-black/40 group-hover-always:group-hover:bg-black/50 opacity-100"
+                        : `${
+                            isClient && (isMobile || isTablet)
+                              ? "opacity-100"
+                              : "opacity-0 group-hover-always:group-hover:opacity-100"
+                          } bg-black/40`,
+                    )}
+                  >
+                    {currentSong?.id === t.song.id ? (
+                      isLoading ? (
+                        <div className="h-6 w-6 animate-spin rounded-full border-white border-b-2" />
+                      ) : isPlaying ? (
+                        <Pause size={32} aria-hidden />
+                      ) : (
+                        <Play size={32} aria-hidden />
+                      )
+                    ) : (
+                      <Play size={32} aria-hidden />
+                    )}
+                  </div>
+                </button>
+                <div className="overflow-hidden">
                   <Typography
                     variant="body-small"
                     className="line-clamp-1 max-w-lg"
                   >
-                    {s.title}
+                    {normalizeText(t.song.title)}
                   </Typography>
                   <Typography variant="small" className="text-muted-foreground">
-                    {s.times} Plays
+                    {t.times} Plays
                   </Typography>
-                </div>
-                <div>
-                  {isPlaying ? (
-                    <Pause size={16} aria-hidden />
-                  ) : (
-                    <Play size={16} aria-hidden />
-                  )}
                 </div>
               </div>
             ))

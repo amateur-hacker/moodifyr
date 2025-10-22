@@ -92,8 +92,10 @@ const getUserMostPlayedSongByDateRange = ({
     queryFn: async ({ sessionUser }) => {
       const query = db
         .select({
+          id: songs.id,
           title: songs.title,
           thumbnail: songs.thumbnail,
+          duration: songs.duration,
           mood: songs.category,
           times: sql<number>`COUNT(*)`,
         })
@@ -114,8 +116,12 @@ const getUserMostPlayedSongByDateRange = ({
         : await query;
 
       return songsList.map((s) => ({
-        title: s.title,
-        thumbnail: s.thumbnail,
+        song: {
+          id: `dashboard-${s.id}`,
+          title: s.title,
+          thumbnail: s.thumbnail,
+          duration: s.duration,
+        },
         mood: s.mood,
         times: s.times,
       }));

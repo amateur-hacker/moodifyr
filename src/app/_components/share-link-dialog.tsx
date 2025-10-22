@@ -1,6 +1,9 @@
 "use client";
 
+import { ExternalLink, Share2 } from "lucide-react";
+import Link from "next/link";
 import type React from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -24,12 +27,21 @@ const ShareLinkDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Share link</DialogTitle>
-          <DialogDescription>
-            Anyone who has this link will be able to view this.
-          </DialogDescription>
-        </DialogHeader>
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="flex size-9 shrink-0 items-center justify-center rounded-full border"
+            aria-hidden="true"
+          >
+            <Share2 className="opacity-80" size={16} />
+          </div>
+          <DialogHeader>
+            <DialogTitle className="text-center">Share link</DialogTitle>
+            <DialogDescription className="text-center">
+              Anyone who has this link will be able to view this.
+            </DialogDescription>
+          </DialogHeader>
+        </div>
+
         <div className="flex items-center gap-2">
           <div className="grid flex-1 gap-2">
             <Label htmlFor="link" className="sr-only">
@@ -41,7 +53,21 @@ const ShareLinkDialog = ({
                 content={link}
                 size="default"
                 className="rounded-md"
+                title="Copy link"
               />
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-md"
+                aria-label="Open shared link in new tab"
+                title="Open shared link"
+                asChild
+              >
+                <Link href={link} target="_blank" rel="noreferrer">
+                  <ExternalLink size={16} aria-hidden="true" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

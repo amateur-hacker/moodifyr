@@ -15,10 +15,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { normalizeText } from "normalize-text";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddToMoodlistDialog } from "@/app/_components/add-to-moodlist-dialog";
 import { ShareLinkDialog } from "@/app/_components/share-link-dialog";
+import { useFavourites } from "@/app/_context/favourite-context";
 import { useUser } from "@/app/_context/user-context";
 import type { SongSchema } from "@/app/_types";
 import { toggleUserFavouriteSong } from "@/app/actions";
@@ -33,7 +35,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
-import { useFavourites } from "../_context/favourite-context";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
@@ -248,7 +249,7 @@ const SongFullscreenPlayerView = ({
             className="rounded-md object-cover"
           />
           <p className="font-medium text-center max-w-xs mx-auto w-full line-clamp-1">
-            {currentSong.title}
+            {normalizeText(currentSong.title)}
           </p>
         </div>
 

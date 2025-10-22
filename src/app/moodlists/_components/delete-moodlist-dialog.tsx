@@ -53,7 +53,7 @@ const DeleteMoodlistDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <div className="flex flex-col items-center gap-2">
           <div
             className="flex size-9 shrink-0 items-center justify-center rounded-full border"
@@ -62,10 +62,8 @@ const DeleteMoodlistDialog = ({
             <Trash className="opacity-80" size={16} />
           </div>
           <DialogHeader>
-            <DialogTitle className="sm:text-center">
-              Delete Moodlist
-            </DialogTitle>
-            <DialogDescription className="sm:text-center">
+            <DialogTitle className="text-center">Delete Moodlist</DialogTitle>
+            <DialogDescription className="text-center">
               Are you sure you want to delete <strong>{moodlistName}</strong>?
               This action cannot be undone.
             </DialogDescription>

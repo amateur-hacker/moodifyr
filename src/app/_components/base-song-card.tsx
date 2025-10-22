@@ -2,6 +2,7 @@
 
 import { Pause, Play } from "lucide-react";
 import Image from "next/image";
+import { normalizeText } from "normalize-text";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
@@ -128,7 +129,7 @@ export function BaseSongCard({
 
       <div className="flex flex-col justify-center gap-1 overflow-hidden">
         <Typography variant="body-small" className="line-clamp-1">
-          {song.title}
+          {normalizeText(song.title)}
         </Typography>
         <Typography variant="small" className="text-muted-foreground">
           {song.duration.timestamp}
