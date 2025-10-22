@@ -188,17 +188,17 @@ const getUserSongPlayerMode = async () => {
 };
 
 const getUserFavouriteSongs = ({
-  page = 1,
-  limit = 10,
-  pagination = false,
+  page,
+  limit,
+  pagination,
 }: {
   page?: number;
   limit?: number;
   pagination?: boolean;
 } = {}) => {
   const getUserFavouriteSongsSchema = z.object({
-    page: z.number().int().min(1),
-    limit: z.number().int().min(1).max(10),
+    page: z.number().int().min(1).default(1),
+    limit: z.number().int().min(1).max(20).default(20),
     pagination: z.boolean().default(false),
   });
 

@@ -2,12 +2,17 @@
 
 import { and, eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import z from "zod";
+import type { SongWithUniqueIdSchema } from "@/app/_types";
 import { db } from "@/db";
 import { userPreferences } from "@/db/schema";
 import {
+  favouriteSongs,
   type SongSearchHistorySchema,
+  songSchema,
   songSearchHistory,
   songSearchHistorySchema,
+  songs,
 } from "@/db/schema/song";
 import {
   type UserPreferenceSchema,
@@ -15,9 +20,6 @@ import {
 } from "@/db/schema/user";
 import { executeAction } from "@/db/utils";
 import { auth } from "@/lib/auth";
-import type { SongSchema, SongWithUniqueIdSchema } from "@/app/_types";
-import { favouriteSongs, songSchema, songs } from "@/db/schema/song";
-import z from "zod";
 
 const signOutUser = async () => {
   return executeAction({
@@ -121,7 +123,11 @@ const saveUserPreference = async ({
   });
 };
 
-const toggleUserFavouriteSong = async ({ song }: { song: SongSchema }) => {
+const toggleUserFavouriteSong = async ({
+  song,
+}: {
+  song: SongWithUniqueIdSchema;
+}) => {
   const toggleUserFavouriteSongSchema = z.object({
     song: songSchema.omit({ category: true }),
   });

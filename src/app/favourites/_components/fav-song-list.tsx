@@ -1,7 +1,7 @@
 "use client";
 
 import { useInViewport } from "@mantine/hooks";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { useFavourites } from "@/app/_context/favourite-context";
 import { useSongPlayer } from "@/app/_context/song-player-context";
@@ -26,12 +26,10 @@ const FavouriteSongList = ({
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const { favouriteSongs } = useFavourites();
-  const { currentSong } = useSongPlayer();
-  const firstRender = useRef(true);
+  const { currentSong, isPlayerFullScreen } = useSongPlayer();
 
   useEffect(() => {
-    if (!currentSong || firstRender.current) {
-      firstRender.current = false;
+    if (!currentSong || !isPlayerFullScreen) {
       return;
     }
 
@@ -52,7 +50,7 @@ const FavouriteSongList = ({
 
       return prev;
     });
-  }, [currentSong, favouriteSongs]);
+  }, [currentSong, favouriteSongs, isPlayerFullScreen]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
@@ -61,7 +59,7 @@ const FavouriteSongList = ({
 
       getUserFavouriteSongs({
         page: page + 1,
-        limit: 10,
+        limit: 20,
         pagination: true,
       })
         .then((res) => {
@@ -69,7 +67,7 @@ const FavouriteSongList = ({
             setSongs((prev) => [...prev, ...res]);
             setPage((p) => p + 1);
           }
-          if (!res?.length || res.length < 10) setHasMore(false);
+          if (!res?.length || res.length < 20) setHasMore(false);
         })
         .finally(() => setLoadingMore(false));
     }

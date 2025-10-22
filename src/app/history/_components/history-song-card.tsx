@@ -12,10 +12,11 @@ import type { getUserMoodlists } from "@/app/moodlists/queries";
 const HistorySongCard = ({
   song,
   moodlists,
+  onRemove,
 }: {
   song: HistorySongSchema;
-  isAlreadyFavourite?: boolean;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
+  onRemove: (historyId: string) => void;
 }) => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
@@ -30,9 +31,16 @@ const HistorySongCard = ({
   const handleRemoveFromHistory = async () => {
     setIsPending(true);
     try {
-      await removeUserSongPlayHistory({
+      const result = await removeUserSongPlayHistory({
         id: song.historyId,
       });
+
+      if (result) {
+        onRemove?.(song.historyId);
+        toast.success("Removed from history");
+      } else {
+        throw new Error("Remove from history failed");
+      }
     } catch (error) {
       console.error("Error removing from history", error);
       toast.error("Failed to remove from history. Try again.");

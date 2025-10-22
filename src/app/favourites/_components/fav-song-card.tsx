@@ -17,7 +17,7 @@ const FavouriteSongCard = ({
 }: {
   song: FavouriteSongSchema;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
-  onRemove: (id: string) => void;
+  onRemove: (favouriteId: string) => void;
 }) => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
@@ -37,12 +37,8 @@ const FavouriteSongCard = ({
   const handleRemoveFromFavourites = async () => {
     setHasInteracted(true);
     setFavouritePending(song.id, true);
-    setFavourite(song.id, !isFavourite);
 
-    const message = !isFavourite
-      ? "Added to favourites"
-      : "Removed from favourites";
-    toast.success(message, { id: song.id });
+    setFavourite(song.id, !isFavourite);
 
     try {
       const result = await toggleUserFavouriteSong({
@@ -51,18 +47,14 @@ const FavouriteSongCard = ({
 
       if (result) {
         onRemove?.(song.favouriteId);
+        toast.success("Removed from favourites");
       } else {
-        setFavourite(song.id, true);
-        toast.error("Failed to remove from favourites. Try again.", {
-          id: song.id,
-        });
+        throw new Error("Remove from favourites failed");
       }
     } catch (error) {
-      setFavourite(song.id, true);
+      setFavourite(song.id, isFavourite);
       console.error("Error removing favourite:", error);
-      toast.error("Failed to remove from favourites. Try again.", {
-        id: song.id,
-      });
+      toast.error("Failed to remove from favourites. Try again.");
     } finally {
       setFavouritePending(song.id, false);
     }

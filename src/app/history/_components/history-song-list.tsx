@@ -34,12 +34,25 @@ const HistorySongList = ({
     return merged;
   };
 
+  const onRemove = (historyId: string) => {
+    setHistory((prev) => {
+      const updated = { ...prev };
+
+      for (const date of Object.keys(updated)) {
+        updated[date] = updated[date].filter((s) => s.historyId !== historyId);
+        if (updated[date].length === 0) delete updated[date];
+      }
+
+      return updated;
+    });
+  };
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
     if (inViewport && hasMore && !loadingMore) {
       setLoadingMore(true);
 
-      getUserSongPlayHistory({ page: page + 1, limit: 10 })
+      getUserSongPlayHistory({ page: page + 1, limit: 20 })
         .then((res) => {
           if (res && Object.keys(res).length > 0) {
             setHistory((prev) => mergeHistory(prev, res));
@@ -49,7 +62,7 @@ const HistorySongList = ({
               (acc, songs) => acc + songs.length,
               0,
             );
-            if (totalFetched < 10) setHasMore(false);
+            if (totalFetched < 20) setHasMore(false);
           } else {
             setHasMore(false);
           }
@@ -67,7 +80,11 @@ const HistorySongList = ({
           </Typography>
           {songs.map((song, i) => (
             <div key={`${song.id}-${i}`}>
-              <HistorySongCard song={song} moodlists={moodlists} />
+              <HistorySongCard
+                song={song}
+                moodlists={moodlists}
+                onRemove={onRemove}
+              />
               {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
             </div>
           ))}

@@ -71,19 +71,16 @@ const SearchSongCard = ({
     setFavouritePending(song.id, true);
     setFavourite(song.id, !isFavourite);
 
-    const message = !isFavourite
-      ? "Added to favourites"
-      : "Removed from favourites";
-    toast.success(message, { id: song.id });
-
     try {
       const result = await toggleUserFavouriteSong({ song });
 
-      if (!result) {
-        setFavourite(song.id, isFavourite);
-        toast.error("Failed to update favourite. Try again.", {
-          id: song.id,
-        });
+      if (result) {
+        const message = !isFavourite
+          ? "Added to favourites"
+          : "Removed from favourites";
+        toast.success(message, { id: song.id });
+      } else {
+        throw new Error("Toggle Favourite failed");
       }
     } catch (error) {
       setFavourite(song.id, isFavourite);

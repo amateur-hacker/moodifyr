@@ -98,7 +98,7 @@ const getUserMostPlayedSongByDateRange = ({
           times: sql<number>`COUNT(*)`,
         })
         .from(songAnalyticsPlayHistory)
-        .leftJoin(songs, eq(songs.id, songAnalyticsPlayHistory.songId))
+        .innerJoin(songs, eq(songs.id, songAnalyticsPlayHistory.songId))
         .where(
           and(
             eq(songAnalyticsPlayHistory.userId, sessionUser.id),
@@ -210,7 +210,7 @@ const getUserMoodBySongHistory = async ({
           endDate.getMonth() === today.getMonth() &&
           endDate.getDate() === today.getDate());
 
-      if (totalPlays > 0 && topCount / totalPlays >= 0.7) {
+      if (totalPlays > 0 && topCount / totalPlays > 0.5) {
         if (topCategory in CATEGORY_EMOJI) {
           const emoji = CATEGORY_EMOJI[topCategory as MoodCategory];
           const mood = `${emoji} ${topCategory}`;

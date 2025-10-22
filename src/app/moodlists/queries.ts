@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import z from "zod";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -59,7 +59,8 @@ const getUserMoodlists = async () =>
         .from(moodlistFollowers)
         .innerJoin(moodlists, eq(moodlistFollowers.moodlistId, moodlists.id))
         .innerJoin(users, eq(moodlists.userId, users.id))
-        .where(eq(moodlistFollowers.userId, sessionUser.id));
+        .where(eq(moodlistFollowers.userId, sessionUser.id))
+        .orderBy(asc(moodlists.createdAt));
 
       const merged = [
         ...owned.map((m) => ({ ...m, type: "owned" as const })),
@@ -120,6 +121,7 @@ const getUserMoodlistSongs = async ({
           ),
         )
         .where(eq(moodlists.id, parsedMoodlistId))
+        .orderBy(desc(moodlists.updatedAt))
         .then((res) => res[0]);
 
       if (!moodlist) return null;
@@ -139,7 +141,8 @@ const getUserMoodlistSongs = async ({
         })
         .from(moodlistSongs)
         .innerJoin(songs, eq(moodlistSongs.songId, songs.id))
-        .where(eq(moodlistSongs.moodlistId, parsedMoodlistId));
+        .where(eq(moodlistSongs.moodlistId, parsedMoodlistId))
+        .orderBy(desc(moodlistSongs.addedAt));
 
       return {
         id: moodlist.id,

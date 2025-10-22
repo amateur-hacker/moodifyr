@@ -1,7 +1,9 @@
 "use client";
 
+import { Pause, Play } from "lucide-react";
 import Image from "next/image";
 import { use, useEffect, useState } from "react";
+import { useSongPlayer } from "@/app/_context/song-player-context";
 import { DateRangePicker } from "@/app/dashboard/_components/date-range-picker";
 import { DateRangePresetSelect } from "@/app/dashboard/_components/date-range-preset-select";
 import { DashboardAnalyticsContext } from "@/app/dashboard/_context/dashboard-analytics-context";
@@ -13,20 +15,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TextShimmer } from "@/components/ui/text-shimmer";
 import { Typography } from "@/components/ui/typography";
 
+type TopSong = {
+  title: string;
+  thumbnail: string;
+  mood: string | null;
+  times: number;
+};
 const Dashboard = () => {
   const { startDate, endDate, isPending } = use(DashboardAnalyticsContext);
   const [mood, setMood] = useState<{ mood: string; message: string } | null>(
     null,
   );
-  const [topSongs, setTopSongs] = useState<
-    {
-      title: string | null;
-      thumbnail: string | null;
-      mood: string | null;
-      times: number;
-    }[]
-  >([]);
+  const [topSongs, setTopSongs] = useState<TopSong[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isPlaying } = useSongPlayer();
 
   useEffect(() => {
     if (!startDate || !endDate || isPending) {
@@ -126,6 +128,13 @@ const Dashboard = () => {
                   <Typography variant="small" className="text-muted-foreground">
                     {s.times} Plays
                   </Typography>
+                </div>
+                <div>
+                  {isPlaying ? (
+                    <Pause size={16} aria-hidden />
+                  ) : (
+                    <Play size={16} aria-hidden />
+                  )}
                 </div>
               </div>
             ))

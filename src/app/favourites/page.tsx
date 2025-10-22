@@ -18,7 +18,7 @@ const FavSongsPage = async () => {
     );
   }
   const [favouriteSongs, moodlists] = await Promise.all([
-    getUserFavouriteSongs({ page: 1, limit: 10, pagination: true }).then(
+    getUserFavouriteSongs({ page: 1, limit: 20, pagination: true }).then(
       (res) => res ?? null,
     ),
     getUserMoodlists().then((res) => res ?? null),
