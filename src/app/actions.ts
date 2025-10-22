@@ -15,10 +15,9 @@ import {
 } from "@/db/schema/user";
 import { executeAction } from "@/db/utils";
 import { auth } from "@/lib/auth";
-import type { SongSchema } from "@/app/_types";
+import type { SongSchema, SongWithUniqueIdSchema } from "@/app/_types";
 import { favouriteSongs, songSchema, songs } from "@/db/schema/song";
 import z from "zod";
-import { revalidatePath } from "next/cache";
 
 const signOutUser = async () => {
   return executeAction({
@@ -182,10 +181,27 @@ const toggleUserFavouriteSong = async ({ song }: { song: SongSchema }) => {
   });
 };
 
+const saveUserLastPlayedSong = async (
+  song: SongWithUniqueIdSchema,
+  currentTime: number,
+) => {
+  const valueToSave = { ...song, playedDuration: currentTime };
+
+  if (song.favouriteId) valueToSave.favouriteId = song.favouriteId;
+  else if (song.historyId) valueToSave.historyId = song.historyId;
+  else valueToSave.searchId = song.searchId;
+
+  saveUserPreference({
+    key: "lastPlayedSong",
+    value: JSON.stringify(valueToSave),
+  }).catch((err) => console.warn("Failed to save last played song:", err));
+};
+
 export {
   signOutUser,
   trackUserSongSearchHistory,
   removeUserSongSearchHistory,
   saveUserPreference,
   toggleUserFavouriteSong,
+  saveUserLastPlayedSong,
 };

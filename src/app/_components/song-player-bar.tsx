@@ -3,16 +3,14 @@
 import { useElementSize } from "@mantine/hooks";
 import { Volume, Volume1, Volume2, VolumeX } from "lucide-react";
 import { motion } from "motion/react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SongFullscreenPlayerView } from "@/app/_components/song-fullscreen-player-view";
 import { SongMiniPlayerView } from "@/app/_components/song-mini-player-view";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { FavouriteSongSchema, SongWithUniqueIdSchema } from "@/app/_types";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
-import { getSongInstanceId } from "@/app/utils";
+import { generateShuffleQueue, getSongInstanceId } from "@/app/utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
-import { generateShuffleQueue } from "@/app/utils";
 
 const SongPlayerBar = ({
   favouriteSongs,
@@ -38,16 +36,12 @@ const SongPlayerBar = ({
     setIsPlayerFullScreen,
     songs,
     lastActionRef,
-    lastPlayedSongIdRef,
+    recentSongIdsRef,
   } = useSongPlayer();
 
   const { ref, height } = useElementSize();
-  // const [isFullScreen, setIsFullScreen] = useState(false);
   const [volume, setVolume] = useState(100);
   const [prevVolume, setPrevVolume] = useState(100);
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   useScrollLock(isPlayerFullScreen);
 
@@ -56,9 +50,6 @@ const SongPlayerBar = ({
         (s) => getSongInstanceId(s) === getSongInstanceId(currentSong),
       )
     : -1;
-  // const currentIndex = currentSong
-  //   ? songs.findIndex((s) => s.id === currentSong.id)
-  //   : -1;
 
   const handleSeek = async (val: number[]) => {
     if (!playerRef.current) return;
@@ -70,150 +61,6 @@ const SongPlayerBar = ({
       console.error("Error seeking:", error);
     }
   };
-
-  // const handlePrevious = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (!currentSong || !playerRef.current) return;
-  //
-  //   playerRef.current.getCurrentTime().then((currentTime: number) => {
-  //     if (currentIndex > 0 && currentTime < 5) {
-  //       lastActionRef.current = "prev";
-  //       const prevSong = songs[currentIndex - 1];
-  //       setSong(prevSong);
-  //     } else {
-  //       playerRef?.current?.seekTo(0, true);
-  //       setProgress(0);
-  //     }
-  //   });
-  // };
-  //
-  // const handleNext = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (!currentSong) return;
-  //   if (currentIndex !== -1 && currentIndex < songs.length - 1) {
-  //     lastActionRef.current = "next";
-  //     const nextSong = songs[currentIndex + 1];
-  //     setSong(nextSong);
-  //   } else {
-  //     setIsPlaying(false);
-  //   }
-  // };
-
-  // const handlePrevious = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (!currentSong || !playerRef.current) return;
-  //
-  //   playerRef.current.getCurrentTime().then((currentTime: number) => {
-  //     // If in shuffle mode
-  //     if (
-  //       mode === "shuffle" &&
-  //       playerRef.current?.shuffleQueueRef &&
-  //       playerRef.current?.shuffleIndexRef
-  //     ) {
-  //       const queue = playerRef.current.shuffleQueueRef.current;
-  //       const index = playerRef.current.shuffleIndexRef.current;
-  //
-  //       if (currentTime > 5) {
-  //         // restart current song if playing for >5s
-  //         playerRef.current.seekTo(0, true);
-  //         setProgress(0);
-  //         return;
-  //       }
-  //
-  //       if (index > 0) {
-  //         playerRef.current.shuffleIndexRef.current -= 1;
-  //         const prevSong = queue[playerRef.current.shuffleIndexRef.current];
-  //         setSong(prevSong);
-  //
-  //         console.group(`🎵 Shuffle Mode`);
-  //         console.log(
-  //           "Shuffle Queue:",
-  //           queue.map((s) => s.title),
-  //         );
-  //         console.log("Current Index:", index);
-  //         console.log("Currently Playing:", queue[index]?.title);
-  //         console.groupEnd();
-  //       } else {
-  //         // restart from current
-  //         playerRef.current.seekTo(0, true);
-  //         setProgress(0);
-  //       }
-  //
-  //       return;
-  //     }
-  //
-  //     // Normal mode
-  //     if (currentIndex > 0 && currentTime < 5) {
-  //       const prevSong = songs[currentIndex - 1];
-  //       setSong(prevSong);
-  //     } else {
-  //       playerRef.current?.seekTo(0, true);
-  //       setProgress(0);
-  //     }
-  //   });
-  // };
-  //
-  // const handleNext = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //   if (!currentSong) return;
-  //
-  //   lastActionRef.current = "next";
-  //
-  //   if (
-  //     mode === "shuffle" &&
-  //     playerRef.current?.shuffleQueueRef &&
-  //     playerRef.current?.shuffleIndexRef
-  //   ) {
-  //     const queue = playerRef.current.shuffleQueueRef.current;
-  //
-  //     // if queue empty, rebuild a new one starting with current
-  //     if (!queue.length) {
-  //       const remaining = songs.filter((s) => s.id !== currentSong.id);
-  //       playerRef.current.shuffleQueueRef.current = [
-  //         currentSong,
-  //         ...remaining.sort(() => Math.random() - 0.5),
-  //       ];
-  //       playerRef.current.shuffleIndexRef.current = 0;
-  //     }
-  //
-  //     playerRef.current.shuffleIndexRef.current += 1;
-  //
-  //     // if reached end, reshuffle
-  //     if (
-  //       playerRef.current.shuffleIndexRef.current >=
-  //       playerRef.current.shuffleQueueRef.current.length
-  //     ) {
-  //       playerRef.current.shuffleQueueRef.current = songs.sort(
-  //         () => Math.random() - 0.5,
-  //       );
-  //       playerRef.current.shuffleIndexRef.current = 0;
-  //     }
-  //
-  //     const index = playerRef.current.shuffleIndexRef.current;
-  //     const nextSong = playerRef.current.shuffleQueueRef.current[index];
-  //     setSong(nextSong);
-  //
-  //     console.group(`🎵 Shuffle Mode`);
-  //     console.log(
-  //       "Shuffle Queue:",
-  //       queue.map((s) => s.title),
-  //     );
-  //     console.log("Current Index:", index);
-  //     console.log("Currently Playing:", queue[index]?.title);
-  //     console.groupEnd();
-  //     return;
-  //   }
-  //
-  //   // normal next
-  //   if (currentIndex !== -1 && currentIndex < songs.length - 1) {
-  //     const nextSong = songs[currentIndex + 1];
-  //     setSong(nextSong);
-  //   } else if (mode === "repeat-all" && songs.length > 0) {
-  //     setSong(songs[0]);
-  //   } else {
-  //     setIsPlaying(false);
-  //   }
-  // };
 
   const handlePrevious = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -227,52 +74,28 @@ const SongPlayerBar = ({
         playerRef.current?.shuffleQueueRef &&
         playerRef.current?.shuffleIndexRef
       ) {
-        let queue = playerRef.current.shuffleQueueRef.current;
+        const queue = playerRef.current.shuffleQueueRef.current;
         let index = playerRef.current.shuffleIndexRef.current;
 
         if (currentTime > 5) {
-          // restart current song if played >5s
           playerRef.current.seekTo(0, true);
           setProgress(0);
           return;
         }
 
         if (index > 0) {
-          index -= 1;
-          playerRef.current.shuffleIndexRef.current -= 1;
+          index--;
+          playerRef.current.shuffleQueueRef.current = queue;
+          playerRef.current.shuffleIndexRef.current = index;
+          recentSongIdsRef.current.unshift(currentSong.id);
+
           const prevSong = queue[index];
           setSong(prevSong);
-        } else {
-          // If at start of queue, reshuffle excluding last played
-          queue = generateShuffleQueue(
-            songs,
-            currentSong,
-            lastPlayedSongIdRef.current,
-          );
-          playerRef.current.shuffleQueueRef.current = queue;
-          playerRef.current.shuffleIndexRef.current = 0;
-          setSong(queue[0]);
         }
-
-        console.group(`🎵 Shuffle Mode`);
-        console.log(
-          "Shuffle Queue:",
-          queue.map((s) => s.title),
-        );
-        console.log(
-          "Current Index:",
-          playerRef.current.shuffleIndexRef.current,
-        );
-        console.log(
-          "Currently Playing:",
-          queue[playerRef.current.shuffleIndexRef.current]?.title,
-        );
-        console.groupEnd();
 
         return;
       }
 
-      // Normal mode previous
       if (currentIndex > 0 && currentTime < 5) {
         setSong(songs[currentIndex - 1]);
       } else {
@@ -296,51 +119,27 @@ const SongPlayerBar = ({
       let queue = playerRef.current.shuffleQueueRef.current;
       let index = playerRef.current.shuffleIndexRef.current;
 
-      // Build new queue if empty
-      if (!queue.length) {
+      index++;
+
+      if (index >= queue.length) {
+        recentSongIdsRef.current.unshift(currentSong.id);
+
         queue = generateShuffleQueue(
           songs,
           currentSong,
-          lastPlayedSongIdRef.current,
+          recentSongIdsRef.current,
         );
-        playerRef.current.shuffleQueueRef.current = queue;
-        playerRef.current.shuffleIndexRef.current = 0;
         index = 0;
-      } else {
-        // Move to next index
-        index += 1;
-
-        if (index >= queue.length) {
-          // Reshuffle excluding last played
-          queue = generateShuffleQueue(
-            songs,
-            currentSong,
-            lastPlayedSongIdRef.current,
-          );
-          playerRef.current.shuffleQueueRef.current = queue;
-          index = 0;
-        }
-
-        // Update the ref
-        playerRef.current.shuffleIndexRef.current = index;
       }
 
+      playerRef.current.shuffleQueueRef.current = queue;
+      playerRef.current.shuffleIndexRef.current = index;
+
       const nextSong = queue[index];
-      setSong(nextSong);
-
-      console.group(`🎵 Shuffle Mode`);
-      console.log(
-        "Shuffle Queue:",
-        queue.map((s) => s.title),
-      );
-      console.log("Current Index:", index);
-      console.log("Currently Playing:", queue[index]?.title);
-      console.groupEnd();
-
+      if (nextSong) setSong(nextSong);
       return;
     }
 
-    // Normal next
     const currentIndex = songs.findIndex((s) => s.id === currentSong.id);
     if (currentIndex !== -1 && currentIndex < songs.length - 1) {
       setSong(songs[currentIndex + 1]);
@@ -361,30 +160,10 @@ const SongPlayerBar = ({
 
   const toggleMode = (
     e: React.MouseEvent,
-    newMode: "normal" | "shuffle" | "repeat-all" | "repeat-one",
+    selectedMode: "normal" | "shuffle" | "repeat-all" | "repeat-one",
   ) => {
     e.stopPropagation();
-    setMode(mode === newMode ? "normal" : newMode);
-    // if (
-    //   newMode === "shuffle" &&
-    //   playerRef.current?.shuffleQueueRef &&
-    //   playerRef.current?.shuffleIndexRef
-    // ) {
-    //   const queue = generateShuffleQueue(
-    //     songs,
-    //     currentSong,
-    //     lastPlayedSongIdRef.current,
-    //   );
-    //   playerRef.current.shuffleQueueRef.current = queue;
-    //   playerRef.current.shuffleIndexRef.current = 0;
-    //
-    //   console.group(`🎵 Shuffle Mode`);
-    //   console.log(
-    //     "Shuffle Queue:",
-    //     queue.map((s) => s.title),
-    //   );
-    //   console.groupEnd();
-    // }
+    setMode(mode === selectedMode ? "normal" : selectedMode);
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
@@ -397,31 +176,14 @@ const SongPlayerBar = ({
       const queue = generateShuffleQueue(
         songs,
         currentSong,
-        lastPlayedSongIdRef.current,
+        recentSongIdsRef.current,
       );
       playerRef.current.shuffleQueueRef.current = queue;
       playerRef.current.shuffleIndexRef.current = 0;
-
-      console.group(`🎵 Shuffle Mode`);
-      console.log(
-        "Shuffle Queue:",
-        queue.map((s) => s.title),
-      );
-      console.groupEnd();
     }
-    console.log(songs);
   }, [songs, mode]);
 
   const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
-
-  // const toggleFullScreen = (e: React.MouseEvent) => {
-  //   e.stopPropagation();
-  //
-  //   if (!isPlayerFullScreen) {
-  //     setShowMiniProgress(false);
-  //   }
-  //   setIsPlayerFullScreen((prev) => !prev);
-  // };
 
   const toggleFullScreen = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -446,7 +208,7 @@ const SongPlayerBar = ({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
+    const handlePopState = (_event: PopStateEvent) => {
       if (isPlayerFullScreen) {
         // Close fullscreen instead of navigating away
         setIsPlayerFullScreen(false);

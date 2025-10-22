@@ -4,6 +4,7 @@ import { createContext, useContext, useRef, useState } from "react";
 import type youtubePlayer from "youtube-player";
 import type { SongPlayerMode, SongWithUniqueIdSchema } from "@/app/_types";
 import { saveUserPreference } from "@/app/actions";
+import { getUniqueSongId } from "@/app/utils";
 
 type SongPlayerContextProps = {
   setCurrentSong: (song: SongWithUniqueIdSchema | null) => void;
@@ -34,7 +35,7 @@ type SongPlayerContextProps = {
   setSongs: React.Dispatch<React.SetStateAction<SongWithUniqueIdSchema[]>>;
   isCurrentSong: (song: SongWithUniqueIdSchema) => boolean;
   lastActionRef: React.RefObject<"manual" | "next" | "prev" | "auto" | null>;
-  lastPlayedSongIdRef: React.RefObject<string | null>;
+  recentSongIdsRef: React.RefObject<string[]>;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
@@ -42,7 +43,7 @@ const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
 type SongPlayerProviderProps = {
   children: React.ReactNode;
   initialSong: SongWithUniqueIdSchema | null;
-  initialMode: SongPlayerMode;
+  initialMode: SongPlayerMode | null;
 };
 export function SongPlayerProvider({
   children,
@@ -60,6 +61,7 @@ export function SongPlayerProvider({
   const [mode, setMode] = useState<SongPlayerMode>(initialMode ?? "normal");
   const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
   const [songs, setSongs] = useState<SongWithUniqueIdSchema[]>([]);
+
   const lastActionRef = useRef<"manual" | "next" | "prev" | "auto" | null>(
     null,
   );
@@ -72,7 +74,7 @@ export function SongPlayerProvider({
     | null
   >(null);
 
-  const lastPlayedSongIdRef = useRef<string | null>(null);
+  const recentSongIdsRef = useRef<string[]>([]);
 
   const handleSetMode = async (mode: SongPlayerMode) => {
     setMode(mode);
@@ -81,20 +83,8 @@ export function SongPlayerProvider({
     }
   };
 
-  const getUniqueSongId = (song: SongWithUniqueIdSchema) => {
-    if (song.favouriteId) return `favourite-${song.favouriteId}`;
-    else if (song.historyId) return `history-${song.historyId}`;
-    else if (song.searchId) return `search-${song.searchId}`;
-    else if (song.moodlistSongId) return `moodlist-${song.moodlistSongId}`;
-    return `song-${song.id}`;
-  };
-
   const setSong = (song: SongWithUniqueIdSchema | null, isPlaying = true) => {
     if (!song) return;
-
-    if (currentSong) {
-      lastPlayedSongIdRef.current = currentSong.id;
-    }
 
     setCurrentSong(song);
     setYoutubeId(song.id);
@@ -163,7 +153,7 @@ export function SongPlayerProvider({
         setSongs,
         isCurrentSong,
         lastActionRef,
-        lastPlayedSongIdRef,
+        recentSongIdsRef,
       }}
     >
       {children}

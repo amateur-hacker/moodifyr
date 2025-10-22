@@ -106,7 +106,6 @@ export default async function RootLayout({
                   <NextTopLoader color={"var(--primary)"} showSpinner={false} />
                   <Toaster
                     closeButton
-                    richColors
                     position="top-center"
                     className="pointer-events-auto"
                   />

@@ -1,5 +1,13 @@
 import type { SongWithUniqueIdSchema } from "@/app/_types";
 
+const getUniqueSongId = (song: SongWithUniqueIdSchema) => {
+  if (song.favouriteId) return `favourite-${song.favouriteId}`;
+  else if (song.historyId) return `history-${song.historyId}`;
+  else if (song.searchId) return `search-${song.searchId}`;
+  else if (song.moodlistSongId) return `moodlist-${song.moodlistSongId}`;
+  return `song-${song.id}`;
+};
+
 const getSongInstanceId = (song: SongWithUniqueIdSchema) =>
   song.historyId ||
   song.favouriteId ||
@@ -7,22 +15,39 @@ const getSongInstanceId = (song: SongWithUniqueIdSchema) =>
   song.searchId ||
   song.id;
 
-function generateShuffleQueue(
+const generateShuffleQueue = (
   songs: SongWithUniqueIdSchema[],
   current?: SongWithUniqueIdSchema | null,
-  lastPlayedSongId?: string | null,
-) {
+  recentSongIds: string[] = [],
+  recentLimit = 10,
+) => {
   if (!songs.length) return [];
 
+  const recent = recentSongIds.slice(0, recentLimit);
+
   const remaining = songs.filter(
-    (s) => s.id !== current?.id && s.id !== lastPlayedSongId,
+    (s) => s.id !== current?.id && !recent.includes(s.id),
   );
 
-  // const remaining = songs.filter((s) => s.id !== lastPlayedSongId);
+  const pool =
+    remaining.length > 2
+      ? remaining
+      : songs.filter((s) => s.id !== current?.id);
 
-  const shuffled = [...remaining].sort(() => Math.random() - 0.5);
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
 
-  return current ? [current, ...shuffled] : shuffled;
-}
+  const queue = current ? [current, ...shuffled] : shuffled;
 
-export { getSongInstanceId, generateShuffleQueue };
+  if (queue.length > 1 && recent[0] === queue[1].id) {
+    const [first, second, ...rest] = queue;
+    return [first, ...rest, second];
+  }
+
+  return queue;
+};
+
+export { getUniqueSongId, getSongInstanceId, generateShuffleQueue };

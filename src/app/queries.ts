@@ -6,10 +6,12 @@ import z from "zod";
 import type {
   FavouriteSongSchema,
   Prettify,
-  SongWithUniqueIdSchema,
+  SongPlayerMode,
+  SongSchema,
 } from "@/app/_types";
 import { db } from "@/db";
 import { songSearchHistory } from "@/db/schema";
+import { users } from "@/db/schema/auth";
 import { favouriteSongs, songs } from "@/db/schema/song";
 import {
   type UserPreferenceSchema,
@@ -17,7 +19,6 @@ import {
 } from "@/db/schema/user";
 import { executeQuery } from "@/db/utils";
 import { auth } from "@/lib/auth";
-import { users } from "@/db/schema/auth";
 
 const getUserSession = async () => {
   return executeQuery({
@@ -154,15 +155,37 @@ const getSongSearchSuggestions = async ({
   });
 };
 
-const getUserLastPlayedSong =
-  async (): Promise<SongWithUniqueIdSchema | null> => {
-    const song = await getUserPreference<SongWithUniqueIdSchema>({
-      key: "lastPlayedSong",
-    });
-    if (!song) return null;
+const getUserLastPlayedSong = async () => {
+  return executeQuery({
+    queryFn: async () => {
+      const song = await getUserPreference<SongSchema>({
+        key: "lastPlayedSong",
+      });
 
-    return song as SongWithUniqueIdSchema;
-  };
+      if (!song) return null;
+
+      return song as SongSchema;
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserLastPlayedSong",
+  });
+};
+
+const getUserSongPlayerMode = async () => {
+  return executeQuery({
+    queryFn: async () => {
+      const mode = await getUserPreference<SongPlayerMode>({
+        key: "songPlayerMode",
+      });
+
+      if (!mode) return null;
+
+      return mode as SongPlayerMode;
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserSongPlayerMode",
+  });
+};
 
 const getUserFavouriteSongs = ({
   page = 1,
@@ -344,6 +367,7 @@ export {
   getUserSongSearchHistory,
   getSongSearchSuggestions,
   getUserLastPlayedSong,
+  getUserSongPlayerMode,
   getUserFavouriteSongs,
   getUserPreference,
   getUserAllPreferences,

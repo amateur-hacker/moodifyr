@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { isMobile } from "react-device-detect";
-import { toast } from "sonner";
-import youtubePlayer from "youtube-player";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
+import { saveUserLastPlayedSong } from "@/app/actions";
 import {
   trackUserSongAnalyticsPlayHistory,
   trackUserSongPlayHistory,
 } from "@/app/search/actions";
 import { generateShuffleQueue } from "@/app/utils";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { isMobile } from "react-device-detect";
+import { toast } from "sonner";
+import youtubePlayer from "youtube-player";
 
 export function SongPlayerEngine() {
   const {
@@ -27,7 +28,7 @@ export function SongPlayerEngine() {
     mode,
     songs,
     lastActionRef,
-    lastPlayedSongIdRef,
+    recentSongIdsRef,
   } = useSongPlayer();
 
   const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
@@ -39,34 +40,6 @@ export function SongPlayerEngine() {
   const lastTimeRef = useRef(0);
   const lastTrackedIdRef = useRef<string | null>(null);
   const lastAnalyticsIdRef = useRef<string | null>(null);
-  const shuffleQueueRef = useRef<SongWithUniqueIdSchema[]>([]);
-  const shuffleIndexRef = useRef<number>(-1);
-
-  // expose them globally via context
-  useEffect(() => {
-    // if your song context supports it:
-    // you can attach them so SongPlayerBar can use them
-    Object.assign(playerRef.current || {}, {
-      shuffleQueueRef,
-      shuffleIndexRef,
-    });
-  }, [playerRef]);
-
-  // function generateShuffleQueue(
-  //   songs: SongWithUniqueIdSchema[],
-  //   current?: SongWithUniqueIdSchema | null,
-  //   lastPlayedSongId?: string | null,
-  // ) {
-  //   if (!songs.length) return [];
-  //
-  //   const remaining = songs.filter(
-  //     (s) => s.id !== current?.id && s.id !== lastPlayedSongId,
-  //   );
-  //
-  //   const shuffled = [...remaining].sort(() => Math.random() - 0.5);
-  //
-  //   return current ? [current, ...shuffled] : shuffled;
-  // }
 
   useEffect(() => {
     songsRef.current = songs;
@@ -83,6 +56,18 @@ export function SongPlayerEngine() {
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    if (!playerRef.current) return;
+
+    if (!playerRef.current.shuffleQueueRef) {
+      playerRef.current.shuffleQueueRef = { current: [] };
+    }
+    if (!playerRef.current.shuffleIndexRef) {
+      playerRef.current.shuffleIndexRef = { current: -1 };
+    }
+  }, []);
 
   const clearProgressTimer = () => {
     if (intervalRef.current) {
@@ -147,47 +132,32 @@ export function SongPlayerEngine() {
           return;
         }
 
-        // if (modeRef.current === "shuffle") {
-        //   const otherSongs = songsRef.current.filter(
-        //     (s) => s.id !== currentSongRef.current?.id,
-        //   );
-        //   if (otherSongs.length > 0) {
-        //     const randomSong =
-        //       otherSongs[Math.floor(Math.random() * otherSongs.length)];
-        //     setSong(randomSong);
-        //   } else {
-        //     setSong(currentSongRef.current);
-        //   }
-        //   return;
-        // }
+        if (
+          modeRef.current === "shuffle" &&
+          playerRef.current.shuffleQueueRef &&
+          playerRef.current.shuffleIndexRef
+        ) {
+          let queue = playerRef.current.shuffleQueueRef.current;
+          let index = playerRef.current.shuffleIndexRef.current;
 
-        if (modeRef.current === "shuffle") {
-          // if queue empty or not initialized
-          if (shuffleQueueRef.current.length === 0) {
-            shuffleQueueRef.current = generateShuffleQueue(
-              songsRef.current,
-              currentSongRef.current,
-              lastPlayedSongIdRef.current,
+          index++;
+
+          if (index >= queue.length) {
+            recentSongIdsRef.current.unshift(currentSongRef.current.id);
+
+            queue = generateShuffleQueue(
+              songs,
+              currentSong,
+              recentSongIdsRef.current,
             );
-            shuffleIndexRef.current = 0;
+            index = 0;
           }
 
-          // Move to next index
-          shuffleIndexRef.current += 1;
+          playerRef.current.shuffleQueueRef.current = queue;
+          playerRef.current.shuffleIndexRef.current = index;
 
-          // If reached end, reshuffle new queue
-          if (shuffleIndexRef.current >= shuffleQueueRef.current.length) {
-            shuffleQueueRef.current = generateShuffleQueue(
-              songsRef.current,
-              currentSongRef.current,
-              lastPlayedSongIdRef.current,
-            );
-            shuffleIndexRef.current = 0;
-          }
-
-          // Set next song
-          const nextSong = shuffleQueueRef.current[shuffleIndexRef.current];
-          setSong(nextSong);
+          const nextSong = queue[index];
+          if (nextSong) setSong(nextSong);
           return;
         }
 
@@ -302,6 +272,14 @@ export function SongPlayerEngine() {
       // @ts-expect-error
       player.on("error", handlePlayerError);
       playerRef.current = player;
+
+      if (
+        playerRef.current.shuffleQueueRef &&
+        playerRef.current.shuffleIndexRef
+      ) {
+        playerRef.current.shuffleQueueRef.current = [];
+        playerRef.current.shuffleIndexRef.current = -1;
+      }
     }
 
     return () => {
