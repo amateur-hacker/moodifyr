@@ -106,8 +106,10 @@ const SongMiniPlayerView = ({
           variant="ghost"
           size="icon"
           onClick={handleNext}
-          // disabled={currentIndex === songs.length - 1}
-          disabled={mode === "normal" && currentIndex >= songs.length - 1}
+          disabled={
+            (mode === "normal" && currentIndex >= songs.length - 1) ||
+            songs.length <= 1
+          }
           className="size-8 cursor-pointer"
           title="Play Forward"
         >

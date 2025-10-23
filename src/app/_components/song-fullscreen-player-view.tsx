@@ -284,7 +284,7 @@ const SongFullscreenPlayerView = ({
             title={!isPlaying ? "Play" : "Pause"}
           >
             {isLoading ? (
-              <div className="size-7 animate-spin rounded-full border-2 border-white border-b-transparent" />
+              <div className="size-7 animate-spin rounded-full border-2 border-background border-b-transparent" />
             ) : isPlaying ? (
               <Pause className="size-7" aria-hidden />
             ) : (
@@ -296,7 +296,10 @@ const SongFullscreenPlayerView = ({
             variant="ghost"
             size="icon"
             onClick={handleNext}
-            disabled={mode === "normal" && currentIndex >= songs.length - 1}
+            disabled={
+              (mode === "normal" && currentIndex >= songs.length - 1) ||
+              songs.length <= 1
+            }
             className="cursor-pointer size-10"
             title="Play Forward"
           >
