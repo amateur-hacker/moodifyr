@@ -3,6 +3,7 @@ import { SignInButton } from "@/app/_components/signin-button";
 import { UserMenu } from "@/app/_components/user-menu";
 import { getUserSession } from "@/app/queries";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeSwitcher } from "@/app/_components/theme-switcher";
 
 const Navbar = async () => {
   const session = (await getUserSession()) ?? null;
@@ -17,6 +18,7 @@ const Navbar = async () => {
       </div>
 
       <div className="flex items-center gap-4 justify-end">
+        <ThemeSwitcher />
         {session ? <UserMenu session={session} /> : <SignInButton />}
       </div>
     </nav>
