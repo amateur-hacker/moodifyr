@@ -4,7 +4,6 @@ import { LogOut, User } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { signOutUser } from "@/app/actions";
-import { ButtonLoader } from "@/components/button-loader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -14,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import type { authClient } from "@/lib/auth-client";
 
 type UserMenuProps = {
@@ -76,7 +76,10 @@ const UserMenu = ({ session }: UserMenuProps) => {
           className="flex items-center gap-2 cursor-pointer"
         >
           {isLoading ? (
-            <ButtonLoader loadingText="Signing out..." />
+            <div className="flex items-center justify-center gap-2">
+              <Spinner />
+              Signing out
+            </div>
           ) : (
             <>
               <LogOut size={16} />

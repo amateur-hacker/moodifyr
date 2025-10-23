@@ -4,8 +4,8 @@ import { LogIn } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { googleSignInUser } from "@/app/fn";
-import { ButtonLoader } from "@/components/button-loader";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 const SignInButton = () => {
   const [loading, setLoading] = useState(false);
@@ -35,12 +35,15 @@ const SignInButton = () => {
 
   return (
     <Button
-      className="flex items-center gap-2 cursor-pointer"
+      className="flex justify-center items-center gap-2 cursor-pointer"
       onClick={handleSignIn}
       disabled={loading}
     >
       {loading ? (
-        <ButtonLoader loadingText="Signing in..." />
+        <>
+          <Spinner />
+          Signing in
+        </>
       ) : (
         <>
           <LogIn size={16} />
