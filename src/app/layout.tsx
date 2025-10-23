@@ -97,7 +97,7 @@ export default async function RootLayout({
   const user = session?.user as SelectUserModel;
 
   return (
-    <html lang="en">
+    <html lang="en" className="system">
       <body className={`${fontsVariable} antialiased`}>
         <ThemeProvider>
           <NuqsAdapter>
