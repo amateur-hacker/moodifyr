@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
         hostname: "i9.ytimg.com",
       },
     ],
+    unoptimized: true,
   },
 };
 
