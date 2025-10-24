@@ -7,6 +7,7 @@ import { normalizeText } from "normalize-text";
 import type { SongSchema } from "@/app/_types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 type SongMiniPlayerViewProps = {
@@ -94,7 +95,7 @@ const SongMiniPlayerView = ({
           title={!isPlaying ? "Play" : "Pause"}
         >
           {isLoading ? (
-            <div className="size-5 animate-spin rounded-full border-2 border-white border-b-transparent" />
+            <Spinner className="size-7" />
           ) : isPlaying ? (
             <Pause className="size-5" aria-hidden />
           ) : (

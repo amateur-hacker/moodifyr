@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
+import { Spinner } from "@/components/ui/spinner";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
@@ -284,7 +285,7 @@ const SongFullscreenPlayerView = ({
             title={!isPlaying ? "Play" : "Pause"}
           >
             {isLoading ? (
-              <div className="size-7 animate-spin rounded-full border-2 border-background border-b-transparent" />
+              <Spinner className="size-7" />
             ) : isPlaying ? (
               <Pause className="size-7" aria-hidden />
             ) : (
