@@ -115,7 +115,7 @@ export function BaseSongCard({
   };
 
   return (
-    <Card className="flex flex-row items-center gap-3 sm:gap-5 p-0 border-0 shadow-none rounded-none group">
+    <Card className="flex flex-row items-center gap-3 sm:gap-5 p-0 border-0 shadow-none rounded-none group bg-transparent">
       <button
         type="button"
         onClick={handleClick}
