@@ -136,19 +136,21 @@ const SearchSongForm = () => {
     });
   };
 
-  const handleSearch = async (e?: React.FormEvent<HTMLFormElement>) => {
-    e?.preventDefault();
+  const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsInputFocused(false);
+    inputRef?.current?.blur();
+
     const trimmedQuery = query.trim();
-    try {
-      inputRef?.current?.blur();
-      if (trimmedQuery?.length) {
-        trackUserSongSearchHistory({ query: trimmedQuery.toLocaleLowerCase() });
-      }
+    if (trimmedQuery?.length) {
+      trackUserSongSearchHistory({ query: trimmedQuery.toLowerCase() })
+        .then((res) => {
+          if (!res?.success) console.error("Failed to track search history.");
+        })
+        .catch((error) =>
+          console.error("Error tracking search history:", error),
+        );
       navigateWithQuery(trimmedQuery);
-    } catch (error) {
-      toast.error("Something went wrong while searching");
-      console.error("Search navigation error:", error);
     }
   };
 
@@ -163,26 +165,35 @@ const SearchSongForm = () => {
         item.id === id ? { ...item, query: "Removed" } : item,
       ),
     );
-    const res = await removeUserSongSearchHistory({ id });
-    if (!res?.success) {
-      toast.error("Failed to remove search history");
-    } else {
-      setShouldRefreshUserHistory(true);
+
+    try {
+      const res = await removeUserSongSearchHistory({ id });
+      if (!res?.success) {
+        toast.error("Failed to remove history. Please try again.");
+      } else {
+        setShouldRefreshUserHistory(true);
+      }
+    } catch (error) {
+      console.error("Error removing search history:", error);
     }
   };
 
   const handleSelectHistory = async (text: string) => {
     if (text === "Removed") return;
-    const trimmed = text.trim();
-    setQuery(trimmed);
-    try {
-      inputRef?.current?.blur();
-      navigateWithQuery(trimmed);
-      await trackUserSongSearchHistory({ query: trimmed });
-    } catch (error) {
-      toast.error("Something went wrong while searching");
-      console.error("Search navigation error:", error);
-    }
+
+    const trimmedText = text.trim();
+    setQuery(trimmedText);
+    inputRef?.current?.blur();
+    navigateWithQuery(trimmedText);
+
+    trackUserSongSearchHistory({ query: trimmedText })
+      .then((res) => {
+        if (!res?.success) {
+          console.error("Failed to track search history.");
+          // toast.error("Failed to track search history. Please try again.");
+        }
+      })
+      .catch((error) => console.error("Error tracking search history:", error));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -228,7 +239,12 @@ const SearchSongForm = () => {
                     setHistory(res ?? []);
                     setHasMore((res?.length ?? 0) >= 10);
                   })
-                  .catch(() => toast.error("Failed to refresh search history"))
+                  .catch((error) => {
+                    console.error("Error loading search history:", error);
+                    // toast.error(
+                    //   "Failed to load search history. Please try again.",
+                    // );
+                  })
                   .finally(() => setLoadingHistory(false));
               }
               const timer = setTimeout(() => {

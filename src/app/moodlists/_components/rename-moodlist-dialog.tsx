@@ -44,20 +44,22 @@ const RenameMoodlistDialog = ({
   ) => {
     e.preventDefault();
     setIsLoading(true);
+
     try {
       const response = await updateUserMoodlistName({
         id: moodlistId,
         name: moodlistName,
       });
+
       if (response?.success) {
         onOpenChange(false);
-        toast.success("Moodlist name updated!");
+        toast.success("Moodlist name updated successfully!");
       } else {
-        toast.error("Failed to update moodlist name");
+        toast.error("Couldn't update moodlist name. Please try again.");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to update moodlist name");
+      console.error("Error updating moodlist name:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +85,7 @@ const RenameMoodlistDialog = ({
           </DialogHeader>
         </div>
 
-        <form className="space-y-5" onSubmit={handleUpdateMoodlistName}>
+        <form className="space-y-4" onSubmit={handleUpdateMoodlistName}>
           <div className="*:not-first:mt-2">
             <Label htmlFor="moodlist-name">Moodlist name</Label>
             <Input

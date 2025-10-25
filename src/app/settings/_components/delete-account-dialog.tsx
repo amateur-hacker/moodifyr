@@ -37,14 +37,20 @@ export const DeleteAccountDialog = ({ username }: DeleteAccountDialogProps) => {
     }
 
     setIsLoading(true);
+
     try {
-      await deleteUserAccount();
-      toast.success("Account deleted successfully!");
-      setOpen(false);
-      window.location.href = "/";
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to delete account.");
+      const response = await deleteUserAccount();
+
+      if (response?.success) {
+        toast.success("Account deleted successfully!");
+        setOpen(false);
+        window.location.href = "/";
+      } else {
+        toast.error("Failed to delete account. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -77,38 +83,39 @@ export const DeleteAccountDialog = ({ username }: DeleteAccountDialogProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={username}
-        />
+        <form className="space-y-4" onSubmit={handleDelete}>
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={username}
+          />
 
-        <DialogFooter>
-          <DialogClose asChild>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 cursor-pointer"
+              >
+                Cancel
+              </Button>
+            </DialogClose>
             <Button
-              type="button"
-              variant="outline"
+              type="submit"
+              disabled={input !== username || isLoading}
               className="flex-1 cursor-pointer"
             >
-              Cancel
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner />
+                  Deleting
+                </div>
+              ) : (
+                "Delete"
+              )}
             </Button>
-          </DialogClose>
-          <Button
-            onClick={handleDelete}
-            disabled={input !== username || isLoading}
-            variant="default"
-            className="flex-1 cursor-pointer"
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <Spinner />
-                Deleting
-              </div>
-            ) : (
-              "Delete"
-            )}
-          </Button>
-        </DialogFooter>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

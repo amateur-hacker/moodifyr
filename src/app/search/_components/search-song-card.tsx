@@ -69,6 +69,7 @@ const SearchSongCard = ({
 
     setHasInteracted(true);
     setFavouritePending(song.id, true);
+
     setFavourite(song.id, !isFavourite);
 
     try {
@@ -76,18 +77,19 @@ const SearchSongCard = ({
 
       if (result) {
         const message = !isFavourite
-          ? "Added to favourites"
-          : "Removed from favourites";
+          ? "Added to favourites successfully!"
+          : "Removed from favourites successfully!";
         toast.success(message, { id: song.id });
       } else {
-        throw new Error("Toggle Favourite failed");
+        setFavourite(song.id, isFavourite);
+        toast.error("Failed to update favourite. Please try again.", {
+          id: song.id,
+        });
       }
     } catch (error) {
       setFavourite(song.id, isFavourite);
       console.error("Error toggling favourite:", error);
-      toast.error("Failed to update favourite. Try again.", {
-        id: song.id,
-      });
+      toast.error("Something went wrong. Please try again.", { id: song.id });
     } finally {
       setFavouritePending(song.id, false);
     }

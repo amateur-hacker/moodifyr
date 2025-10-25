@@ -32,14 +32,21 @@ const ResetDataDialog = () => {
       toast.error('Please type "Reset My Data" to confirm.');
       return;
     }
+
     setIsLoading(true);
+
     try {
-      await resetUserData();
-      toast.success("Your data has been reset successfully!");
-      setOpen(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to reset data.");
+      const response = await resetUserData();
+
+      if (response?.success) {
+        toast.success("Data reset successfully!");
+        setOpen(false);
+      } else {
+        toast.error("Failed to reset data. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error resetting data:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -70,38 +77,40 @@ const ResetDataDialog = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <Input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Reset My Data"
-        />
+        <form className="space-y-4" onSubmit={handleReset}>
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Reset My Data"
+          />
 
-        <DialogFooter>
-          <DialogClose asChild>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 cursor-pointer"
+              >
+                Cancel
+              </Button>
+            </DialogClose>
             <Button
-              type="button"
-              variant="outline"
+              type="submit"
+              disabled={input !== "Reset My Data" || isLoading}
+              variant="default"
               className="flex-1 cursor-pointer"
             >
-              Cancel
+              {isLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Spinner />
+                  Resetting
+                </div>
+              ) : (
+                "Reset"
+              )}
             </Button>
-          </DialogClose>
-          <Button
-            onClick={handleReset}
-            disabled={input !== "Reset My Data" || isLoading}
-            variant="default"
-            className="flex-1 cursor-pointer"
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <Spinner />
-                Resetting
-              </div>
-            ) : (
-              "Reset"
-            )}
-          </Button>
-        </DialogFooter>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

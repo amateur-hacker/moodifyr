@@ -35,17 +35,19 @@ const DeleteMoodlistDialog = ({
   ) => {
     e.stopPropagation();
     setIsDeleting(true);
+
     try {
       const response = await deleteUserMoodlist({ id: moodlistId });
+
       if (response?.success) {
         onOpenChange(false);
-        toast.success(`"${moodlistName}" has been deleted.`);
+        toast.success(`"${moodlistName}" deleted successfully!`);
       } else {
-        toast.error(`Failed to delete "${moodlistName}".`);
+        toast.error(`Couldn't delete "${moodlistName}". Please try again.`);
       }
     } catch (error) {
-      console.error(error);
-      toast.error(`Failed to delete "${moodlistName}".`);
+      console.error("Error deleting moodlist:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsDeleting(false);
     }

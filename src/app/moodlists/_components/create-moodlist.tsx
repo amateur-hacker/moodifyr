@@ -19,39 +19,55 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Typography } from "@/components/ui/typography";
 import { cn, getErrorMessage } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import z from "zod";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { capitalCase } from "change-case";
+
+const formSchema = z.object({
+  moodlistName: z
+    .string({ error: "Moodlist name is required" })
+    .min(1, { message: "Moodlist name is required" })
+    .min(3, { message: "Must be at least 3 characters." })
+    .max(50, { message: "Must be at most 50 characters." })
+    .transform((val) => capitalCase(val)),
+});
 
 export const CreateMoodlist = ({ className }: { className?: string }) => {
-  const [inputValue, setInputValue] = useState("");
-  const [isPending, setIsPending] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleCreate = async () => {
-    setIsPending(true);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      moodlistName: "",
+    },
+    // mode: "onChange",
+  });
+  const { isSubmitting } = form.formState;
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const { moodlistName } = data;
     try {
-      const response = await createUserMoodlist({ name: inputValue });
-      setInputValue("");
+      const response = await createUserMoodlist({ name: moodlistName });
       if (response.success) {
-        toast.success(response?.message);
+        toast.success("Moodlist created successfully!");
         setIsOpen(false);
+        form.reset();
+      } else if (response?.message?.includes("already")) {
+        toast.warning("This moodlist already exists.");
       } else {
-        toast.error(response?.message);
+        toast.error("Couldn't create moodlist. Please try again.");
       }
-    } catch (err) {
-      const errorMsg = getErrorMessage(err);
-      toast(errorMsg);
-      // if (err instanceof Error) {
-      //   toast.error(err.message);
-      // } else {
-      //   toast.error("Failed to create moodlist");
-      // }
-    } finally {
-      setIsPending(false);
+    } catch (error) {
+      console.error("Error creating moodlist:", error);
+      toast.error("Something went wrong. Please try again.");
     }
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    setInputValue("");
+    form.reset();
   }, [isOpen]);
 
   return (
@@ -61,10 +77,6 @@ export const CreateMoodlist = ({ className }: { className?: string }) => {
       </Typography>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          {/* <Button variant="outline" className="cursor-pointer"> */}
-          {/*   <PlusIcon className="-ms-1" size={16} aria-hidden="true" /> */}
-          {/*   Create Moodlist */}
-          {/* </Button> */}
           <Button
             variant="outline"
             className="w-max h-max p-0 gap-2 flex-col"
@@ -93,25 +105,27 @@ export const CreateMoodlist = ({ className }: { className?: string }) => {
             </DialogHeader>
           </div>
 
-          <form
-            className="space-y-5"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleCreate();
-            }}
-          >
-            <div className="*:not-first:mt-2">
-              <Label htmlFor="moodlist-name">Moodlist name</Label>
-              <Input
-                id="moodlist-name"
-                type="text"
-                placeholder="e.g. Chill Vibes, Gym Pump, Late Night Drive..."
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                autoComplete="off"
-                spellCheck={false}
-              />
-            </div>
+          <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+            <Controller
+              name="moodlistName"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="moodlistName">Moodlist Name</FieldLabel>
+                  <Input
+                    {...field}
+                    id="moodlistName"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="e.g. Chill Vibes, Gym Pump, Late Night Drive..."
+                    autoComplete="off"
+                    spellCheck={false}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
             <DialogFooter>
               <DialogClose asChild>
                 <Button
@@ -125,9 +139,9 @@ export const CreateMoodlist = ({ className }: { className?: string }) => {
               <Button
                 type="submit"
                 className="flex-1 cursor-pointer"
-                disabled={!inputValue?.trim().length || isPending}
+                disabled={isSubmitting}
               >
-                {isPending ? "Creating..." : "Create"}
+                {isSubmitting ? "Creating..." : "Create"}
               </Button>
             </DialogFooter>
           </form>

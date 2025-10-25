@@ -47,14 +47,15 @@ const FavouriteSongCard = ({
 
       if (result) {
         onRemove?.(song.favouriteId);
-        toast.success("Removed from favourites");
+        toast.success("Removed from favourites.");
       } else {
-        throw new Error("Remove from favourites failed");
+        setFavourite(song.id, isFavourite);
+        toast.error("Failed to remove from favourites. Please try again.");
       }
     } catch (error) {
       setFavourite(song.id, isFavourite);
       console.error("Error removing favourite:", error);
-      toast.error("Failed to remove from favourites. Try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setFavouritePending(song.id, false);
     }

@@ -22,6 +22,7 @@
     "vercel:deploy": "vercel && vercel --prod"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@internationalized/date": "^3.9.0",
     "@mantine/hooks": "^8.2.7",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -75,6 +76,7 @@
     "react-aria-components": "^1.12.1",
     "react-device-detect": "^2.2.3",
     "react-dom": "19.1.0",
+    "react-hook-form": "^7.65.0",
     "react-merge-refs": "^3.0.2",
     "react-remove-scroll": "^2.7.1",
     "react-twemoji": "^0.6.0",
