@@ -11,16 +11,16 @@ import NextTopLoader from "nextjs-toploader";
 import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import { headers } from "next/headers";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { AppSidebar } from "@/app/_components/app-sidebar";
 import { GlobalSongPlayer } from "@/app/_components/global-song-player";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { FavouriteProvider } from "@/app/_context/favourite-context";
-import { UserProvider } from "./_context/user-context";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
-import type { SelectUserModel } from "@/db/schema/auth";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "@/app/_context/theme-provider";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import type { SelectUserModel } from "@/db/schema/auth";
+import { auth } from "@/lib/auth";
+import { UserProvider } from "./_context/user-context";
 
 // import { SplashCursor } from "@/components/splash-cursor";
 // import { cookies } from "next/headers";
@@ -117,7 +117,7 @@ export default async function RootLayout({
                     {/* <SplashCursor /> */}
                     <Navbar />
                     <AppSidebar />
-                    <main className="w-full mt-15 px-6 py-4">{children} </main>
+                    <main className="w-full mt-15 px-6 py-4">{children}</main>
                   </GlobalSongPlayer>
                 </FavouriteProvider>
               </SidebarProvider>

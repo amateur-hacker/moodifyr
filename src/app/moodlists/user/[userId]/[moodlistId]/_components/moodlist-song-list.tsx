@@ -6,7 +6,7 @@ type MoodlistSongListProps = {
   moodlistName: string;
   moodlistId: string;
 };
-const MoodlistSongList = async ({ songs }: MoodlistSongListProps) => {
+const MoodlistSongList = ({ songs }: MoodlistSongListProps) => {
   return (
     <div className="pb-[var(--player-height,80px)]">
       {songs?.map((song, i) => (

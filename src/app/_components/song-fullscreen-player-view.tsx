@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { normalizeText } from "normalize-text";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddToMoodlistDialog } from "@/app/_components/add-to-moodlist-dialog";
@@ -250,7 +249,7 @@ const SongFullscreenPlayerView = ({
             className="rounded-md object-cover"
           />
           <p className="font-medium text-center max-w-xs mx-auto w-full line-clamp-1">
-            {normalizeText(currentSong.title)}
+            {currentSong.title.normalize("NFC")}
           </p>
         </div>
 

@@ -19,6 +19,7 @@ type Variant = "search" | "history" | "moodlist" | "favourite";
 
 type BaseProps = {
   song: SongWithUniqueIdSchema;
+  onClickExtra?: () => void;
 };
 
 type VariantSpecificProps = {
@@ -62,7 +63,7 @@ type SongCardProps = Prettify<
 >;
 
 export function SongCard(props: SongCardProps) {
-  const { song, variant } = props;
+  const { song, variant, onClickExtra } = props;
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { currentSong, isCurrentSong } = useSongPlayer();
   const [isCurrent, setIsCurrent] = useState(false);
@@ -195,5 +196,11 @@ export function SongCard(props: SongCardProps) {
       </DropdownMenu>
     );
 
-  return <BaseSongCard song={song} rightContent={rightContent} />;
+  return (
+    <BaseSongCard
+      song={song}
+      rightContent={rightContent}
+      onClickExtraAction={onClickExtra}
+    />
+  );
 }

@@ -17,35 +17,30 @@ const getSongInstanceId = (song: SongWithUniqueIdSchema) =>
 
 const generateShuffleQueue = (
   songs: SongWithUniqueIdSchema[],
-  current?: SongWithUniqueIdSchema | null,
+  current: SongWithUniqueIdSchema | null = null,
   recentSongIds: string[] = [],
   recentLimit = 10,
 ) => {
   if (!songs.length) return [];
 
-  const recent = recentSongIds.slice(0, recentLimit);
+  const lastPlayedId = recentSongIds[0];
+  const recent = new Set(recentSongIds.slice(0, recentLimit));
 
-  const remaining = songs.filter(
-    (s) => s.id !== current?.id && !recent.includes(s.id),
+  let pool = songs.filter(
+    (s) => s.id !== current?.id && !recent.has(s.id) && s.id !== lastPlayedId,
   );
 
-  const pool =
-    remaining.length > 2
-      ? remaining
-      : songs.filter((s) => s.id !== current?.id);
+  if (!pool.length) {
+    pool = songs.filter((s) => s.id !== current?.id && s.id !== lastPlayedId);
+  }
 
-  const shuffled = [...pool];
-  for (let i = shuffled.length - 1; i > 0; i--) {
+  for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [pool[i], pool[j]] = [pool[j], pool[i]];
   }
 
-  const queue = current ? [current, ...shuffled] : shuffled;
-
-  if (queue.length > 1 && recent[0] === queue[1].id) {
-    const [first, second, ...rest] = queue;
-    return [first, ...rest, second];
-  }
+  const queue = !recentSongIds.length && current ? [current, ...pool] : pool;
+  console.log(queue);
 
   return queue;
 };

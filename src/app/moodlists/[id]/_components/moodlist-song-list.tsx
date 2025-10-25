@@ -7,7 +7,7 @@ type MoodlistSongListProps = {
   moodlistId: string;
   moodlistType: "owned" | "followed";
 };
-const MoodlistSongList = async ({
+const MoodlistSongList = ({
   songs,
   moodlistId,
   moodlistType,

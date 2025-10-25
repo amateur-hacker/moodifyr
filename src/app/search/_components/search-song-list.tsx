@@ -7,7 +7,7 @@ type SearchSongListProps = {
   favouriteSongs: FavouriteSongSchema[] | null;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 };
-const SearchSongList = async ({
+const SearchSongList = ({
   songs,
   moodlists,
   favouriteSongs,

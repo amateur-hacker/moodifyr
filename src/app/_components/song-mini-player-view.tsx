@@ -3,7 +3,6 @@
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { normalizeText } from "normalize-text";
 import type { SongSchema } from "@/app/_types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -69,7 +68,7 @@ const SongMiniPlayerView = ({
             className="rounded-sm object-cover"
           />
           <p className="font-medium max-w-md mx-auto line-clamp-1">
-            {normalizeText(currentSong.title)}
+            {currentSong.title.normalize("NFC")}
           </p>
         </div>
       </div>

@@ -1,17 +1,16 @@
 "use client";
 
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { isMobile } from "react-device-detect";
+import { toast } from "sonner";
+import youtubePlayer from "youtube-player";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
-import { saveUserLastPlayedSong } from "@/app/actions";
 import {
   trackUserSongAnalyticsPlayHistory,
   trackUserSongPlayHistory,
 } from "@/app/search/actions";
 import { generateShuffleQueue } from "@/app/utils";
-import { useEffect, useLayoutEffect, useRef } from "react";
-import { isMobile } from "react-device-detect";
-import { toast } from "sonner";
-import youtubePlayer from "youtube-player";
 
 export function SongPlayerEngine() {
   const {
@@ -29,6 +28,7 @@ export function SongPlayerEngine() {
     songs,
     lastActionRef,
     recentSongIdsRef,
+    addRecentSong,
   } = useSongPlayer();
 
   const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
@@ -91,21 +91,6 @@ export function SongPlayerEngine() {
         setIsPlaying(true);
         const d = await playerRef.current.getDuration();
         setDuration(Number.isFinite(d) ? d : 0);
-
-        // if (
-        //   currentSongRef.current &&
-        //   lastTrackedIdRef.current !== currentSongRef.current.id
-        // ) {
-        //   // lastTrackedIdRef.current = currentSongRef.current.id;
-        //   // await trackUserSongPlayHistory({
-        //   //   song: {
-        //   //     id: currentSongRef.current.id,
-        //   //     title: currentSongRef.current.title,
-        //   //     thumbnail: currentSongRef.current.thumbnail,
-        //   //     duration: currentSongRef.current.duration,
-        //   //   },
-        //   // });
-        // }
         break;
       }
       case 2:
@@ -143,13 +128,15 @@ export function SongPlayerEngine() {
           index++;
 
           if (index >= queue.length) {
-            recentSongIdsRef.current.unshift(currentSongRef.current.id);
+            console.log("regenerating");
+            addRecentSong(currentSongRef.current.id);
 
             queue = generateShuffleQueue(
-              songs,
-              currentSong,
+              songsRef.current,
+              null,
               recentSongIdsRef.current,
             );
+            console.log(queue);
             index = 0;
           }
 
@@ -195,6 +182,16 @@ export function SongPlayerEngine() {
       (s) => s.id === currentSongRef.current?.id,
     );
 
+    toast.error(
+      <span>
+        <b>
+          {(currentSongRef.current?.title ?? "Unknown song").slice(0, 30)}
+          {(currentSongRef.current?.title?.length ?? 0) > 30 ? "…" : ""}
+        </b>{" "}
+        song is unavailable.
+      </span>,
+    );
+
     switch (lastActionRef.current) {
       case "prev": {
         console.warn(
@@ -229,10 +226,6 @@ export function SongPlayerEngine() {
         }
         return;
       }
-      // case "manual": {
-      //   toast.error("This song isn’t available.");
-      //   return;
-      // }
       default:
         console.warn("Unhandled player error context:", lastActionRef.current);
         return;

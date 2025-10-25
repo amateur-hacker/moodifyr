@@ -36,6 +36,7 @@ type SongPlayerContextProps = {
   isCurrentSong: (song: SongWithUniqueIdSchema) => boolean;
   lastActionRef: React.RefObject<"manual" | "next" | "prev" | "auto" | null>;
   recentSongIdsRef: React.RefObject<string[]>;
+  addRecentSong: (id: string) => void;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
@@ -128,6 +129,15 @@ export function SongPlayerProvider({
     return getUniqueSongId(currentSong) === getUniqueSongId(song);
   };
 
+  const addRecentSong = (id: string) => {
+    recentSongIdsRef.current = [
+      id,
+      ...recentSongIdsRef.current.filter((s) => s !== id),
+    ];
+
+    recentSongIdsRef.current = recentSongIdsRef.current.slice(0, 10);
+  };
+
   return (
     <SongPlayerContext.Provider
       value={{
@@ -154,6 +164,7 @@ export function SongPlayerProvider({
         isCurrentSong,
         lastActionRef,
         recentSongIdsRef,
+        addRecentSong,
       }}
     >
       {children}

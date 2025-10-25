@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
-import { SongsSetter } from "@/app/_components/songs-setter";
 import { HistorySongList } from "@/app/history/_components/history-song-list";
 import { getUserSongPlayHistory } from "@/app/history/queries";
 import { getUserMoodlists } from "@/app/moodlists/queries";
@@ -25,8 +24,6 @@ const HistoryPage = async () => {
     getUserMoodlists().then((res) => res ?? null),
   ]);
 
-  const initialSongs = songHistory ? Object.values(songHistory).flat() : null;
-
   return (
     <div className="w-full">
       <Typography variant="h2" className="font-playful text-center mb-4">
@@ -43,7 +40,6 @@ const HistoryPage = async () => {
               </div>
             }
           >
-            <SongsSetter songs={initialSongs} />
             <HistorySongList
               initialHistory={songHistory}
               moodlists={moodlists}

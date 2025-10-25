@@ -2,7 +2,6 @@
 
 import { Pause, Play } from "lucide-react";
 import Image from "next/image";
-import { normalizeText } from "normalize-text";
 import { use, useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/_context/song-player-context";
@@ -195,7 +194,7 @@ const Dashboard = () => {
                     variant="body-small"
                     className="line-clamp-1 max-w-lg"
                   >
-                    {normalizeText(t.song.title)}
+                    {t.song.title.normalize("NFC")}
                   </Typography>
                   <Typography variant="small" className="text-muted-foreground">
                     {t.times} Plays

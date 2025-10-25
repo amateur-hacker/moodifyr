@@ -2,15 +2,15 @@
 
 import { Pause, Play } from "lucide-react";
 import Image from "next/image";
-import { normalizeText } from "normalize-text";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/_context/song-player-context";
+import type { SongWithUniqueIdSchema } from "@/app/_types";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import type { SongWithUniqueIdSchema } from "../_types";
+import { generateShuffleQueue } from "../utils";
 
 type BaseSongCardProps = {
   song: SongWithUniqueIdSchema;
@@ -31,6 +31,11 @@ export function BaseSongCard({
     setIsPlayerFullScreen,
     isCurrentSong,
     lastActionRef,
+    mode,
+    addRecentSong,
+    recentSongIdsRef,
+    playerRef,
+    songs,
   } = useSongPlayer();
 
   const [isClient, setIsClient] = useState(false);
@@ -51,16 +56,6 @@ export function BaseSongCard({
 
     if (!song.id) return;
 
-    // if (!isCurrent) {
-    //   setIsPlayerFullScreen(true);
-    //   setSong(song);
-    //   return;
-    // }
-    //
-    // if (!isPlaying) setIsPlayerFullScreen(true);
-    // setSong(song);
-    // togglePlay(e);
-
     lastActionRef.current = "manual";
 
     const shouldStartNewSong = !isCurrent;
@@ -77,8 +72,44 @@ export function BaseSongCard({
 
     if (shouldStartNewSong) {
       setSong(song, true);
+      if (mode === "shuffle") {
+        addRecentSong(song.id);
+        const newQueue = generateShuffleQueue(
+          songs,
+          song,
+          recentSongIdsRef.current,
+        );
+        if (
+          playerRef.current?.shuffleQueueRef &&
+          playerRef.current?.shuffleIndexRef
+        ) {
+          playerRef.current.shuffleQueueRef.current = newQueue;
+          playerRef.current.shuffleIndexRef.current = 0;
+        }
+      }
+
+      // if (
+      //   mode === "shuffle" &&
+      //   playerRef.current?.shuffleQueueRef &&
+      //   playerRef.current?.shuffleIndexRef
+      // ) {
+      //   const queue = playerRef.current.shuffleQueueRef.current;
+      //   const newIndex = queue.findIndex((s) => s.id === song.id);
+      //
+      //   if (newIndex !== -1) {
+      //     playerRef.current.shuffleIndexRef.current = newIndex;
+      //   } else {
+      //     const newQueue = generateShuffleQueue(
+      //       songs,
+      //       song,
+      //       recentSongIdsRef.current,
+      //     );
+      //     playerRef.current.shuffleQueueRef.current = newQueue;
+      //     playerRef.current.shuffleIndexRef.current = 0;
+      //   }
+      // }
     } else {
-      setSong(song, true);
+      // setSong(song, true);
       togglePlay(e);
     }
   };
@@ -129,7 +160,7 @@ export function BaseSongCard({
 
       <div className="flex flex-col justify-center gap-1 overflow-hidden">
         <Typography variant="body-small" className="line-clamp-1">
-          {normalizeText(song.title)}
+          {song.title.normalize("NFC")}
         </Typography>
         <Typography variant="small" className="text-muted-foreground">
           {song.duration.timestamp}

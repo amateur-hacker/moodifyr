@@ -8,6 +8,7 @@ import type {
   Prettify,
   SongPlayerMode,
   SongSchema,
+  SongWithUniqueIdSchema,
 } from "@/app/_types";
 import { db } from "@/db";
 import { songSearchHistory } from "@/db/schema";
@@ -158,13 +159,13 @@ const getSongSearchSuggestions = async ({
 const getUserLastPlayedSong = async () => {
   return executeQuery({
     queryFn: async () => {
-      const song = await getUserPreference<SongSchema>({
+      const song = await getUserPreference<SongWithUniqueIdSchema>({
         key: "lastPlayedSong",
       });
 
       if (!song) return null;
 
-      return song as SongSchema;
+      return song as SongWithUniqueIdSchema;
     },
     isProtected: true,
     serverErrorMessage: "getUserLastPlayedSong",

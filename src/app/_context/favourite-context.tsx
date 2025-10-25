@@ -1,14 +1,14 @@
 "use client";
 
+import type React from "react";
 import {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useEffect,
+  useState,
 } from "react";
-import type React from "react";
-import { getUserFavouriteSongs } from "../queries";
+import { getUserFavouriteSongs } from "@/app/queries";
 
 type FavouriteContextType = {
   favouriteSongs: Record<string, boolean>;

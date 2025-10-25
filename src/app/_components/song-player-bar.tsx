@@ -37,6 +37,7 @@ const SongPlayerBar = ({
     songs,
     lastActionRef,
     recentSongIdsRef,
+    addRecentSong,
   } = useSongPlayer();
 
   const { ref, height } = useElementSize();
@@ -91,12 +92,15 @@ const SongPlayerBar = ({
 
           const prevSong = queue[index];
           setSong(prevSong);
+        } else {
+          playerRef.current.seekTo(0, true);
+          setProgress(0);
         }
 
         return;
       }
 
-      if (currentIndex > 0 && currentTime < 5) {
+      if (currentIndex > 0 && currentTime <= 5) {
         setSong(songs[currentIndex - 1]);
       } else {
         playerRef.current?.seekTo(0, true);
@@ -122,13 +126,9 @@ const SongPlayerBar = ({
       index++;
 
       if (index >= queue.length) {
-        recentSongIdsRef.current.unshift(currentSong.id);
+        addRecentSong(currentSong.id);
 
-        queue = generateShuffleQueue(
-          songs,
-          currentSong,
-          recentSongIdsRef.current,
-        );
+        queue = generateShuffleQueue(songs, null, recentSongIdsRef.current);
         index = 0;
       }
 
@@ -182,6 +182,10 @@ const SongPlayerBar = ({
       playerRef.current.shuffleIndexRef.current = 0;
     }
   }, [songs, mode]);
+
+  useEffect(() => {
+    console.log(recentSongIdsRef.current);
+  }, [recentSongIdsRef.current]);
 
   const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
 
