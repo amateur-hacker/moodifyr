@@ -54,24 +54,19 @@ export const MoodlistCard = ({
       }
 
       setIsProcessing(true);
-      const response = await followUserMoodlist({
-        moodlistId,
-      });
-
-      setIsFollowing(true);
+      const response = await followUserMoodlist({ moodlistId });
 
       if (response?.success) {
-        toast.success("Followed!");
+        setIsFollowing(true);
+        toast.success("You are now following this moodlist.");
       } else if (response?.message?.includes("already following")) {
-        toast.warning("Already Following!");
+        toast.warning("You are already following this moodlist.");
       } else {
-        toast.error("Follow failed!");
-        setIsFollowing(false);
+        toast.error("Couldn't follow this moodlist. Please try again.");
       }
     } catch (error) {
-      setIsFollowing(false);
-      console.error(error);
-      toast.error("Follow failed!");
+      console.error("Error following moodlist:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -88,22 +83,17 @@ export const MoodlistCard = ({
       }
 
       setIsProcessing(true);
-      const response = await unfollowUserMoodlist({
-        moodlistId,
-      });
-
-      setIsFollowing(false);
+      const response = await unfollowUserMoodlist({ moodlistId });
 
       if (response?.success) {
-        toast.success("Unfollowed!");
+        setIsFollowing(false);
+        toast.success("You have unfollowed this moodlist.");
       } else {
-        toast.error("Unfollow failed!");
-        setIsFollowing(true);
+        toast.error("Couldn't unfollow this moodlist. Please try again.");
       }
     } catch (error) {
-      setIsFollowing(true);
-      console.error(error);
-      toast.error("Unfollow failed!");
+      console.error("Error unfollowing moodlist:", error);
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setIsProcessing(false);
     }
