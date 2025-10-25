@@ -58,18 +58,36 @@ const UserMenu = ({ session }: UserMenuProps) => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel>Manage account</DropdownMenuLabel>
+        {/* <DropdownMenuLabel>Manage account</DropdownMenuLabel> */}
+
+        <div className="flex gap-1.5 px-2 py-1.5">
+          <Avatar className="h-8 w-8">
+            <AvatarImage
+              src={
+                session?.user?.image ||
+                "https://res.cloudinary.com/ahcloud/image/upload/v1747277562/images/default-profile_bpnjdl_dzyvud.png"
+              }
+              alt={session.user.name}
+            />
+            <AvatarFallback>
+              {session.user.name.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <DropdownMenuLabel className="truncate">
+            {session.user.name}
+          </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem asChild>
-          <Link
-            href="/profile"
-            className="flex items-center gap-2 cursor-pointer"
-          >
-            <User className="h-4 w-4" />
-            <span>Profile</span>
-          </Link>
-        </DropdownMenuItem>
+        {/* <DropdownMenuItem asChild> */}
+        {/*   <Link */}
+        {/*     href="/profile" */}
+        {/*     className="flex items-center gap-2 cursor-pointer" */}
+        {/*   > */}
+        {/*     <User className="h-4 w-4" /> */}
+        {/*     <span>Profile</span> */}
+        {/*   </Link> */}
+        {/* </DropdownMenuItem> */}
 
         <DropdownMenuItem
           onClick={handleSignOut}

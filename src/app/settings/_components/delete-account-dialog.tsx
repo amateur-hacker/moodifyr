@@ -30,7 +30,9 @@ export const DeleteAccountDialog = ({ username }: DeleteAccountDialogProps) => {
     if (open) setInput("");
   }, [open]);
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     if (input !== username) {
       toast.error(`Please type your username "${username}" to confirm.`);
       return;

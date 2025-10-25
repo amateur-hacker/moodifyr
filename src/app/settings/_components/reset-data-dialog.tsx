@@ -1,6 +1,7 @@
 "use client";
 
 import { RefreshCcw } from "lucide-react";
+import type React from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { resetUserData } from "@/app/settings/actions";
@@ -27,7 +28,9 @@ const ResetDataDialog = () => {
     if (open) setInput("");
   }, [open]);
 
-  const handleReset = async () => {
+  const handleReset = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     if (input !== "Reset My Data") {
       toast.error('Please type "Reset My Data" to confirm.');
       return;

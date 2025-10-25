@@ -1,4 +1,4 @@
-import { CreateMoodlist } from "@/app/moodlists/_components/create-moodlist";
+import { CreateMoodlistDialog } from "@/app/moodlists/_components/create-moodlist-dialog";
 import { MoodlistCardList } from "@/app/moodlists/_components/moodlist-card-list";
 import {
   getUserFollowedMoodlists,
@@ -24,7 +24,12 @@ const MoodlistsPage = async () => {
 
   return (
     <div className="space-y-10 mb-[var(--player-height,80px)]">
-      <CreateMoodlist className="size-32 sm:size-40 rounded-md flex justify-center items-center" />
+      <div>
+        <Typography variant="h3" className="mb-4 font-playful">
+          Create Moodlist
+        </Typography>
+        <CreateMoodlistDialog />
+      </div>
       <MoodlistCardList
         moodlists={moodlists}
         userId={session.user.id}
