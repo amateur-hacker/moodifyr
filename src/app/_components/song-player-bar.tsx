@@ -183,10 +183,6 @@ const SongPlayerBar = ({
     }
   }, [songs, mode]);
 
-  useEffect(() => {
-    console.log(recentSongIdsRef.current);
-  }, [recentSongIdsRef.current]);
-
   const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
 
   const toggleFullScreen = (e: React.MouseEvent) => {
