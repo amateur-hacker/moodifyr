@@ -251,8 +251,9 @@ const SongPlayerBar = ({
     return favouriteSongs?.some((fav) => fav.id === song.id) ?? false;
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    if (height > 0) {
+    if (height > 0 && currentSong) {
       document.documentElement.style.setProperty(
         "--player-height",
         `${height}px`,

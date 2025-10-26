@@ -30,6 +30,7 @@ export function SongPlayerEngine() {
     lastActionRef,
     recentSongIdsRef,
     addRecentSong,
+    setIsPlayerFullScreen,
   } = useSongPlayer();
 
   const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
@@ -231,6 +232,8 @@ export function SongPlayerEngine() {
           setSong(firstSong);
         } else {
           setSong(null);
+          setIsPlayerFullScreen(false);
+          document.documentElement.style.setProperty("--player-height", `0px`);
         }
         return;
       }

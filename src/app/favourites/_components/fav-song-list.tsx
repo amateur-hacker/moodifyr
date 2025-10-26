@@ -74,7 +74,7 @@ const FavouriteSongList = ({
   }, [inViewport, hasMore, loadingMore]);
 
   return (
-    <div className="pb-[var(--player-height,80px)]">
+    <div className="pb-[var(--player-height,0px)]">
       <SongsSetter songs={songs} />
       {songs?.length ? (
         songs?.map((song, i) => (

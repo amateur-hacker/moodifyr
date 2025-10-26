@@ -72,7 +72,7 @@ const HistorySongList = ({
   }, [inViewport, hasMore, loadingMore]);
 
   return (
-    <div className="pb-[var(--player-height,80px)] space-y-10">
+    <div className="pb-[var(--player-height,0px)] space-y-10">
       {Object.entries(history).map(([date, songs]) => (
         <div key={date} className="flex flex-col">
           <Typography variant="large" className="mb-2">

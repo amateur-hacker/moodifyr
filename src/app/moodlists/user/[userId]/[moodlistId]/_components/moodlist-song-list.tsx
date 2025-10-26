@@ -8,7 +8,7 @@ type MoodlistSongListProps = {
 };
 const MoodlistSongList = ({ songs }: MoodlistSongListProps) => {
   return (
-    <div className="pb-[var(--player-height,80px)]">
+    <div className="pb-[var(--player-height,0px)]">
       {songs?.map((song, i) => (
         <div key={song.id} className="flex flex-col">
           <MoodlistSongCard song={song} />
