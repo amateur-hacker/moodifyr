@@ -1,9 +1,21 @@
-import { LucideHeartPulse, LucideHistory, Search, Smile } from "lucide-react";
+import {
+  Activity,
+  LucideHeartPulse,
+  LucideHistory,
+  Search,
+  Settings,
+  Smile,
+} from "lucide-react";
 import Link from "next/link";
 import { getUserSession } from "@/app/queries";
 import { Typography } from "@/components/ui/typography";
 
 const quickLinks = [
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    Icon: Activity,
+  },
   {
     href: "/search",
     label: "Search",
@@ -23,6 +35,11 @@ const quickLinks = [
     href: "/history",
     label: "History",
     Icon: LucideHistory,
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    Icon: Settings,
   },
 ];
 export default async function HomePage() {
