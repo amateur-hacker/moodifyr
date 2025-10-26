@@ -67,6 +67,8 @@ const SongPlayerBar = ({
     e.stopPropagation();
     if (!currentSong || !playerRef.current) return;
 
+    lastActionRef.current = "prev";
+
     playerRef.current.getCurrentTime().then((currentTime: number) => {
       const currentIndex = songs.findIndex((s) => s.id === currentSong.id);
 

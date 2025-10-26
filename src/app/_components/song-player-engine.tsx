@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import youtubePlayer from "youtube-player";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
+import { saveUserPreference } from "@/app/actions";
 import {
   trackUserSongAnalyticsPlayHistory,
   trackUserSongPlayHistory,
@@ -128,7 +129,6 @@ export function SongPlayerEngine() {
           index++;
 
           if (index >= queue.length) {
-            console.log("regenerating");
             addRecentSong(currentSongRef.current.id);
 
             queue = generateShuffleQueue(
@@ -192,6 +192,11 @@ export function SongPlayerEngine() {
       </span>,
     );
 
+    saveUserPreference({
+      key: "lastPlayedSong",
+      value: JSON.stringify(""),
+    }).catch((error) => console.warn("Error saving last played song:", error));
+
     switch (lastActionRef.current) {
       case "prev": {
         console.warn(
@@ -200,9 +205,10 @@ export function SongPlayerEngine() {
         if (currentIndex > 0) {
           const prevSong = songsRef.current[currentIndex - 1];
           setSong(prevSong);
-        } else {
-          toast.error("Previous song unavailable");
         }
+        // else {
+        //   toast.error("Previous song unavailable");
+        // }
         return;
       }
       case "manual":
@@ -223,6 +229,8 @@ export function SongPlayerEngine() {
             `Video unavailable (code ${code}), looping to first song: ${firstSong.title}`,
           );
           setSong(firstSong);
+        } else {
+          setSong(null);
         }
         return;
       }
@@ -358,7 +366,7 @@ export function SongPlayerEngine() {
     }
 
     return clearProgressTimer;
-  }, [isPlaying, setProgress, duration]);
+  }, [isPlaying, duration]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {

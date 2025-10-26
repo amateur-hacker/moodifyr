@@ -85,7 +85,12 @@ export function SongPlayerProvider({
   };
 
   const setSong = (song: SongWithUniqueIdSchema | null, isPlaying = true) => {
-    if (!song) return;
+    if (!song) {
+      setCurrentSong(null);
+      setYoutubeId(null);
+      setIsPlaying(false);
+      return;
+    }
 
     setCurrentSong(song);
     setYoutubeId(song.id.replace(/^dashboard-/, ""));
@@ -104,7 +109,9 @@ export function SongPlayerProvider({
       saveUserPreference({
         key: "lastPlayedSong",
         value: JSON.stringify(valueToSave),
-      }).catch((err) => console.warn("Failed to save last played song:", err));
+      }).catch((error) =>
+        console.warn("Error saving last played song:", error),
+      );
     }
   };
 
