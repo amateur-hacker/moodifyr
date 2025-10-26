@@ -36,7 +36,6 @@ const PlayHeader = ({
     setSongs,
     setSong,
     setIsPlayerFullScreen,
-    currentSong,
     recentSongIdsRef,
     playerRef,
     isPlaying,
@@ -66,7 +65,7 @@ const PlayHeader = ({
       ) {
         const queue = generateShuffleQueue(
           songs,
-          currentSong,
+          null,
           recentSongIdsRef.current,
         );
         setSong(queue[0]);
