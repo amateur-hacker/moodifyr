@@ -1,9 +1,13 @@
 import { Smile } from "lucide-react";
 import { Suspense } from "react";
+import { PlayHeader } from "@/app/_components/play-header";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { MoodlistSongList } from "@/app/moodlists/[id]/_components/moodlist-song-list";
-import { getUserMoodlistSongs } from "@/app/moodlists/queries";
+import {
+  getUserMoodlistSongs,
+  getUserMoodlistSongsStats,
+} from "@/app/moodlists/queries";
 import { getUserSession } from "@/app/queries";
 import { Badge } from "@/components/ui/badge";
 import { Typography } from "@/components/ui/typography";
@@ -27,7 +31,11 @@ const MoodlistIdPage = async ({
 
   const { id: moodlistId } = await params;
 
-  const moodlistSongs = (await getUserMoodlistSongs({ moodlistId })) ?? null;
+  const [moodlistSongs, moodlistSongsStats] = await Promise.all([
+    getUserMoodlistSongs({ moodlistId }).then((res) => res ?? null),
+    getUserMoodlistSongsStats({ moodlistId }).then((res) => res ?? null),
+  ]);
+  // const moodlistSongs = (await getUserMoodlistSongs({ moodlistId })) ?? null;
 
   return (
     <div className="w-full">
@@ -43,9 +51,19 @@ const MoodlistIdPage = async ({
       </div>
       {moodlistSongs && (
         <>
-          <Typography variant="h2" className="font-playful text-center mb-4">
-            {moodlistSongs.name}
-          </Typography>
+          <div className="mb-4">
+            <Typography variant="h2" className="font-playful text-center">
+              {moodlistSongs.name}
+            </Typography>
+            {moodlistSongsStats?.totalSongs && moodlistSongsStats.totalTime && (
+              <PlayHeader
+                songs={moodlistSongs?.songs}
+                totalSongs={moodlistSongsStats.totalSongs}
+                totalTime={moodlistSongsStats.totalTime}
+                className="text-center"
+              />
+            )}
+          </div>
           <div className="w-full space-y-5 mx-auto max-w-3xl">
             {moodlistSongs.songs.length > 0 ? (
               <Suspense

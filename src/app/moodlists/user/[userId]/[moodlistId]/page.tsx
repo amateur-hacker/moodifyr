@@ -2,10 +2,12 @@ import { Smile } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { PlayHeader } from "@/app/_components/play-header";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import {
   getMoodlistSongsByUserId,
+  getMoodlistSongsStatsByUserId,
   getUserFollowedMoodlists,
 } from "@/app/moodlists/queries";
 import { FollowMoodlistButton } from "@/app/moodlists/user/[userId]/[moodlistId]/_components/follow-moodlist-button";
@@ -38,11 +40,17 @@ const UserMoodlistPage = async ({
     redirect(`/moodlists/${moodlistId}`);
   }
 
-  const [moodlistSongs, user, followedMoodlists] = await Promise.all([
-    getMoodlistSongsByUserId({ userId, moodlistId }).then((res) => res ?? null),
-    getUserById({ userId }).then((res) => res ?? null),
-    getUserFollowedMoodlists().then((res) => res ?? null),
-  ]);
+  const [moodlistSongs, moodlistSongsStats, user, followedMoodlists] =
+    await Promise.all([
+      getMoodlistSongsByUserId({ userId, moodlistId }).then(
+        (res) => res ?? null,
+      ),
+      getMoodlistSongsStatsByUserId({ userId, moodlistId }).then(
+        (res) => res ?? null,
+      ),
+      getUserById({ userId }).then((res) => res ?? null),
+      getUserFollowedMoodlists().then((res) => res ?? null),
+    ]);
 
   return (
     <div className="w-full">
@@ -73,17 +81,27 @@ const UserMoodlistPage = async ({
       </div>
       {moodlistSongs && (
         <>
-          <div className="flex items-center justify-center gap-2.5">
-            <Typography variant="h2" className="font-playful text-center">
-              {moodlistSongs.name}
-            </Typography>
-            <FollowMoodlistButton
-              isAlreadyFollowing={
-                followedMoodlists?.some((fm) => fm.id === moodlistId) ?? false
-              }
-              moodlistId={moodlistId}
-              userId={userId}
-            />
+          <div className="mb-4">
+            <div className="flex items-center justify-center gap-2.5">
+              <Typography variant="h2" className="font-playful text-center">
+                {moodlistSongs.name}
+              </Typography>
+              <FollowMoodlistButton
+                isAlreadyFollowing={
+                  followedMoodlists?.some((fm) => fm.id === moodlistId) ?? false
+                }
+                moodlistId={moodlistId}
+                userId={userId}
+              />
+            </div>
+            {moodlistSongsStats?.totalSongs && moodlistSongsStats.totalTime && (
+              <PlayHeader
+                songs={moodlistSongs?.songs}
+                totalSongs={moodlistSongsStats.totalSongs}
+                totalTime={moodlistSongsStats.totalTime}
+                className="text-center"
+              />
+            )}
           </div>
           <div className="w-full space-y-5 mx-auto max-w-3xl">
             {moodlistSongs.songs.length > 0 ? (

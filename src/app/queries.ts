@@ -263,6 +263,44 @@ const getUserFavouriteSongs = ({
   });
 };
 
+const getUserFavouriteSongsStats = () => {
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      const favourites = await db
+        .select({
+          duration: songs.duration,
+        })
+        .from(favouriteSongs)
+        .innerJoin(songs, eq(favouriteSongs.songId, songs.id))
+        .where(eq(favouriteSongs.userId, sessionUser.id));
+
+      const totalSongs = favourites.length;
+      const totalSeconds = favourites.reduce(
+        (acc, curr) => acc + (curr.duration?.seconds ?? 0),
+        0,
+      );
+
+      const totalHours = totalSeconds / 3600;
+
+      let totalTime: string;
+      if (totalHours >= 1) {
+        const hours = Math.floor(totalHours);
+        totalTime = `${hours}+ ${hours === 1 ? "hour" : "hours"}`;
+      } else {
+        const minutes = Math.ceil(totalHours * 60);
+        totalTime = `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+      }
+
+      return {
+        totalSongs,
+        totalTime,
+      };
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserFavouriteSongsStats",
+  });
+};
+
 const getUserPreference = async <T = unknown>({
   key,
 }: Pick<UserPreferenceSchema, "key">): Promise<T | string | null> => {
@@ -370,6 +408,7 @@ export {
   getUserLastPlayedSong,
   getUserSongPlayerMode,
   getUserFavouriteSongs,
+  getUserFavouriteSongsStats,
   getUserPreference,
   getUserAllPreferences,
   getSongStatus,

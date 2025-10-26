@@ -1,8 +1,13 @@
 import { Suspense } from "react";
+import { PlayHeader } from "@/app/_components/play-header";
 import { SongCardLoader } from "@/app/_components/song-card-loader";
 import { FavouriteSongList } from "@/app/favourites/_components/fav-song-list";
 import { getUserMoodlists } from "@/app/moodlists/queries";
-import { getUserFavouriteSongs, getUserSession } from "@/app/queries";
+import {
+  getUserFavouriteSongs,
+  getUserFavouriteSongsStats,
+  getUserSession,
+} from "@/app/queries";
 import { Typography } from "@/components/ui/typography";
 
 const FavSongsPage = async () => {
@@ -17,18 +22,31 @@ const FavSongsPage = async () => {
       </div>
     );
   }
-  const [favouriteSongs, moodlists] = await Promise.all([
-    getUserFavouriteSongs({ page: 1, limit: 20, pagination: true }).then(
-      (res) => res ?? null,
-    ),
-    getUserMoodlists().then((res) => res ?? null),
-  ]);
+  const [allFavSongs, favouriteSongs, favouriteSongsStats, moodlists] =
+    await Promise.all([
+      getUserFavouriteSongs().then((res) => res ?? null),
+      getUserFavouriteSongs({ page: 1, limit: 20, pagination: true }).then(
+        (res) => res ?? null,
+      ),
+      getUserFavouriteSongsStats().then((res) => res ?? null),
+      getUserMoodlists().then((res) => res ?? null),
+    ]);
 
   return (
-    <div className="w-full">
-      <Typography variant="h2" className="font-playful text-center mb-4">
-        Favourites
-      </Typography>
+    <div className="w-full space-y-4">
+      <div className="space-y-2">
+        <Typography variant="h2" className="font-playful text-center">
+          Favourites
+        </Typography>
+        {favouriteSongsStats?.totalSongs && favouriteSongsStats.totalTime && (
+          <PlayHeader
+            songs={allFavSongs}
+            totalSongs={favouriteSongsStats.totalSongs}
+            totalTime={favouriteSongsStats.totalTime}
+            className="text-center"
+          />
+        )}
+      </div>
       <div className="w-full space-y-5 mx-auto max-w-3xl">
         {favouriteSongs?.length ? (
           <Suspense

@@ -162,6 +162,78 @@ const getUserMoodlistSongs = async ({
   });
 };
 
+const getUserMoodlistSongsStats = async ({
+  moodlistId,
+}: Pick<MoodlistSongSchema, "moodlistId">) => {
+  const getUserMoodlistSongsSchema = z.object({
+    moodlistId: moodlistSongSchema.shape.moodlistId,
+  });
+  const { moodlistId: parsedMoodlistId } = getUserMoodlistSongsSchema.parse({
+    moodlistId,
+  });
+
+  return executeQuery({
+    queryFn: async ({ sessionUser }) => {
+      const moodlist = await db
+        .select({
+          id: moodlists.id,
+          userId: moodlists.userId,
+          followedAt: moodlistFollowers.followedAt,
+        })
+        .from(moodlists)
+        .leftJoin(
+          moodlistFollowers,
+          and(
+            eq(moodlistFollowers.moodlistId, moodlists.id),
+            eq(moodlistFollowers.userId, sessionUser.id),
+          ),
+        )
+        .where(eq(moodlists.id, parsedMoodlistId))
+        .orderBy(desc(moodlists.updatedAt))
+        .then((res) => res[0]);
+
+      if (!moodlist) return null;
+
+      const isOwner = moodlist.userId === sessionUser.id;
+      const isFollower = !!moodlist.followedAt;
+
+      if (!isOwner && !isFollower) return null;
+
+      const rows = await db
+        .select({
+          duration: songs.duration,
+        })
+        .from(moodlistSongs)
+        .innerJoin(songs, eq(moodlistSongs.songId, songs.id))
+        .where(eq(moodlistSongs.moodlistId, parsedMoodlistId));
+
+      const totalSongs = rows.length;
+      const totalSeconds = rows.reduce(
+        (acc, curr) => acc + (curr.duration?.seconds ?? 0),
+        0,
+      );
+
+      const totalHours = totalSeconds / 3600;
+
+      let totalTime: string;
+      if (totalHours >= 1) {
+        const hours = Math.floor(totalHours);
+        totalTime = `${hours}+ ${hours === 1 ? "hour" : "hours"}`;
+      } else {
+        const minutes = Math.ceil(totalHours * 60);
+        totalTime = `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+      }
+
+      return {
+        totalSongs,
+        totalTime,
+      };
+    },
+    isProtected: true,
+    serverErrorMessage: "getUserMoodlistSongsStats",
+  });
+};
+
 const getMoodlistSongsByUserId = async ({
   moodlistId,
   userId,
@@ -223,6 +295,66 @@ const getMoodlistSongsByUserId = async ({
   });
 };
 
+const getMoodlistSongsStatsByUserId = async ({
+  moodlistId,
+  userId,
+}: {
+  moodlistId: MoodlistSongSchema["moodlistId"];
+  userId: UserSchema["id"];
+}) => {
+  const getMoodlistSongsByUserIdSchema = z.object({
+    moodlistId: moodlistSongSchema.shape.id,
+    userId: moodlistSongSchema.shape.userId,
+  });
+  const { moodlistId: parsedMoodlistId, userId: parsedUserId } =
+    getMoodlistSongsByUserIdSchema.parse({ moodlistId, userId });
+
+  return executeQuery({
+    queryFn: async () => {
+      const moodlist = await db.query.moodlists.findFirst({
+        where: and(
+          eq(moodlists.id, parsedMoodlistId),
+          eq(moodlists.userId, parsedUserId),
+        ),
+        columns: {
+          id: true,
+        },
+      });
+
+      if (!moodlist) return null;
+
+      const rows = await db
+        .select({
+          duration: songs.duration,
+        })
+        .from(moodlistSongs)
+        .innerJoin(songs, eq(moodlistSongs.songId, songs.id))
+        .where(eq(moodlistSongs.moodlistId, parsedMoodlistId));
+
+      const totalSongs = rows.length;
+      const totalSeconds = rows.reduce(
+        (acc, curr) => acc + (curr.duration?.seconds ?? 0),
+        0,
+      );
+
+      const totalHours = totalSeconds / 3600;
+      let totalTime: string;
+
+      if (totalHours >= 1) {
+        const hours = Math.floor(totalHours);
+        totalTime = `${hours}+ ${hours === 1 ? "hour" : "hours"}`;
+      } else {
+        const minutes = Math.ceil(totalHours * 60);
+        totalTime = `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+      }
+
+      return { totalSongs, totalTime };
+    },
+    isProtected: false,
+    serverErrorMessage: "getMoodlistSongsStatsByUserId",
+  });
+};
+
 const getMoodlistFollowers = async ({
   moodlistId,
 }: Pick<MoodlistFollowerSchema, "moodlistId">) =>
@@ -261,6 +393,8 @@ export {
   getUserMoodlists,
   getMoodlistsByUserId,
   getUserMoodlistSongs,
+  getUserMoodlistSongsStats,
+  getMoodlistSongsStatsByUserId,
   getMoodlistSongsByUserId,
   getMoodlistFollowers,
   getUserFollowedMoodlists,

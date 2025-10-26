@@ -41,7 +41,7 @@ const DeleteMoodlistDialog = ({
 
       if (response?.success) {
         onOpenChange(false);
-        toast.success(`"${moodlistName}" deleted successfully!`);
+        toast.success("Moodlist deleted successfully!");
       } else {
         toast.error(`Couldn't delete "${moodlistName}". Please try again.`);
       }
