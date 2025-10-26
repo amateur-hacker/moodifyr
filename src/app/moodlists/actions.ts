@@ -216,6 +216,7 @@ const followUserMoodlist = async ({
         moodlistId: parsedMoodlistId,
         userId: sessionUser.id,
       });
+      revalidatePath("/moodlists");
     },
     isProtected: true,
     clientSuccessMessage: "Moodlist followed",
@@ -243,6 +244,7 @@ const unfollowUserMoodlist = async ({
             eq(moodlistFollowers.userId, sessionUser.id),
           ),
         );
+      revalidatePath("/moodlists");
     },
     isProtected: true,
     clientSuccessMessage: "Moodlist unfollowed",

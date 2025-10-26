@@ -54,7 +54,7 @@ const MoodlistCardList = ({
             />
             <Typography
               variant="large"
-              className="line-clamp-1 text-center mt-1"
+              className="text-center mt-1 text-wrap break-all line-clamp-2"
             >
               {m.name}
             </Typography>

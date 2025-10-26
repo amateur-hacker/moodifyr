@@ -111,7 +111,11 @@ const RenameMoodlistDialog = ({
             <Button
               type="submit"
               className="flex-1 cursor-pointer"
-              disabled={moodlistName === prevMoodlistName || isLoading}
+              disabled={
+                moodlistName === prevMoodlistName ||
+                !moodlistName.length ||
+                isLoading
+              }
               data-skip-propagation
               onClick={(e) => e.stopPropagation()}
             >
