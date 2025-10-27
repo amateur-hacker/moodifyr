@@ -40,7 +40,6 @@ const generateShuffleQueue = (
   }
 
   const queue = !recentSongIds.length && current ? [current, ...pool] : pool;
-  console.log(queue);
 
   return queue;
 };

@@ -59,17 +59,17 @@ export function SongPlayerEngine() {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  useEffect(() => {
-    if (!playerRef.current) return;
-
-    if (!playerRef.current.shuffleQueueRef) {
-      playerRef.current.shuffleQueueRef = { current: [] };
-    }
-    if (!playerRef.current.shuffleIndexRef) {
-      playerRef.current.shuffleIndexRef = { current: -1 };
-    }
-  }, []);
+  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  // useEffect(() => {
+  //   if (!playerRef.current) return;
+  //
+  //   if (!playerRef.current.shuffleQueueRef) {
+  //     playerRef.current.shuffleQueueRef = { current: [] };
+  //   }
+  //   if (!playerRef.current.shuffleIndexRef) {
+  //     playerRef.current.shuffleIndexRef = { current: -1 };
+  //   }
+  // }, []);
 
   const clearProgressTimer = () => {
     if (intervalRef.current) {

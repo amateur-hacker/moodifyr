@@ -3,6 +3,7 @@
 import { CirclePlus, EllipsisIcon, Heart, Share2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSongPlayer } from "@/app/_context/song-player-context";
+import type { Prettify, SongWithUniqueIdSchema } from "@/app/_types";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconButton } from "@/components/ui/shadcn-io/icon-button";
 import { cn } from "@/lib/utils";
-import type { Prettify, SongWithUniqueIdSchema } from "../_types";
 import { BaseSongCard } from "./base-song-card";
 
 type Variant = "search" | "history" | "moodlist" | "favourite";

@@ -89,12 +89,16 @@ export function SongPlayerProvider({
       setCurrentSong(null);
       setYoutubeId(null);
       setIsPlaying(false);
+      setProgress(0);
+      setDuration(0);
       return;
     }
 
     setCurrentSong(song);
     setYoutubeId(song.id.replace(/^dashboard-/, ""));
     setIsPlaying(isPlaying);
+    setProgress(0);
+    setDuration(0);
 
     const newId = getUniqueSongId(song);
     const currentId = currentSong ? getUniqueSongId(currentSong) : null;

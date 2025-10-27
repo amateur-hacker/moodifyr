@@ -2,6 +2,7 @@ import type React from "react";
 import { SongPlayerBar } from "@/app/_components/song-player-bar";
 import { SongPlayerEngine } from "@/app/_components/song-player-engine";
 import { SongQueueCleaner } from "@/app/_components/song-queue-cleaner";
+import { SongQueueInitializer } from "@/app/_components/song-queue-initializer";
 import { SongPlayerProvider } from "@/app/_context/song-player-context";
 import { getUserMoodlists } from "@/app/moodlists/queries";
 import {
@@ -27,6 +28,7 @@ const GlobalSongPlayer = async ({ children }: GlobalPlayerProps) => {
     <SongPlayerProvider initialSong={lastPlayedSong} initialMode={initialMode}>
       {children}
       <SongPlayerEngine />
+      <SongQueueInitializer />
       <SongQueueCleaner />
       <SongPlayerBar favouriteSongs={favouriteSongs} moodlists={moodlists} />
     </SongPlayerProvider>

@@ -168,22 +168,22 @@ const SongPlayerBar = ({
     setMode(mode === selectedMode ? "normal" : selectedMode);
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  useEffect(() => {
-    if (
-      mode === "shuffle" &&
-      playerRef.current?.shuffleQueueRef &&
-      playerRef.current?.shuffleIndexRef
-    ) {
-      const queue = generateShuffleQueue(
-        songs,
-        currentSong,
-        recentSongIdsRef.current,
-      );
-      playerRef.current.shuffleQueueRef.current = queue;
-      playerRef.current.shuffleIndexRef.current = 0;
-    }
-  }, [songs, mode]);
+  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  // useEffect(() => {
+  //   if (
+  //     mode === "shuffle" &&
+  //     playerRef.current?.shuffleQueueRef &&
+  //     playerRef.current?.shuffleIndexRef
+  //   ) {
+  //     const queue = generateShuffleQueue(
+  //       songs,
+  //       currentSong,
+  //       recentSongIdsRef.current,
+  //     );
+  //     playerRef.current.shuffleQueueRef.current = queue;
+  //     playerRef.current.shuffleIndexRef.current = 0;
+  //   }
+  // }, [songs, mode]);
 
   const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
 

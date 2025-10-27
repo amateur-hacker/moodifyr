@@ -87,29 +87,7 @@ export function BaseSongCard({
           playerRef.current.shuffleIndexRef.current = 0;
         }
       }
-
-      // if (
-      //   mode === "shuffle" &&
-      //   playerRef.current?.shuffleQueueRef &&
-      //   playerRef.current?.shuffleIndexRef
-      // ) {
-      //   const queue = playerRef.current.shuffleQueueRef.current;
-      //   const newIndex = queue.findIndex((s) => s.id === song.id);
-      //
-      //   if (newIndex !== -1) {
-      //     playerRef.current.shuffleIndexRef.current = newIndex;
-      //   } else {
-      //     const newQueue = generateShuffleQueue(
-      //       songs,
-      //       song,
-      //       recentSongIdsRef.current,
-      //     );
-      //     playerRef.current.shuffleQueueRef.current = newQueue;
-      //     playerRef.current.shuffleIndexRef.current = 0;
-      //   }
-      // }
     } else {
-      // setSong(song, true);
       togglePlay(e);
     }
   };
@@ -119,6 +97,7 @@ export function BaseSongCard({
       <button
         type="button"
         onClick={handleClick}
+        // onMouseDown={handleClick}
         className={cn(
           "relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer rounded-md",
           isCurrent &&

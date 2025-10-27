@@ -53,7 +53,7 @@ const FavSongsPage = async () => {
             fallback={
               <div className="space-y-[1.3125rem]">
                 {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
-                  <SongCardLoader key={`loader-${id}`} />
+                  <SongCardLoader key={`loader-${id}`} showHeart={true} />
                 ))}
               </div>
             }
