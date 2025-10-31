@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/_types";
+import { generateShuffleQueue } from "@/app/utils";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import { generateShuffleQueue } from "@/app/utils";
 
 type BaseSongCardProps = {
   song: SongWithUniqueIdSchema;

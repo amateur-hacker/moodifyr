@@ -1,7 +1,7 @@
-import type { getUserMoodlists } from "@/app/moodlists/queries";
-import type { FavouriteSongSchema, SearchSongSchema } from "@/app/_types";
-import { SearchSongCard } from "@/app/search/_components/search-song-card";
 import { Fragment } from "react";
+import type { FavouriteSongSchema, SearchSongSchema } from "@/app/_types";
+import type { getUserMoodlists } from "@/app/moodlists/queries";
+import { SearchSongCard } from "@/app/search/_components/search-song-card";
 
 type SearchSongListProps = {
   songs: SearchSongSchema[] | null;
