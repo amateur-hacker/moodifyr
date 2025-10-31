@@ -10,6 +10,7 @@ import type { SongWithUniqueIdSchema } from "@/app/_types";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { generateShuffleQueue } from "@/app/utils";
 
 type BaseSongCardProps = {
   song: SongWithUniqueIdSchema;
@@ -32,9 +33,11 @@ export function BaseSongCard({
     setLastAction,
     mode,
     addRecentSong,
-    shuffleQueue,
     setShuffleIndex,
+    setShuffleQueue,
+    recentSongIds,
     youtubeId,
+    songs,
   } = useSongPlayer();
 
   const [isClient, setIsClient] = useState(false);
@@ -73,8 +76,9 @@ export function BaseSongCard({
       setSong(song, true);
       if (mode === "shuffle") {
         addRecentSong(song.id);
-        const newIndex = shuffleQueue.findIndex((s) => s.id === song.id);
-        setShuffleIndex(newIndex);
+        const newQueue = generateShuffleQueue(songs, song, recentSongIds);
+        setShuffleQueue(newQueue);
+        setShuffleIndex(0);
       }
     } else {
       togglePlay(e);
