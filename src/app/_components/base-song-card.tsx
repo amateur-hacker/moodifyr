@@ -10,7 +10,6 @@ import type { SongWithUniqueIdSchema } from "@/app/_types";
 import { Card } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
-import { generateShuffleQueue } from "../utils";
 
 type BaseSongCardProps = {
   song: SongWithUniqueIdSchema;
