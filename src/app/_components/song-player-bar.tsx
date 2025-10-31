@@ -35,9 +35,14 @@ const SongPlayerBar = ({
     isPlayerFullScreen,
     setIsPlayerFullScreen,
     songs,
-    lastActionRef,
-    recentSongIdsRef,
+    setLastAction,
+    recentSongIds,
     addRecentSong,
+    shuffleQueue,
+    setShuffleQueue,
+    shuffleIndex,
+    setShuffleIndex,
+    youtubeId,
   } = useSongPlayer();
 
   const { ref, height } = useElementSize();
@@ -67,30 +72,26 @@ const SongPlayerBar = ({
     e.stopPropagation();
     if (!currentSong || !playerRef.current) return;
 
-    lastActionRef.current = "prev";
+    setLastAction("prev");
 
     playerRef.current.getCurrentTime().then((currentTime: number) => {
       const currentIndex = songs.findIndex((s) => s.id === currentSong.id);
 
-      if (
-        mode === "shuffle" &&
-        playerRef.current?.shuffleQueueRef &&
-        playerRef.current?.shuffleIndexRef
-      ) {
-        const queue = playerRef.current.shuffleQueueRef.current;
-        let index = playerRef.current.shuffleIndexRef.current;
+      if (mode === "shuffle" && playerRef?.current) {
+        const queue = shuffleQueue;
+        let index = shuffleIndex;
 
         if (currentTime > 5) {
-          playerRef.current.seekTo(0, true);
+          playerRef?.current.seekTo(0, true);
           setProgress(0);
           return;
         }
 
         if (index > 0) {
           index--;
-          playerRef.current.shuffleQueueRef.current = queue;
-          playerRef.current.shuffleIndexRef.current = index;
-          recentSongIdsRef.current.unshift(currentSong.id);
+          setShuffleQueue(shuffleQueue);
+          setShuffleIndex(index);
+          addRecentSong(currentSong.id);
 
           const prevSong = queue[index];
           setSong(prevSong);
@@ -115,27 +116,22 @@ const SongPlayerBar = ({
     e.stopPropagation();
     if (!currentSong || !playerRef.current) return;
 
-    lastActionRef.current = "next";
+    setLastAction("next");
 
-    if (
-      mode === "shuffle" &&
-      playerRef.current.shuffleQueueRef &&
-      playerRef.current.shuffleIndexRef
-    ) {
-      let queue = playerRef.current.shuffleQueueRef.current;
-      let index = playerRef.current.shuffleIndexRef.current;
+    if (mode === "shuffle") {
+      let queue = shuffleQueue;
+      let index = shuffleIndex;
 
       index++;
 
       if (index >= queue.length) {
-        addRecentSong(currentSong.id);
-
-        queue = generateShuffleQueue(songs, null, recentSongIdsRef.current);
+        queue = generateShuffleQueue(songs, null, recentSongIds);
         index = 0;
       }
 
-      playerRef.current.shuffleQueueRef.current = queue;
-      playerRef.current.shuffleIndexRef.current = index;
+      addRecentSong(currentSong.id);
+      setShuffleQueue(queue);
+      setShuffleIndex(index);
 
       const nextSong = queue[index];
       if (nextSong) setSong(nextSong);
@@ -155,8 +151,10 @@ const SongPlayerBar = ({
   const handlePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!currentSong) return;
-    lastActionRef.current = "manual";
-    setSong(currentSong);
+    setLastAction("manual");
+    if (!youtubeId) {
+      setSong(currentSong);
+    }
     togglePlay(e);
   };
 

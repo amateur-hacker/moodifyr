@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useSongPlayer } from "@/app/_context/song-player-context";
 
 const SongQueueCleaner = () => {
-  const { setSongs } = useSongPlayer();
+  const { setSongs, setShuffleQueue, setShuffleIndex } = useSongPlayer();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -24,6 +24,8 @@ const SongQueueCleaner = () => {
 
     if (!isAllowed) {
       setSongs([]);
+      setShuffleQueue([]);
+      setShuffleIndex(-1);
     }
   }, [pathname, searchParams]);
 

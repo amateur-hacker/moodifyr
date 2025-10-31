@@ -30,12 +30,12 @@ export function BaseSongCard({
     isLoading,
     setIsPlayerFullScreen,
     isCurrentSong,
-    lastActionRef,
+    setLastAction,
     mode,
     addRecentSong,
-    recentSongIdsRef,
-    playerRef,
-    songs,
+    shuffleQueue,
+    setShuffleIndex,
+    youtubeId,
   } = useSongPlayer();
 
   const [isClient, setIsClient] = useState(false);
@@ -56,9 +56,9 @@ export function BaseSongCard({
 
     if (!song.id) return;
 
-    lastActionRef.current = "manual";
+    setLastAction("manual");
 
-    const shouldStartNewSong = !isCurrent;
+    const shouldStartNewSong = !isCurrent || !youtubeId;
     const shouldOpenFullscreen = shouldStartNewSong || !isPlaying;
 
     if (shouldOpenFullscreen) {
@@ -74,18 +74,8 @@ export function BaseSongCard({
       setSong(song, true);
       if (mode === "shuffle") {
         addRecentSong(song.id);
-        const newQueue = generateShuffleQueue(
-          songs,
-          song,
-          recentSongIdsRef.current,
-        );
-        if (
-          playerRef.current?.shuffleQueueRef &&
-          playerRef.current?.shuffleIndexRef
-        ) {
-          playerRef.current.shuffleQueueRef.current = newQueue;
-          playerRef.current.shuffleIndexRef.current = 0;
-        }
+        const newIndex = shuffleQueue.findIndex((s) => s.id === song.id);
+        setShuffleIndex(newIndex);
       }
     } else {
       togglePlay(e);
@@ -97,7 +87,6 @@ export function BaseSongCard({
       <button
         type="button"
         onClick={handleClick}
-        // onMouseDown={handleClick}
         className={cn(
           "relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer rounded-md",
           isCurrent &&

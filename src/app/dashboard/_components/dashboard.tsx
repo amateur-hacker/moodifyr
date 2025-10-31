@@ -37,7 +37,7 @@ const Dashboard = () => {
     setSong,
     currentSong,
     togglePlay,
-    lastActionRef,
+    setLastAction,
     setIsPlayerFullScreen,
   } = useSongPlayer();
 
@@ -72,7 +72,7 @@ const Dashboard = () => {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     song: SongSchema,
   ) => {
-    lastActionRef.current = "manual";
+    setLastAction("manual");
 
     if (!isPlaying) {
       setIsPlayerFullScreen(true);

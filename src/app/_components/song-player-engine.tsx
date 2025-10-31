@@ -13,7 +13,7 @@ import {
 } from "@/app/search/actions";
 import { generateShuffleQueue } from "@/app/utils";
 
-export function SongPlayerEngine() {
+const SongPlayerEngine = () => {
   const {
     youtubeId,
     playerRef,
@@ -27,10 +27,14 @@ export function SongPlayerEngine() {
     isPlaying,
     mode,
     songs,
-    lastActionRef,
-    recentSongIdsRef,
     addRecentSong,
     setIsPlayerFullScreen,
+    shuffleQueue,
+    setShuffleQueue,
+    shuffleIndex,
+    setShuffleIndex,
+    recentSongIds,
+    lastAction,
   } = useSongPlayer();
 
   const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
@@ -38,6 +42,8 @@ export function SongPlayerEngine() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const currentSongRef = useRef<SongWithUniqueIdSchema | null>(null);
   const modeRef = useRef(mode);
+  const lastActionRef = useRef(lastAction);
+  const shuffleQueueRef = useRef(shuffleQueue);
   const isPlayingRef = useRef(isPlaying);
   const lastTimeRef = useRef(0);
   const lastTrackedIdRef = useRef<string | null>(null);
@@ -58,6 +64,14 @@ export function SongPlayerEngine() {
   useEffect(() => {
     isPlayingRef.current = isPlaying;
   }, [isPlaying]);
+
+  useEffect(() => {
+    lastActionRef.current = lastAction;
+  }, [lastAction]);
+
+  useEffect(() => {
+    shuffleQueueRef.current = shuffleQueue;
+  }, [shuffleQueue]);
 
   // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   // useEffect(() => {
@@ -99,17 +113,19 @@ export function SongPlayerEngine() {
         setIsPlaying(false);
         break;
       case 0: {
-        const currentIndex = songsRef.current.findIndex(
-          (s) => s.id === currentSongRef.current?.id,
-        );
-
-        if (!currentSongRef.current || songsRef.current.length === 0) {
+        if (
+          !currentSongRef.current ||
+          (songsRef.current.length === 0 && modeRef.current !== "repeat-one")
+        ) {
           setIsPlaying(false);
           return;
         }
 
         if (modeRef.current === "repeat-one") {
           try {
+            lastTrackedIdRef.current = null;
+            lastAnalyticsIdRef.current = null;
+
             await playerRef.current.seekTo(0, true);
             await playerRef.current.playVideo();
           } catch (err) {
@@ -119,36 +135,30 @@ export function SongPlayerEngine() {
           return;
         }
 
-        if (
-          modeRef.current === "shuffle" &&
-          playerRef.current.shuffleQueueRef &&
-          playerRef.current.shuffleIndexRef
-        ) {
-          let queue = playerRef.current.shuffleQueueRef.current;
-          let index = playerRef.current.shuffleIndexRef.current;
+        if (modeRef.current === "shuffle") {
+          let queue = shuffleQueueRef.current;
+          let index = shuffleIndex;
 
           index++;
 
           if (index >= queue.length) {
-            addRecentSong(currentSongRef.current.id);
-
-            queue = generateShuffleQueue(
-              songsRef.current,
-              null,
-              recentSongIdsRef.current,
-            );
-            console.log(queue);
+            queue = generateShuffleQueue(songsRef.current, null, recentSongIds);
             index = 0;
           }
 
-          playerRef.current.shuffleQueueRef.current = queue;
-          playerRef.current.shuffleIndexRef.current = index;
+          addRecentSong(currentSongRef.current.id);
+          // setShuffleQueue([...queue]);
+          setShuffleQueue(queue);
+          setShuffleIndex(index);
 
           const nextSong = queue[index];
           if (nextSong) setSong(nextSong);
           return;
         }
 
+        const currentIndex = songsRef.current.findIndex(
+          (s) => s.id === currentSongRef.current?.id,
+        );
         if (currentIndex !== -1) {
           if (currentIndex < songsRef.current.length - 1) {
             const nextSong = songsRef.current[currentIndex + 1];
@@ -167,14 +177,37 @@ export function SongPlayerEngine() {
     }
   };
 
-  function handlePlayerError(
+  const handlePlayerError = (
     // biome-ignore lint/suspicious/noExplicitAny: <_>
     event: CustomEvent<any> & { data: number },
-  ) {
+  ) => {
     const code = event.data;
     console.warn("YouTube Player Error:", code);
 
-    if (![100, 101, 150].includes(code)) return;
+    const getSlicedSongTitle = (songTitle: string, maxLength = 30): string => {
+      const title = songTitle.trim();
+
+      const sliced =
+        title.length > maxLength ? `${title.slice(0, maxLength)}…` : title;
+
+      const hasSongWord = /\bsong\b/i.test(sliced);
+
+      return hasSongWord ? sliced : `${sliced} song`;
+    };
+
+    const resetPlayer = () => {
+      document.documentElement.style.setProperty("--player-height", `0px`);
+      setSong(null);
+      setIsPlayerFullScreen(false);
+      saveUserPreference({
+        key: "lastPlayedSong",
+        value: JSON.stringify(""),
+      }).catch((error) =>
+        console.warn("Error saving last played song:", error),
+      );
+    };
+
+    if (![100, 101, 150].includes(code) || !currentSongRef.current) return;
 
     setIsLoading(false);
     setIsPlaying(false);
@@ -185,55 +218,73 @@ export function SongPlayerEngine() {
 
     toast.error(
       <span>
-        <b>
-          {(currentSongRef.current?.title ?? "Unknown song").slice(0, 30)}
-          {(currentSongRef.current?.title?.length ?? 0) > 30 ? "…" : ""}
-        </b>{" "}
-        song is unavailable.
+        <b>{getSlicedSongTitle(currentSongRef.current.title)}</b> is
+        unavailable.
       </span>,
     );
 
-    saveUserPreference({
-      key: "lastPlayedSong",
-      value: JSON.stringify(""),
-    }).catch((error) => console.warn("Error saving last played song:", error));
-
     switch (lastActionRef.current) {
       case "prev": {
-        console.warn(
-          `Prev song unavailable (code ${code}), skipping further back`,
-        );
         if (currentIndex > 0) {
           const prevSong = songsRef.current[currentIndex - 1];
+          console.warn(
+            `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to prev song: '${getSlicedSongTitle(prevSong.title)}'`,
+          );
           setSong(prevSong);
+        } else {
+          console.warn(
+            `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no prev song available`,
+          );
         }
-        // else {
-        //   toast.error("Previous song unavailable");
-        // }
         return;
       }
       case "manual":
       case "next":
       case "auto": {
-        if (currentIndex !== -1 && currentIndex < songsRef.current.length - 1) {
-          const nextSong = songsRef.current[currentIndex + 1];
-          console.warn(
-            `Video unavailable (code ${code}), skipping to next song: ${nextSong.title}`,
+        if (modeRef.current === "shuffle") {
+          const shuffleIndex = shuffleQueueRef.current.findIndex(
+            (s) => s.id === currentSongRef.current?.id,
           );
-          setSong(nextSong);
+          const nextShuffleSong = shuffleQueueRef.current[shuffleIndex + 1];
+          if (nextShuffleSong) {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to next shuffle song: '${getSlicedSongTitle(nextShuffleSong.title)}'`,
+            );
+            setSong(nextShuffleSong);
+            setShuffleIndex(shuffleIndex + 1);
+          } else {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no next shuffle song available`,
+            );
+            resetPlayer();
+          }
         } else if (
-          modeRef.current === "repeat-all" &&
-          songsRef.current.length > 0
+          currentIndex !== -1 &&
+          currentIndex < songsRef.current.length - 1
         ) {
-          const firstSong = songsRef.current[0];
-          console.warn(
-            `Video unavailable (code ${code}), looping to first song: ${firstSong.title}`,
-          );
-          setSong(firstSong);
+          const nextSong = songsRef.current[currentIndex + 1];
+          if (nextSong) {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to next song: '${getSlicedSongTitle(nextSong.title)}'`,
+            );
+            setSong(nextSong);
+          } else {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no next song available`,
+            );
+            resetPlayer();
+          }
         } else {
+          document.documentElement.style.setProperty("--player-height", `0px`);
           setSong(null);
           setIsPlayerFullScreen(false);
-          document.documentElement.style.setProperty("--player-height", `0px`);
+          saveUserPreference({
+            key: "lastPlayedSong",
+            value: JSON.stringify(""),
+          }).catch((error) =>
+            console.warn("Error saving last played song:", error),
+          );
+          resetPlayer();
         }
         return;
       }
@@ -241,7 +292,7 @@ export function SongPlayerEngine() {
         console.warn("Unhandled player error context:", lastActionRef.current);
         return;
     }
-  }
+  };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useLayoutEffect(() => {
@@ -276,14 +327,6 @@ export function SongPlayerEngine() {
       // @ts-expect-error
       player.on("error", handlePlayerError);
       playerRef.current = player;
-
-      if (
-        playerRef.current.shuffleQueueRef &&
-        playerRef.current.shuffleIndexRef
-      ) {
-        playerRef.current.shuffleQueueRef.current = [];
-        playerRef.current.shuffleIndexRef.current = -1;
-      }
     }
 
     return () => {
@@ -327,21 +370,19 @@ export function SongPlayerEngine() {
             lastTrackedIdRef.current !== currentSongRef.current.id
           ) {
             lastTrackedIdRef.current = currentSongRef.current.id;
-            try {
-              await trackUserSongPlayHistory({
-                song: {
-                  id: currentSongRef.current.id,
-                  title: currentSongRef.current.title,
-                  thumbnail: currentSongRef.current.thumbnail,
-                  duration: currentSongRef.current.duration,
-                },
-              });
-            } catch (err) {
+            trackUserSongPlayHistory({
+              song: {
+                id: currentSongRef.current.id,
+                title: currentSongRef.current.title,
+                thumbnail: currentSongRef.current.thumbnail,
+                duration: currentSongRef.current.duration,
+              },
+            }).catch((err) =>
               console.error(
-                `Error tracking song play history for "${currentSongRef.current.title}":`,
+                `Error tracking song play history for '${currentSongRef?.current?.title}':`,
                 err,
-              );
-            }
+              ),
+            );
           }
 
           if (
@@ -351,16 +392,14 @@ export function SongPlayerEngine() {
             lastAnalyticsIdRef.current !== currentSongRef.current.id
           ) {
             lastAnalyticsIdRef.current = currentSongRef.current.id;
-            try {
-              await trackUserSongAnalyticsPlayHistory({
-                song: currentSongRef.current,
-              });
-            } catch (err) {
+            trackUserSongAnalyticsPlayHistory({
+              song: currentSongRef.current,
+            }).catch((err) =>
               console.error(
-                `Error tracking song analytics for "${currentSongRef.current.title}":`,
+                `Error tracking song analytics for '${currentSongRef?.current?.title}':`,
                 err,
-              );
-            }
+              ),
+            );
           }
         } catch (err) {
           console.error("Error getting current time from playerRef:", err);
@@ -469,4 +508,6 @@ export function SongPlayerEngine() {
   }, []);
 
   return null;
-}
+};
+
+export { SongPlayerEngine };

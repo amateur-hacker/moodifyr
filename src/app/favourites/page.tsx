@@ -38,7 +38,9 @@ const FavSongsPage = async () => {
         <Typography variant="h2" className="font-playful text-center">
           Favourites
         </Typography>
-        {favouriteSongsStats?.totalSongs && favouriteSongsStats.totalTime && (
+        {!!(
+          favouriteSongsStats?.totalSongs && favouriteSongsStats.totalTime
+        ) && (
           <PlayHeader
             songs={allFavSongs}
             totalSongs={favouriteSongsStats.totalSongs}

@@ -20,7 +20,7 @@ import {
   type UniqueIdentifier,
   useSensor,
   useSensors,
-  // PointerSensor,
+  PointerSensor,
 } from "@dnd-kit/core";
 import {
   restrictToHorizontalAxis,
@@ -133,11 +133,11 @@ function SortableRoot<T>(props: SortableRootProps<T>) {
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
-    // useSensor(PointerSensor, {
-    //   activationConstraint: {
-    //     distance: 5,
-    //   },
-    // }),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
   );
   const config = React.useMemo(
     () => orientationConfig[orientation],

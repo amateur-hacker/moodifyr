@@ -159,13 +159,13 @@ const getSongSearchSuggestions = async ({
 const getUserLastPlayedSong = async () => {
   return executeQuery({
     queryFn: async () => {
-      const song = await getUserPreference<SongWithUniqueIdSchema>({
+      const song = await getUserPreference<SongWithUniqueIdSchema | null>({
         key: "lastPlayedSong",
       });
 
       if (!song) return null;
 
-      return song as SongWithUniqueIdSchema;
+      return song;
     },
     isProtected: true,
     serverErrorMessage: "getUserLastPlayedSong",
@@ -301,9 +301,13 @@ const getUserFavouriteSongsStats = () => {
   });
 };
 
+type InferPreferenceType<T> = unknown extends T ? string : T;
 const getUserPreference = async <T = unknown>({
   key,
-}: Pick<UserPreferenceSchema, "key">): Promise<T | string | null> => {
+}: Pick<
+  UserPreferenceSchema,
+  "key"
+>): Promise<InferPreferenceType<T> | null> => {
   const getUserPreferenceSchema = userPreferenceSchema.pick({ key: true });
   const { key: parsedKey } = getUserPreferenceSchema.parse({ key });
 
@@ -317,9 +321,9 @@ const getUserPreference = async <T = unknown>({
       if (!pref) return null;
 
       try {
-        return JSON.parse(pref.value) as T;
+        return JSON.parse(pref.value) as InferPreferenceType<T>;
       } catch {
-        return pref.value;
+        return pref.value as InferPreferenceType<T>;
       }
     },
     isProtected: true,

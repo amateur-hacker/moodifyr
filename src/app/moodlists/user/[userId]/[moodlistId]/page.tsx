@@ -94,7 +94,9 @@ const UserMoodlistPage = async ({
                 userId={userId}
               />
             </div>
-            {moodlistSongsStats?.totalSongs && moodlistSongsStats.totalTime && (
+            {!!(
+              moodlistSongsStats?.totalSongs && moodlistSongsStats.totalTime
+            ) && (
               <PlayHeader
                 songs={moodlistSongs?.songs}
                 totalSongs={moodlistSongsStats.totalSongs}

@@ -156,11 +156,12 @@ export function SongCard(props: SongCardProps) {
             icon={Heart}
             active={props.shouldHeartButtonActive}
             color={[239, 68, 68]}
-            onClick={
+            onClick={(e) => {
+              e.stopPropagation();
               variant === "search"
-                ? props.onToggleFavourite
-                : props.onRemoveFromFavourites
-            }
+                ? props.onToggleFavourite()
+                : props.onRemoveFromFavourites();
+            }}
             size="default"
             animate={props.shouldHeartButtonAnimate}
             disabled={props.shouldHeartButtonDisabled}

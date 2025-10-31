@@ -20,13 +20,7 @@ type SongPlayerContextProps = {
   progress: number;
   setDuration: React.Dispatch<React.SetStateAction<number>>;
   duration: number;
-  playerRef: React.RefObject<
-    | (ReturnType<typeof youtubePlayer> & {
-        shuffleQueueRef?: React.RefObject<SongWithUniqueIdSchema[]>;
-        shuffleIndexRef?: React.RefObject<number>;
-      })
-    | null
-  >;
+  playerRef: React.RefObject<ReturnType<typeof youtubePlayer> | null>;
   mode: SongPlayerMode;
   setMode: (mode: SongPlayerMode) => Promise<void>;
   setIsPlayerFullScreen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -34,9 +28,19 @@ type SongPlayerContextProps = {
   songs: SongWithUniqueIdSchema[];
   setSongs: React.Dispatch<React.SetStateAction<SongWithUniqueIdSchema[]>>;
   isCurrentSong: (song: SongWithUniqueIdSchema) => boolean;
-  lastActionRef: React.RefObject<"manual" | "next" | "prev" | "auto" | null>;
-  recentSongIdsRef: React.RefObject<string[]>;
   addRecentSong: (id: string) => void;
+  shuffleQueue: SongWithUniqueIdSchema[];
+  setShuffleQueue: React.Dispatch<
+    React.SetStateAction<SongWithUniqueIdSchema[]>
+  >;
+  shuffleIndex: number;
+  setShuffleIndex: React.Dispatch<React.SetStateAction<number>>;
+  lastAction: "manual" | "next" | "prev" | "auto" | null;
+  setLastAction: React.Dispatch<
+    React.SetStateAction<"manual" | "next" | "prev" | "auto" | null>
+  >;
+  recentSongIds: string[];
+  setRecentSongIds: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
 const SongPlayerContext = createContext<SongPlayerContextProps | null>(null);
@@ -62,20 +66,16 @@ export function SongPlayerProvider({
   const [mode, setMode] = useState<SongPlayerMode>(initialMode ?? "normal");
   const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
   const [songs, setSongs] = useState<SongWithUniqueIdSchema[]>([]);
-
-  const lastActionRef = useRef<"manual" | "next" | "prev" | "auto" | null>(
-    null,
+  const [shuffleQueue, setShuffleQueue] = useState<SongWithUniqueIdSchema[]>(
+    [],
   );
-
-  const playerRef = useRef<
-    | (ReturnType<typeof youtubePlayer> & {
-        shuffleQueueRef?: React.RefObject<SongWithUniqueIdSchema[]>;
-        shuffleIndexRef?: React.RefObject<number>;
-      })
-    | null
+  const [shuffleIndex, setShuffleIndex] = useState<number>(-1);
+  const [lastAction, setLastAction] = useState<
+    "manual" | "next" | "prev" | "auto" | null
   >(null);
+  const [recentSongIds, setRecentSongIds] = useState<string[]>([]);
 
-  const recentSongIdsRef = useRef<string[]>([]);
+  const playerRef = useRef<ReturnType<typeof youtubePlayer>>(null);
 
   const handleSetMode = async (mode: SongPlayerMode) => {
     setMode(mode);
@@ -97,13 +97,14 @@ export function SongPlayerProvider({
     setCurrentSong(song);
     setYoutubeId(song.id.replace(/^dashboard-/, ""));
     setIsPlaying(isPlaying);
-    setProgress(0);
-    setDuration(0);
 
     const newId = getUniqueSongId(song);
     const currentId = currentSong ? getUniqueSongId(currentSong) : null;
 
     if (newId !== currentId) {
+      setProgress(0);
+      setDuration(0);
+
       const valueToSave = { ...song };
 
       if (song.favouriteId) valueToSave.favouriteId = song.favouriteId;
@@ -141,12 +142,10 @@ export function SongPlayerProvider({
   };
 
   const addRecentSong = (id: string) => {
-    recentSongIdsRef.current = [
-      id,
-      ...recentSongIdsRef.current.filter((s) => s !== id),
-    ];
-
-    recentSongIdsRef.current = recentSongIdsRef.current.slice(0, 10);
+    setRecentSongIds((prev) => {
+      const filtered = prev.filter((s) => s !== id);
+      return [id, ...filtered].slice(0, 10);
+    });
   };
 
   return (
@@ -173,8 +172,14 @@ export function SongPlayerProvider({
         songs,
         setSongs,
         isCurrentSong,
-        lastActionRef,
-        recentSongIdsRef,
+        shuffleQueue,
+        setShuffleQueue,
+        shuffleIndex,
+        setShuffleIndex,
+        lastAction,
+        setLastAction,
+        recentSongIds,
+        setRecentSongIds,
         addRecentSong,
       }}
     >
