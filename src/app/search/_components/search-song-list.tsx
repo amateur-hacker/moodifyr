@@ -1,6 +1,7 @@
-import type { FavouriteSongSchema, SearchSongSchema } from "@/app/_types";
 import type { getUserMoodlists } from "@/app/moodlists/queries";
+import type { FavouriteSongSchema, SearchSongSchema } from "@/app/_types";
 import { SearchSongCard } from "@/app/search/_components/search-song-card";
+import { Fragment } from "react";
 
 type SearchSongListProps = {
   songs: SearchSongSchema[] | null;
@@ -19,14 +20,16 @@ const SearchSongList = ({
   return (
     <div className="pb-[var(--player-height,80px)]">
       {songs?.map((song, i) => (
-        <div key={song.id} className="flex flex-col">
-          <SearchSongCard
-            song={song}
-            isAlreadyFavourite={isSongFavourite(song)}
-            moodlists={moodlists}
-          />
+        <Fragment key={song.id}>
+          <div className="flex flex-col">
+            <SearchSongCard
+              song={song}
+              isAlreadyFavourite={isSongFavourite(song)}
+              moodlists={moodlists}
+            />
+          </div>
           {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
-        </div>
+        </Fragment>
       ))}
     </div>
   );

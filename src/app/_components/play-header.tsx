@@ -35,10 +35,11 @@ const PlayHeader = ({
     setSongs,
     setSong,
     setIsPlayerFullScreen,
-    recentSongIdsRef,
-    playerRef,
+    recentSongIds,
     setMode,
-    lastActionRef,
+    setLastAction,
+    setShuffleQueue,
+    setShuffleIndex,
   } = useSongPlayer();
 
   const handlePlay = (mode: "shuffle" | "normal") => {
@@ -47,27 +48,19 @@ const PlayHeader = ({
     setMode(mode);
     setIsLoading(true);
     setOpen(false);
-    lastActionRef.current = "auto";
+    setLastAction("auto");
 
     if (mode === "normal") {
       setSongs(songs);
       setSong(songs[0]);
       setIsPlayerFullScreen(true);
     } else {
-      if (
-        mode === "shuffle" &&
-        playerRef.current?.shuffleQueueRef &&
-        playerRef.current?.shuffleIndexRef
-      ) {
-        const queue = generateShuffleQueue(
-          songs,
-          null,
-          recentSongIdsRef.current,
-        );
+      if (mode === "shuffle") {
+        const queue = generateShuffleQueue(songs, null, recentSongIds);
         setSong(queue[0]);
+        setShuffleQueue(queue);
+        setShuffleIndex(0);
         setIsPlayerFullScreen(true);
-        playerRef.current.shuffleQueueRef.current = queue;
-        playerRef.current.shuffleIndexRef.current = 0;
       }
     }
 

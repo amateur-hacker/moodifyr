@@ -8,8 +8,6 @@ import { WordRotate } from "@/components/ui/word-rotate";
 import { trackUserSongSearchHistory } from "../actions";
 import { getUserMoodlists } from "../moodlists/queries";
 import { SearchSongList } from "./_components/search-song-list";
-import { getUserLastPlayedSong, getUserSongPlayerMode } from "@/app/queries";
-import { generateShuffleQueue } from "@/app/utils";
 
 // export const dynamic = "force-dynamic";
 type SearchPageProps = {

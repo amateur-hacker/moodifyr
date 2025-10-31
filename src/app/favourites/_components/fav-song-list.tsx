@@ -1,7 +1,7 @@
 "use client";
 
 import { useInViewport } from "@mantine/hooks";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { SongsSetter } from "@/app/_components/songs-setter";
 import { useFavourites } from "@/app/_context/favourite-context";
 import { useSongPlayer } from "@/app/_context/song-player-context";
@@ -78,16 +78,18 @@ const FavouriteSongList = ({
       <SongsSetter songs={songs} />
       {songs?.length ? (
         songs?.map((song, i) => (
-          <div key={song.id} className="flex flex-col">
-            <FavouriteSongCard
-              song={song}
-              moodlists={moodlists}
-              onRemove={(id) =>
-                setSongs((prev) => prev.filter((s) => s.favouriteId !== id))
-              }
-            />
+          <Fragment key={song.id}>
+            <div className="flex flex-col">
+              <FavouriteSongCard
+                song={song}
+                moodlists={moodlists}
+                onRemove={(id) =>
+                  setSongs((prev) => prev.filter((s) => s.favouriteId !== id))
+                }
+              />
+            </div>
             {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
-          </div>
+          </Fragment>
         ))
       ) : (
         <Typography variant="lead" className="text-center">
