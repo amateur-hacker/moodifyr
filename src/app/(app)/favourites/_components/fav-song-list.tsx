@@ -1,0 +1,113 @@
+"use client";
+
+import { useInViewport } from "@mantine/hooks";
+import { Fragment, useEffect, useState } from "react";
+import { SongsSetter } from "@/app/(app)/_components/songs-setter";
+import { useFavourites } from "@/app/(app)/_context/favourite-context";
+import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
+import type { FavouriteSongSchema } from "@/app/(app)/_types";
+import { FavouriteSongCard } from "@/app/(app)/favourites/_components/fav-song-card";
+import type { getUserMoodlists } from "@/app/(app)/moodlists/queries";
+import { getUserFavouriteSongs } from "@/app/(app)/queries";
+import { Spinner } from "@/components/ui/spinner";
+import { Typography } from "@/components/ui/typography";
+
+type FavouriteSongListProps = {
+  initialSongs: FavouriteSongSchema[] | null;
+  moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
+};
+const FavouriteSongList = ({
+  initialSongs,
+  moodlists,
+}: FavouriteSongListProps) => {
+  const { ref: bottomRef, inViewport } = useInViewport();
+  const [songs, setSongs] = useState(initialSongs ?? []);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const { favouriteSongs } = useFavourites();
+  const { currentSong, isPlayerFullScreen } = useSongPlayer();
+
+  useEffect(() => {
+    if (!currentSong || !isPlayerFullScreen) {
+      return;
+    }
+
+    setSongs((prev) => {
+      const exists = prev.find((s) => s.id === currentSong.id);
+
+      if (favouriteSongs[currentSong.id] && !exists) {
+        const normalizedSong: FavouriteSongSchema = {
+          ...currentSong,
+          favouriteId: currentSong.favouriteId || "",
+        };
+        return [normalizedSong, ...prev];
+      }
+
+      if (!favouriteSongs[currentSong.id] && exists) {
+        return prev.filter((s) => s.id !== currentSong.id);
+      }
+
+      return prev;
+    });
+  }, [currentSong, favouriteSongs, isPlayerFullScreen]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    if (inViewport && hasMore && !loadingMore) {
+      setLoadingMore(true);
+
+      getUserFavouriteSongs({
+        page: page + 1,
+        limit: 20,
+        pagination: true,
+      })
+        .then((res) => {
+          if (res?.length) {
+            setSongs((prev) => [...prev, ...res]);
+            setPage((p) => p + 1);
+          }
+          if (!res?.length || res.length < 20) setHasMore(false);
+        })
+        .finally(() => setLoadingMore(false));
+    }
+  }, [inViewport, hasMore, loadingMore]);
+
+  return (
+    <div className="pb-[var(--player-height,0px)]">
+      <SongsSetter songs={songs} />
+      {songs?.length ? (
+        songs?.map((song, i) => (
+          <Fragment key={song.id}>
+            <div className="flex flex-col">
+              <FavouriteSongCard
+                song={song}
+                moodlists={moodlists}
+                onRemove={(id) =>
+                  setSongs((prev) => prev.filter((s) => s.favouriteId !== id))
+                }
+              />
+            </div>
+            {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
+          </Fragment>
+        ))
+      ) : (
+        <Typography variant="lead" className="text-center">
+          No Favourite Songs
+        </Typography>
+      )}
+
+      {(hasMore || loadingMore) && (
+        <div
+          ref={bottomRef}
+          className="flex items-center justify-center py-2 mt-3 text-sm text-muted-foreground gap-2"
+        >
+          <Spinner />
+          Loading...
+        </div>
+      )}
+    </div>
+  );
+};
+
+export { FavouriteSongList };

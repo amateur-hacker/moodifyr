@@ -8,22 +8,10 @@ import {
   Press_Start_2P,
 } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
-import { Navbar } from "@/app/_components/navbar";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
-import { headers } from "next/headers";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { AppSidebar } from "@/app/_components/app-sidebar";
-import { GlobalSongPlayer } from "@/app/_components/global-song-player";
-import { FavouriteProvider } from "@/app/_context/favourite-context";
-import { ThemeProvider } from "@/app/_context/theme-provider";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import type { SelectUserModel } from "@/db/schema/auth";
-import { auth } from "@/lib/auth";
-import { UserProvider } from "./_context/user-context";
-
-// import { SplashCursor } from "@/components/splash-cursor";
-// import { cookies } from "next/headers";
+import { ThemeProvider } from "@/app/(app)/_context/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -89,39 +77,18 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const cookieStore = await cookies();
-  // const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  const user = session?.user as SelectUserModel;
-
   return (
     <html lang="en" className="system" suppressHydrationWarning>
       <body className={`${fontsVariable} antialiased`}>
         <ThemeProvider>
           <NuqsAdapter>
-            <UserProvider user={user}>
-              <SidebarProvider defaultOpen={false}>
-                <FavouriteProvider>
-                  <GlobalSongPlayer>
-                    <NextTopLoader
-                      color={"var(--primary)"}
-                      showSpinner={false}
-                    />
-                    <Toaster
-                      closeButton
-                      position="top-center"
-                      className="pointer-events-auto"
-                    />
-                    {/* <SplashCursor /> */}
-                    <Navbar />
-                    <AppSidebar />
-                    <main className="w-full mt-15 px-6 py-4">{children}</main>
-                  </GlobalSongPlayer>
-                </FavouriteProvider>
-              </SidebarProvider>
-            </UserProvider>
+            <NextTopLoader color={"var(--primary)"} showSpinner={false} />
+            <Toaster
+              closeButton
+              position="top-center"
+              className="pointer-events-auto"
+            />
+            {children}
           </NuqsAdapter>
         </ThemeProvider>
       </body>
