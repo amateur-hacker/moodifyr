@@ -23,7 +23,7 @@ const MoodlistsPage = async () => {
   const followedMoodlists = (await getUserFollowedMoodlists()) ?? null;
 
   return (
-    <div className="space-y-10 mb-[var(--player-height,0px)]">
+    <div className="space-y-10">
       <div>
         <Typography variant="h3" className="mb-4 font-playful">
           Create Moodlist

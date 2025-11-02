@@ -7,7 +7,7 @@ import {
   Smile,
 } from "lucide-react";
 import Link from "next/link";
-import { getUserSession } from "@/app/queries";
+import { getUserSession } from "@/app/(app)/queries";
 import { Typography } from "@/components/ui/typography";
 
 const quickLinks = [

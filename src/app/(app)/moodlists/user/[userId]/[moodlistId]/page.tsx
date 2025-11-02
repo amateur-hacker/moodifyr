@@ -53,7 +53,7 @@ const UserMoodlistPage = async ({
     ]);
 
   return (
-    <div className="w-full">
+    <div className="size-full">
       {user && (
         <div className="w-full h-[200px] border-b-2 mb-4 flex justify-center items-center relative">
           <div className="w-max mx-auto flex gap-5 items-center bg-transparent absolute z-10">
@@ -105,8 +105,8 @@ const UserMoodlistPage = async ({
               />
             )}
           </div>
-          <div className="w-full space-y-5 mx-auto max-w-3xl">
-            {moodlistSongs.songs.length > 0 ? (
+          <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
+            {moodlistSongs.songs.length ? (
               <Suspense
                 fallback={
                   <div className="space-y-[1.3125rem]">
@@ -116,11 +116,7 @@ const UserMoodlistPage = async ({
                   </div>
                 }
               >
-                <MoodlistSongList
-                  songs={moodlistSongs.songs}
-                  moodlistName={moodlistSongs.name}
-                  moodlistId={moodlistId}
-                />
+                <MoodlistSongList songs={moodlistSongs.songs} />
                 <SongsSetter songs={moodlistSongs.songs} />
               </Suspense>
             ) : (

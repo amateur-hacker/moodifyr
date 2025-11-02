@@ -20,16 +20,16 @@ const HistoryPage = async () => {
   }
 
   const [songHistory, moodlists] = await Promise.all([
-    getUserSongPlayHistory({ page: 1, limit: 20 }).then((res) => res ?? null),
+    getUserSongPlayHistory({ page: 1, limit: 1000 }).then((res) => res ?? null),
     getUserMoodlists().then((res) => res ?? null),
   ]);
 
   return (
-    <div className="w-full">
+    <div className="size-full">
       <Typography variant="h2" className="font-playful text-center mb-4">
         History
       </Typography>
-      <div className="w-full space-y-5 mx-auto max-w-3xl">
+      <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
         {songHistory && Object.keys(songHistory).length ? (
           <Suspense
             fallback={

@@ -23,7 +23,7 @@ const getUserSongPlayHistory = ({
 } = {}) => {
   const getUserSongPlayHistorySchema = z.object({
     page: z.number().int().min(1).default(1),
-    limit: z.number().int().min(10).max(20).default(10),
+    limit: z.number().int().min(10).max(1000).default(10),
   });
   const { page: parsedPage, limit: parsedLimit } =
     getUserSongPlayHistorySchema.parse({ page, limit });

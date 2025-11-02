@@ -38,7 +38,7 @@ const MoodlistIdPage = async ({
   // const moodlistSongs = (await getUserMoodlistSongs({ moodlistId })) ?? null;
 
   return (
-    <div className="w-full">
+    <div className="size-full">
       <div className="w-max mx-auto">
         <Badge variant="outline">
           <Smile
@@ -66,8 +66,8 @@ const MoodlistIdPage = async ({
               />
             )}
           </div>
-          <div className="w-full space-y-5 mx-auto max-w-3xl">
-            {moodlistSongs.songs.length > 0 ? (
+          <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
+            {moodlistSongs.songs.length ? (
               <Suspense
                 fallback={
                   <div className="space-y-[1.3125rem]">
@@ -79,7 +79,6 @@ const MoodlistIdPage = async ({
               >
                 <MoodlistSongList
                   songs={moodlistSongs.songs}
-                  moodlistName={moodlistSongs.name}
                   moodlistId={moodlistId}
                   moodlistType={moodlistSongs.type}
                 />

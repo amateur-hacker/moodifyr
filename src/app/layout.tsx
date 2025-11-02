@@ -79,7 +79,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" className="system" suppressHydrationWarning>
-      <body className={`${fontsVariable} antialiased`}>
+      <body className={`${fontsVariable} antialiased h-full`}>
         <ThemeProvider>
           <NuqsAdapter>
             <NextTopLoader color={"var(--primary)"} showSpinner={false} />

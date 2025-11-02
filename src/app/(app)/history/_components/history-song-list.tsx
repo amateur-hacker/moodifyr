@@ -2,6 +2,7 @@
 
 import { useInViewport } from "@mantine/hooks";
 import { useEffect, useState } from "react";
+import { VirtualizedSongList } from "@/app/(app)/_components/virtualized-song-list";
 import type { HistorySongSchema } from "@/app/(app)/_types";
 import { HistorySongCard } from "@/app/(app)/history/_components/history-song-card";
 import { getUserSongPlayHistory } from "@/app/(app)/history/queries";
@@ -52,7 +53,7 @@ const HistorySongList = ({
     if (inViewport && hasMore && !loadingMore) {
       setLoadingMore(true);
 
-      getUserSongPlayHistory({ page: page + 1, limit: 20 })
+      getUserSongPlayHistory({ page: page + 1, limit: 1000 })
         .then((res) => {
           if (res && Object.keys(res).length > 0) {
             setHistory((prev) => mergeHistory(prev, res));
@@ -62,7 +63,7 @@ const HistorySongList = ({
               (acc, songs) => acc + songs.length,
               0,
             );
-            if (totalFetched < 20) setHasMore(false);
+            if (totalFetched < 1000) setHasMore(false);
           } else {
             setHasMore(false);
           }
@@ -72,22 +73,22 @@ const HistorySongList = ({
   }, [inViewport, hasMore, loadingMore]);
 
   return (
-    <div className="pb-[var(--player-height,0px)] space-y-10">
+    <div className="space-y-10 size-full">
       {Object.entries(history).map(([date, songs]) => (
         <div key={date} className="flex flex-col">
           <Typography variant="large" className="mb-2">
             {date}
           </Typography>
-          {songs.map((song, i) => (
-            <div key={`${song.id}-${i}`}>
+          <VirtualizedSongList
+            songs={songs}
+            renderItem={(song) => (
               <HistorySongCard
                 song={song}
                 moodlists={moodlists}
                 onRemove={onRemove}
               />
-              {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
-            </div>
-          ))}
+            )}
+          />
         </div>
       ))}
 

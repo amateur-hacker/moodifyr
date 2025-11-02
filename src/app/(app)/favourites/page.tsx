@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { PlayHeader } from "@/app/(app)/_components/play-header";
 import { SongCardLoader } from "@/app/(app)/_components/song-card-loader";
+import { SongsSetter } from "@/app/(app)/_components/songs-setter";
 import { FavouriteSongList } from "@/app/(app)/favourites/_components/fav-song-list";
 import { getUserMoodlists } from "@/app/(app)/moodlists/queries";
 import {
@@ -22,18 +23,14 @@ const FavSongsPage = async () => {
       </div>
     );
   }
-  const [allFavSongs, favouriteSongs, favouriteSongsStats, moodlists] =
-    await Promise.all([
-      getUserFavouriteSongs().then((res) => res ?? null),
-      getUserFavouriteSongs({ page: 1, limit: 20, pagination: true }).then(
-        (res) => res ?? null,
-      ),
-      getUserFavouriteSongsStats().then((res) => res ?? null),
-      getUserMoodlists().then((res) => res ?? null),
-    ]);
+  const [favouriteSongs, favouriteSongsStats, moodlists] = await Promise.all([
+    getUserFavouriteSongs().then((res) => res ?? null),
+    getUserFavouriteSongsStats().then((res) => res ?? null),
+    getUserMoodlists().then((res) => res ?? null),
+  ]);
 
   return (
-    <div className="w-full space-y-4">
+    <div className="size-full space-y-4">
       <div className="space-y-2">
         <Typography variant="h2" className="font-playful text-center">
           Favourites
@@ -42,14 +39,14 @@ const FavSongsPage = async () => {
           favouriteSongsStats?.totalSongs && favouriteSongsStats.totalTime
         ) && (
           <PlayHeader
-            songs={allFavSongs}
+            songs={favouriteSongs}
             totalSongs={favouriteSongsStats.totalSongs}
             totalTime={favouriteSongsStats.totalTime}
             className="text-center"
           />
         )}
       </div>
-      <div className="w-full space-y-5 mx-auto max-w-3xl">
+      <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
         {favouriteSongs?.length ? (
           <Suspense
             fallback={
@@ -61,9 +58,10 @@ const FavSongsPage = async () => {
             }
           >
             <FavouriteSongList
-              initialSongs={favouriteSongs}
+              favouriteSongs={favouriteSongs}
               moodlists={moodlists}
             />
+            <SongsSetter songs={favouriteSongs} />
           </Suspense>
         ) : (
           <Typography variant="lead" className="text-center">

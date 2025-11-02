@@ -8,11 +8,7 @@ import { ShareLinkDialog } from "@/app/(app)/_components/share-link-dialog";
 import { SongCard } from "@/app/(app)/_components/song-card";
 import { useFavourites } from "@/app/(app)/_context/favourite-context";
 import { useUser } from "@/app/(app)/_context/user-context";
-import type {
-  SearchSongSchema,
-  SongSchema,
-  SongWithUniqueIdSchema,
-} from "@/app/(app)/_types";
+import type { SearchSongSchema, SongSchema } from "@/app/(app)/_types";
 import { toggleUserFavouriteSong } from "@/app/(app)/actions";
 import { googleSignInUser } from "@/app/(app)/fn";
 import type { getUserMoodlists } from "@/app/(app)/moodlists/queries";
@@ -22,7 +18,7 @@ const SearchSongCard = ({
   isAlreadyFavourite = false,
   moodlists,
 }: {
-  song: SongWithUniqueIdSchema;
+  song: SearchSongSchema;
   isAlreadyFavourite?: boolean;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 }) => {

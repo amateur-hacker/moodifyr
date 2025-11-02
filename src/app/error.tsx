@@ -20,7 +20,7 @@ const ErrorPage = ({
   }, [error]);
 
   return (
-    <div className="flex min-h-[calc(100dvh-3.8rem)] flex-col items-center justify-center bg-background pb-[var(--player-height,0px)]">
+    <div className="flex flex-col items-center justify-center">
       <div className="mx-auto max-w-md text-center">
         <Image
           src={

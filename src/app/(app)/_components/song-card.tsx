@@ -2,6 +2,7 @@
 
 import { CirclePlus, EllipsisIcon, Heart, Share2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { BaseSongCard } from "@/app/(app)/_components/base-song-card";
 import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { Prettify, SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconButton } from "@/components/ui/shadcn-io/icon-button";
 import { cn } from "@/lib/utils";
-import { BaseSongCard } from "./base-song-card";
 
 type Variant = "search" | "history" | "moodlist" | "favourite";
 

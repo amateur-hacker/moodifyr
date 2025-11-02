@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const NotFoundPage = () => {
   return (
-    <div className="flex min-h-[calc(100dvh-3.8rem)] flex-col items-center justify-center bg-background pb-[var(--player-height,0px)]">
+    <div className="flex flex-col items-center justify-center">
       <div className="mx-auto max-w-md text-center">
         <Image
           src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnZuY2VpZXA2Zjk4OTRubG5rN21namt5Mmw5NDZvaThianAyMWtmOCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/ZcthNRpghDfqieTcsm/giphy.gif"

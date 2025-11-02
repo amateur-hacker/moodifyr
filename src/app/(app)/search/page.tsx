@@ -4,7 +4,6 @@ import { SongsSetter } from "@/app/(app)/_components/songs-setter";
 import { SearchSongForm } from "@/app/(app)/search/_components/search-song-form";
 import { SearchSongList } from "@/app/(app)/search/_components/search-song-list";
 import { searchSong } from "@/app/(app)/search/api";
-import { trackUserSongSearchHistory } from "@/app/(app)/actions";
 import { getUserMoodlists } from "@/app/(app)/moodlists/queries";
 import { getUserFavouriteSongs } from "@/app/(app)/queries";
 import { WordRotate } from "@/components/ui/word-rotate";
@@ -18,12 +17,6 @@ type SearchPageProps = {
 };
 const SearchPage = async ({ searchParams }: SearchPageProps) => {
   const { q: searchQuery, id } = await searchParams;
-
-  if (searchQuery?.length) {
-    await trackUserSongSearchHistory({
-      query: searchQuery.toLocaleLowerCase(),
-    });
-  }
 
   const safeSearchSong = () =>
     !searchQuery && !id
@@ -46,11 +39,11 @@ const SearchPage = async ({ searchParams }: SearchPageProps) => {
       : null;
 
   return (
-    <div className="size-full pb-[var(--player-height,80px)] mb-[var(--player-height,80px)]">
-      <div className="w-full space-y-5 mx-auto max-w-3xl h-full">
+    <div className="size-full">
+      <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
         <SearchSongForm />
 
-        {songResult?.success ? (
+        {songs?.length ? (
           <Suspense
             fallback={
               <div className="space-y-[1.3125rem]">
