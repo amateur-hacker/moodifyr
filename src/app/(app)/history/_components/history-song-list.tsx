@@ -54,7 +54,7 @@ const HistorySongList = ({
       (sum, songs) => sum + songs.length,
       0,
     );
-    setHasMore(total === 1000);
+    setHasMore(total === 25);
   }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
@@ -62,7 +62,7 @@ const HistorySongList = ({
     if (inViewport && hasMore && !loadingMore) {
       setLoadingMore(true);
 
-      getUserSongPlayHistory({ page: page + 1, limit: 1000 })
+      getUserSongPlayHistory({ page: page + 1, limit: 25 })
         .then((res) => {
           if (res && Object.keys(res).length > 0) {
             setHistory((prev) => mergeHistory(prev, res));
@@ -72,7 +72,7 @@ const HistorySongList = ({
               (acc, songs) => acc + songs.length,
               0,
             );
-            if (totalFetched < 1000) setHasMore(false);
+            if (totalFetched < 25) setHasMore(false);
           } else {
             setHasMore(false);
           }

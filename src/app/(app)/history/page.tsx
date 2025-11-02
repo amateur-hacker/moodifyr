@@ -20,7 +20,7 @@ const HistoryPage = async () => {
   }
 
   const [songHistory, moodlists] = await Promise.all([
-    getUserSongPlayHistory({ page: 1, limit: 1000 }).then((res) => res ?? null),
+    getUserSongPlayHistory({ page: 1, limit: 25 }).then((res) => res ?? null),
     getUserMoodlists().then((res) => res ?? null),
   ]);
 
