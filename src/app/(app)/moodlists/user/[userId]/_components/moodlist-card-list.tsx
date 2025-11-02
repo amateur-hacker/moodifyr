@@ -3,8 +3,8 @@ import type {
   getMoodlistsByUserId,
   getUserFollowedMoodlists,
 } from "@/app/(app)/moodlists/queries";
+import { MoodlistCard } from "@/app/(app)/moodlists/user/[userId]/_components/moodlist-card";
 import { Typography } from "@/components/ui/typography";
-import { MoodlistCard } from "./moodlist-card";
 
 const MoodlistCardList = ({
   moodlists,

@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import {
   getMoodlistsByUserId,
   getUserFollowedMoodlists,
-} from "@/app/moodlists/queries";
-import { MoodlistCardList } from "@/app/moodlists/user/[userId]/_components/moodlist-card-list";
-import { getUserById, getUserSession } from "@/app/queries";
+} from "@/app/(app)/moodlists/queries";
+import { MoodlistCardList } from "@/app/(app)/moodlists/user/[userId]/_components/moodlist-card-list";
+import { getUserById, getUserSession } from "@/app/(app)/queries";
 import { Galaxy } from "@/components/galaxy";
 import { Typography } from "@/components/ui/typography";
 
