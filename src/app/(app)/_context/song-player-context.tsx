@@ -98,7 +98,7 @@ export function SongPlayerProvider({
     }
 
     setCurrentSong(song);
-    setYoutubeId(song.id.replace(/^dashboard-/, ""));
+    setYoutubeId(song.id);
     setIsPlaying(isPlaying);
 
     const newId = getUniqueSongId(song);
@@ -112,6 +112,10 @@ export function SongPlayerProvider({
 
       if (song.favouriteId) valueToSave.favouriteId = song.favouriteId;
       else if (song.historyId) valueToSave.historyId = song.historyId;
+      else if (song.moodlistSongId)
+        valueToSave.moodlistSongId = song.moodlistSongId;
+      else if (song.dashboardSongId)
+        valueToSave.dashboardSongId = song.dashboardSongId;
       else valueToSave.searchId = song.searchId;
 
       saveUserPreference({

@@ -7,7 +7,6 @@ import type {
   FavouriteSongSchema,
   Prettify,
   SongPlayerMode,
-  SongSchema,
   SongWithUniqueIdSchema,
 } from "@/app/(app)/_types";
 import { db } from "@/db";
@@ -24,7 +23,10 @@ import { auth } from "@/lib/auth";
 const getUserSession = async () => {
   return executeQuery({
     queryFn: async () => {
-      const session = await auth.api.getSession({ headers: await headers() });
+      const session = await auth.api.getSession({
+        headers: await headers(),
+        query: { disableCookieCache: true },
+      });
       return session;
     },
     isProtected: true,

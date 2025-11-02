@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 
 type PlayHeaderProps = {
   className?: string;
-  songs: SongWithUniqueIdSchema[] | null;
+  songs: SongWithUniqueIdSchema[];
   totalSongs: number;
   totalTime: string;
 };
@@ -43,8 +43,6 @@ const PlayHeader = ({
   } = useSongPlayer();
 
   const handlePlay = (mode: "shuffle" | "normal") => {
-    if (!songs?.length) return;
-
     setMode(mode);
     setIsLoading(true);
     setOpen(false);

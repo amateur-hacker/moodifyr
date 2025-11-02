@@ -37,6 +37,7 @@ type SongWithUniqueIdSchema = Prettify<
       favouriteId: string;
       historyId: string;
       moodlistSongId: string;
+      dashboardSongId: string;
     }>
 >;
 

@@ -1,8 +1,11 @@
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { Dashboard } from "@/app/(app)/dashboard/_components/dashboard";
+import {
+  DashboardAnalyticsProvider,
+  type Preset,
+} from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
 import { getUserAllPreferences, getUserSession } from "@/app/(app)/queries";
 import { convertToLocalTZ } from "@/lib/utils";
-import { DashboardAnalyticsProvider } from "./_context/dashboard-analytics-context";
 
 export default async function DashboardPage() {
   const session = (await getUserSession()) ?? null;
@@ -33,11 +36,15 @@ export default async function DashboardPage() {
     (prefs["dashboard.activeSource"] as "preset" | "picker" | undefined) ??
     "preset";
 
+  const initialPreset =
+    (prefs["dashboard.preset"] as Preset | undefined) ?? "last_7_days";
+
   return (
     <DashboardAnalyticsProvider
       initialStartDate={initialStartDate}
       initialEndDate={initialEndDate}
       initialActiveSource={initialActiveSource}
+      initialPreset={initialPreset}
     >
       <Dashboard />
     </DashboardAnalyticsProvider>

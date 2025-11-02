@@ -13,7 +13,10 @@ const executeApi = async <T>({
 }: ExecuteApiArgs<T>): Promise<T | null> => {
   try {
     if (isProtected) {
-      const session = await auth.api.getSession({ headers: await headers() });
+      const session = await auth.api.getSession({
+        headers: await headers(),
+        // query: { disableCookieCache: true },
+      });
       if (!session) throw new Error("User not authorized!");
     }
     return await apiFn();

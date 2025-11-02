@@ -9,9 +9,10 @@ const getUniqueSongId = (song: SongWithUniqueIdSchema) => {
 };
 
 const getSongInstanceId = (song: SongWithUniqueIdSchema) =>
+  song.dashboardSongId ||
+  song.moodlistSongId ||
   song.historyId ||
   song.favouriteId ||
-  song.moodlistSongId ||
   song.searchId ||
   song.id;
 

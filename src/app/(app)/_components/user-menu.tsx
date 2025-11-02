@@ -1,7 +1,8 @@
 "use client";
 
-import { LogOut, User } from "lucide-react";
-import Link from "next/link";
+// import { LogOut, User } from "lucide-react";
+// import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { signOutUser } from "@/app/(app)/actions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,10 +15,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
-import type { authClient } from "@/lib/auth-client";
+import type { auth } from "@/lib/auth";
 
 type UserMenuProps = {
-  session: typeof authClient.$Infer.Session;
+  session: typeof auth.$Infer.Session;
 };
 const UserMenu = ({ session }: UserMenuProps) => {
   const [isLoading, setIsLoading] = useState(false);

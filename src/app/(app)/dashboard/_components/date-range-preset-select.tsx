@@ -5,15 +5,17 @@ import {
   endOfMonth,
   endOfWeek,
   endOfYear,
-  isSameDay,
   startOfDay,
   startOfMonth,
   startOfWeek,
   startOfYear,
   subDays,
 } from "date-fns";
-import { use, useEffect, useId, useState } from "react";
-import { DashboardAnalyticsContext } from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
+import { useEffect, useId } from "react";
+import {
+  type Preset,
+  useDashboardAnalytics,
+} from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -25,98 +27,31 @@ import {
 } from "@/components/ui/select";
 import { convertToLocalTZ } from "@/lib/utils";
 
-const getDefaultPreset = ({
-  startDate,
-  endDate,
-}: {
-  startDate: Date;
-  endDate: Date;
-}) => {
-  const now = convertToLocalTZ(new Date());
-
-  if (
-    isSameDay(startDate, startOfDay(now)) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "today";
-  if (
-    isSameDay(startDate, startOfDay(subDays(now, 1))) &&
-    isSameDay(endDate, endOfDay(subDays(now, 1)))
-  )
-    return "yesterday";
-  if (
-    isSameDay(startDate, startOfDay(subDays(now, 6))) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "last_7_days";
-  if (
-    isSameDay(startDate, startOfDay(subDays(now, 29))) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "last_30_days";
-  if (
-    isSameDay(startDate, startOfWeek(now, { weekStartsOn: 0 })) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "this_week";
-  if (
-    isSameDay(startDate, startOfWeek(subDays(now, 7), { weekStartsOn: 0 })) &&
-    isSameDay(endDate, endOfWeek(subDays(now, 7), { weekStartsOn: 0 }))
-  )
-    return "last_week";
-  if (
-    isSameDay(startDate, startOfMonth(now)) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "this_month";
-  if (
-    isSameDay(startDate, startOfMonth(subDays(now, now.getDate()))) &&
-    isSameDay(endDate, endOfMonth(subDays(now, now.getDate())))
-  )
-    return "last_month";
-  if (
-    isSameDay(startDate, startOfYear(now)) &&
-    isSameDay(endDate, endOfDay(now))
-  )
-    return "this_year";
-  if (
-    isSameDay(startDate, startOfYear(new Date(now.getFullYear() - 1, 0, 1))) &&
-    isSameDay(endDate, endOfYear(new Date(now.getFullYear() - 1, 0, 1)))
-  )
-    return "last_year";
-
-  return "custom_range";
-};
-
 const DateRangePresetSelect = () => {
   const {
-    startDate,
-    endDate,
     setStartDate,
     setEndDate,
     activeSource,
     setActiveSource,
     isPending,
-  } = use(DashboardAnalyticsContext);
-  const [selectedPreset, setSelectedPreset] = useState(
-    getDefaultPreset({ startDate, endDate }),
-  );
+    preset,
+    setPreset,
+  } = useDashboardAnalytics();
 
-  const isDateRangePickerDisabled = activeSource === "preset";
-
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    if (!startDate || !endDate || isPending) {
+    if (isPending) {
       return;
     }
-    if (isDateRangePickerDisabled) {
-      setSelectedPreset(getDefaultPreset({ startDate, endDate }));
+    if (activeSource === "preset") {
+      setPreset(preset);
     } else {
-      setSelectedPreset("custom_range");
+      setPreset("custom_range");
     }
-  }, [startDate, endDate, isDateRangePickerDisabled, isPending]);
+  }, [activeSource]);
 
-  const handleSelectChange = (value: string) => {
-    setSelectedPreset(value);
+  const handleSelectChange = (value: Preset) => {
+    setPreset(value);
     const now = convertToLocalTZ(new Date());
 
     let start: Date | null = null;
@@ -144,7 +79,7 @@ const DateRangePresetSelect = () => {
         break;
 
       case "this_week":
-        start = startOfWeek(now, { weekStartsOn: 0 }); // Sunday start
+        start = startOfWeek(now, { weekStartsOn: 0 });
         end = endOfDay(now);
         break;
 
@@ -228,7 +163,7 @@ const DateRangePresetSelect = () => {
   const id = useId();
 
   return (
-    <Select value={selectedPreset} onValueChange={handleSelectChange}>
+    <Select value={preset} onValueChange={handleSelectChange}>
       <SelectTrigger
         id={id}
         className="w-auto min-w-48 max-w-full cursor-pointer"

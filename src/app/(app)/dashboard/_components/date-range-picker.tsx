@@ -3,7 +3,7 @@
 import { type CalendarDate, parseDate } from "@internationalized/date";
 import { endOfDay, format, startOfDay } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Button,
   DateRangePicker as DateRangePickerRac,
@@ -11,7 +11,7 @@ import {
   Group,
   Popover,
 } from "react-aria-components";
-import { DashboardAnalyticsContext } from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
+import { useDashboardAnalytics } from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
 import { RangeCalendar } from "@/components/ui/calendar-rac";
 import { DateInput, dateInputStyle } from "@/components/ui/datefield-rac";
 import { cn, convertToLocalTZ } from "@/lib/utils";
@@ -25,7 +25,7 @@ const DateRangePicker = () => {
     isPending,
     activeSource,
     setActiveSource,
-  } = use(DashboardAnalyticsContext);
+  } = useDashboardAnalytics();
 
   const isDateRangePickerDisabled = activeSource === "preset";
 
@@ -99,7 +99,7 @@ const DateRangePicker = () => {
         setPickerValue({ start: null, end: null });
       }
     }
-  }, [startDate, endDate, activeSource, isPending, lastPickerValue]);
+  }, [activeSource]);
 
   const handleDateRangeChange: Required<
     React.ComponentProps<typeof DateRangePickerRac>

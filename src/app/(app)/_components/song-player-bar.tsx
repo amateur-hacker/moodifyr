@@ -109,6 +109,7 @@ const SongPlayerBar = ({
       if (currentIndex > 0 && currentTime <= 5) {
         setSong(songs[currentIndex - 1]);
       } else {
+        setSong(currentSong);
         playerRef.current?.seekTo(0, true);
         setProgress(0);
       }

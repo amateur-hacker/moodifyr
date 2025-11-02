@@ -2,13 +2,13 @@
 
 import { Pause, Play } from "lucide-react";
 import Image from "next/image";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { SongSchema } from "@/app/(app)/_types";
 import { DateRangePicker } from "@/app/(app)/dashboard/_components/date-range-picker";
 import { DateRangePresetSelect } from "@/app/(app)/dashboard/_components/date-range-preset-select";
-import { DashboardAnalyticsContext } from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
+import { useDashboardAnalytics } from "@/app/(app)/dashboard/_context/dashboard-analytics-context";
 import { getUserDashboardData } from "@/app/(app)/dashboard/queries";
 import { ComicText } from "@/components/magicui/comic-text";
 import { TextAnimate } from "@/components/magicui/text-animate";
@@ -24,8 +24,8 @@ type TopSong = {
   times: number;
 };
 const Dashboard = () => {
-  const { startDate, endDate, isPending } = use(DashboardAnalyticsContext);
-  const [mood, setMood] = useState<{ mood: string; message: string } | null>(
+  const { startDate, endDate, isPending } = useDashboardAnalytics();
+  const [mood, setMood] = useState<{ type: string; message: string } | null>(
     null,
   );
   const [topSongs, setTopSongs] = useState<TopSong[]>([]);
@@ -102,9 +102,9 @@ const Dashboard = () => {
             <TextShimmer className="font-mono text-sm" duration={1}>
               Tracking mood...
             </TextShimmer>
-          ) : mood?.mood || mood?.message ? (
+          ) : mood?.type || mood?.message ? (
             <div className="flex flex-col gap-2">
-              <ComicText fontSize={5}>{mood?.mood}</ComicText>
+              <ComicText fontSize={5}>{mood?.type}</ComicText>
               <TextAnimate
                 animation="blurIn"
                 className="font-medium text-sm sm:text-base"

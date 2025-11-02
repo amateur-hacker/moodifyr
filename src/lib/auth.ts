@@ -22,9 +22,21 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
+      // prompt: "select_account",
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
     },
+  },
+  session: {
+    // expiresIn: 60 * 60 * 24 * 7,
+    // updateAge: 60 * 60 * 24,
+    // cookieCache: { enabled: false },
+    expiresIn: 60 * 60 * 24 * 365,
+    updateAge: 60 * 60 * 24 * 7,
+  },
+  rateLimit: {
+    window: 60,
+    max: 10,
   },
   plugins: [nextCookies()],
 });

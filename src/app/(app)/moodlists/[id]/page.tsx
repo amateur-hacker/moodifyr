@@ -56,10 +56,12 @@ const MoodlistIdPage = async ({
               {moodlistSongs.name}
             </Typography>
             {!!(
-              moodlistSongsStats?.totalSongs && moodlistSongsStats.totalTime
+              moodlistSongs?.songs?.length &&
+              moodlistSongsStats?.totalSongs &&
+              moodlistSongsStats.totalTime
             ) && (
               <PlayHeader
-                songs={moodlistSongs?.songs}
+                songs={moodlistSongs.songs}
                 totalSongs={moodlistSongsStats.totalSongs}
                 totalTime={moodlistSongsStats.totalTime}
                 className="text-center"

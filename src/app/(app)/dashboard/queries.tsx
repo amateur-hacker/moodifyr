@@ -117,7 +117,8 @@ const getUserMostPlayedSongByDateRange = ({
 
       return songsList.map((s) => ({
         song: {
-          id: `dashboard-${s.id}`,
+          id: s.id,
+          dashboardSongId: `dashboard-${s.id}`,
           title: s.title,
           thumbnail: s.thumbnail,
           duration: s.duration,
@@ -132,7 +133,7 @@ const getUserMostPlayedSongByDateRange = ({
 };
 
 type MoodResult = {
-  mood: string;
+  type: string;
   message: string;
 };
 type MoodCategory =
@@ -225,12 +226,12 @@ const getUserMoodBySongHistory = async ({
             isTodayIncluded,
           );
 
-          return { mood, message } as MoodResult;
+          return { type: mood, message } as MoodResult;
         }
       }
 
       return {
-        mood: `${CATEGORY_EMOJI.Neutral} Neutral`,
+        type: `${CATEGORY_EMOJI.Neutral} Neutral`,
         message: getMoodMessage("Neutral", isTodayIncluded),
       };
     },
