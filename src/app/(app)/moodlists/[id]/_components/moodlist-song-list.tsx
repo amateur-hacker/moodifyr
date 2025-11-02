@@ -1,3 +1,5 @@
+"use client";
+
 import { VirtualizedSongList } from "@/app/(app)/_components/virtualized-song-list";
 import type { MoodlistSongSchema } from "@/app/(app)/_types";
 import { MoodlistSongCard } from "@/app/(app)/moodlists/[id]/_components/moodlist-song-card";
