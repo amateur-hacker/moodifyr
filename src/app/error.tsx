@@ -39,7 +39,7 @@ const ErrorPage = ({
           later.
         </Typography>
         <div className="mt-6">
-          <Link href="#" className={cn(buttonVariants({ variant: "default" }))}>
+          <Link href="/" className={cn(buttonVariants({ variant: "default" }))}>
             <ChevronLeft />
             Back to Home
           </Link>
