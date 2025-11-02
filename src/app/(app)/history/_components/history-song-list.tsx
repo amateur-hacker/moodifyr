@@ -50,6 +50,15 @@ const HistorySongList = ({
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
+    const total = Object.values(history).reduce(
+      (sum, songs) => sum + songs.length,
+      0,
+    );
+    setHasMore(total === 1000);
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
     if (inViewport && hasMore && !loadingMore) {
       setLoadingMore(true);
 

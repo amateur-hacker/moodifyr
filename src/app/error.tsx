@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const ErrorPage = ({
   error,
-  reset,
+  // reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
