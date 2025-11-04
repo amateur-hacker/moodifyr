@@ -230,16 +230,35 @@ const SongPlayerEngine = () => {
 
     switch (lastActionRef.current) {
       case "prev": {
-        if (currentIndex > 0) {
-          const prevSong = songsRef.current[currentIndex - 1];
-          console.warn(
-            `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to prev song: '${getSlicedSongTitle(prevSong.title)}'`,
+        if (modeRef.current === "shuffle") {
+          const shuffleIndex = shuffleQueueRef.current.findIndex(
+            (s) => s.id === currentSongRef.current?.id,
           );
-          setSong(prevSong);
+          const prevShuffleSong = shuffleQueueRef.current[shuffleIndex - 1];
+          if (prevShuffleSong) {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to prev shuffle song: '${getSlicedSongTitle(prevShuffleSong.title)}'`,
+            );
+            setSong(prevShuffleSong);
+            setShuffleIndex(shuffleIndex + 1);
+          } else {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no prev shuffle song available`,
+            );
+            resetPlayer();
+          }
         } else {
-          console.warn(
-            `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no prev song available`,
-          );
+          if (currentIndex > 0) {
+            const prevSong = songsRef.current[currentIndex - 1];
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to prev song: '${getSlicedSongTitle(prevSong.title)}'`,
+            );
+            setSong(prevSong);
+          } else {
+            console.warn(
+              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no prev song available`,
+            );
+          }
         }
         return;
       }
