@@ -44,6 +44,7 @@ const SongPlayerEngine = () => {
   const modeRef = useRef(mode);
   const lastActionRef = useRef(lastAction);
   const shuffleQueueRef = useRef(shuffleQueue);
+  const shuffleIndexRef = useRef(shuffleIndex);
   const isPlayingRef = useRef(isPlaying);
   const lastTimeRef = useRef(0);
   const lastTrackedIdRef = useRef<string | null>(null);
@@ -72,6 +73,10 @@ const SongPlayerEngine = () => {
   useEffect(() => {
     shuffleQueueRef.current = shuffleQueue;
   }, [shuffleQueue]);
+
+  useEffect(() => {
+    shuffleIndexRef.current = shuffleIndex;
+  }, [shuffleIndex]);
 
   // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   // useEffect(() => {
@@ -137,7 +142,7 @@ const SongPlayerEngine = () => {
 
         if (modeRef.current === "shuffle") {
           let queue = shuffleQueueRef.current;
-          let index = shuffleIndex;
+          let index = shuffleIndexRef.current;
 
           index++;
 
