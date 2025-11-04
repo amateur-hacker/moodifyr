@@ -2,13 +2,13 @@
 
 import { useInViewport } from "@mantine/hooks";
 import { useEffect, useState } from "react";
-import { VirtualizedSongList } from "@/app/(app)/_components/virtualized-song-list";
 import type { HistorySongSchema } from "@/app/(app)/_types";
 import { HistorySongCard } from "@/app/(app)/history/_components/history-song-card";
 import { getUserSongPlayHistory } from "@/app/(app)/history/queries";
 import type { getUserMoodlists } from "@/app/(app)/moodlists/queries";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
+import { GroupedVirtuoso } from "react-virtuoso";
 
 type HistorySongListProps = {
   initialHistory: Awaited<ReturnType<typeof getUserSongPlayHistory>>;
@@ -81,25 +81,47 @@ const HistorySongList = ({
     }
   }, [inViewport, hasMore, loadingMore]);
 
+  const groups = Object.entries(history);
+  const groupLabels = groups.map(([date]) => date);
+  const groupCounts = groups.map(([_, songs]) => songs.length);
+  const flatSongs = groups.flatMap(([_, songs]) => songs);
+  const groupEndIndices = groupCounts.reduce((acc, count, idx) => {
+    const prevEnd = acc[idx - 1] ?? -1;
+    acc.push(prevEnd + count);
+    return acc;
+  }, [] as number[]);
+
   return (
-    <div className="space-y-10 size-full">
-      {Object.entries(history).map(([date, songs]) => (
-        <div key={date} className="flex flex-col">
-          <Typography variant="large" className="mb-2">
-            {date}
-          </Typography>
-          <VirtualizedSongList
-            songs={songs}
-            renderItem={(song) => (
+    <div className="space-y-5 size-full">
+      <GroupedVirtuoso
+        useWindowScroll
+        overscan={400}
+        groupCounts={groupCounts}
+        groupContent={(index) => (
+          <div className="inline-flex mb-2">
+            <Typography variant="large" className="font-semibold">
+              {groupLabels[index]}
+            </Typography>
+          </div>
+        )}
+        itemContent={(index, groupIndex) => {
+          const song = flatSongs[index];
+          const isLastInGroup = index === groupEndIndices[groupIndex];
+          const isLastGroup = groupIndex === groupCounts.length - 1;
+
+          return (
+            <div className="flex flex-col">
               <HistorySongCard
                 song={song}
                 moodlists={moodlists}
                 onRemove={onRemove}
               />
-            )}
-          />
-        </div>
-      ))}
+              {!isLastInGroup && <div className="my-5 h-px bg-border" />}
+              {isLastInGroup && !isLastGroup && <div className="mb-10" />}
+            </div>
+          );
+        }}
+      />
 
       {(hasMore || loadingMore) && (
         <div

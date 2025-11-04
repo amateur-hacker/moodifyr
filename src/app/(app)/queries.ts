@@ -25,7 +25,7 @@ const getUserSession = async () => {
     queryFn: async () => {
       const session = await auth.api.getSession({
         headers: await headers(),
-        query: { disableCookieCache: true },
+        // query: { disableCookieCache: true },
       });
       return session;
     },

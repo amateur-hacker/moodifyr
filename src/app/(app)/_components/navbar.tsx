@@ -1,13 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { SignInButton } from "@/app/(app)/_components/signin-button";
 import { UserMenu } from "@/app/(app)/_components/user-menu";
-import { getUserSession } from "@/app/(app)/queries";
+import { useUser } from "@/app/(app)/_context/user-context";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-// import { ThemeSwitcher } from "@/app/(app)/_components/theme-switcher";
-
-const Navbar = async () => {
-  const session = (await getUserSession()) ?? null;
+const Navbar = () => {
+  const user = useUser();
 
   return (
     <nav className="flex items-center justify-between px-6 py-3 border-b bg-background/90 text-foreground gap-5 fixed top-0 inset-x-0 z-[50] backdrop-blur-md">
@@ -20,7 +20,7 @@ const Navbar = async () => {
 
       <div className="flex items-center gap-4 justify-end">
         {/* <ThemeSwitcher /> */}
-        {session ? <UserMenu session={session} /> : <SignInButton />}
+        {user ? <UserMenu user={user} /> : <SignInButton />}
       </div>
     </nav>
   );

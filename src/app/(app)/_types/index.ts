@@ -30,6 +30,12 @@ type MoodlistSongSchema = Prettify<
   }
 >;
 
+type DashboardSongSchema = Prettify<
+  SongSchema & {
+    dashboardSongId: string;
+  }
+>;
+
 type SongWithUniqueIdSchema = Prettify<
   SongSchema &
     Partial<{
@@ -50,6 +56,7 @@ export type {
   HistorySongSchema,
   FavouriteSongSchema,
   MoodlistSongSchema,
+  DashboardSongSchema,
   SongWithUniqueIdSchema,
   SongPlayerMode,
 };

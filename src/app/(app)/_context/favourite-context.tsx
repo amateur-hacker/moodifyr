@@ -40,7 +40,7 @@ export function FavouriteProvider({ children }: { children: React.ReactNode }) {
           setFavouriteSongs(favMap);
         }
       } catch (err) {
-        console.error("Failed to fetch favourites:", err);
+        console.error("Failed to fetch favourites songs:", err);
       }
     }
 

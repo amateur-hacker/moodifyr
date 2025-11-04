@@ -20,7 +20,7 @@ export const UserProvider = ({
   user: SelectUserModel | null;
   children: React.ReactNode;
 }) => {
-  const [user, setUser] = useState<SelectUserModel | null>(initialUser);
+  const [user, setUser] = useState<SelectUserModel | null>(() => initialUser);
   return (
     <UserContext.Provider value={{ user, setUser }}>
       {children}
@@ -32,11 +32,4 @@ export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) throw new Error("useUser must be used within a UserProvider");
   return context.user;
-};
-
-export const useSetUser = () => {
-  const context = useContext(UserContext);
-  if (!context)
-    throw new Error("useSetUser must be used within a UserProvider");
-  return context.setUser;
 };

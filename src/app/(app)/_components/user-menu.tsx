@@ -16,11 +16,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
 import type { auth } from "@/lib/auth";
+import { ThemeSwitcher } from "@/components/ui/shadcn-io/theme-switcher";
 
 type UserMenuProps = {
-  session: typeof auth.$Infer.Session;
+  user: typeof auth.$Infer.Session.user;
 };
-const UserMenu = ({ session }: UserMenuProps) => {
+const UserMenu = ({ user }: UserMenuProps) => {
   const [isLoading, setIsLoading] = useState(false);
   // const router = useRouter();
 
@@ -39,20 +40,21 @@ const UserMenu = ({ session }: UserMenuProps) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex items-center gap-2 focus:outline-none cursor-pointer"
+          className="flex items-center gap-2 cursor-pointer"
           type="button"
           title="Open User Menu"
+          suppressHydrationWarning
         >
           <Avatar className="h-8 w-8">
             <AvatarImage
               src={
-                session?.user?.image ||
+                user?.image ||
                 "https://res.cloudinary.com/ahcloud/image/upload/v1747277562/images/default-profile_bpnjdl_dzyvud.png"
               }
-              alt={session.user.name}
+              alt={user.name}
             />
             <AvatarFallback>
-              {session.user.name.slice(0, 2).toUpperCase()}
+              {user.name.slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
         </button>
@@ -61,25 +63,38 @@ const UserMenu = ({ session }: UserMenuProps) => {
       <DropdownMenuContent align="end" className="w-48">
         {/* <DropdownMenuLabel>Manage account</DropdownMenuLabel> */}
 
-        <div className="flex gap-1.5 px-2 py-1.5">
-          <Avatar className="h-8 w-8">
-            <AvatarImage
-              src={
-                session?.user?.image ||
-                "https://res.cloudinary.com/ahcloud/image/upload/v1747277562/images/default-profile_bpnjdl_dzyvud.png"
-              }
-              alt={session.user.name}
-            />
-            <AvatarFallback>
-              {session.user.name.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <DropdownMenuLabel className="truncate">
-            {session.user.name}
-          </DropdownMenuLabel>
+        <div className="flex flex-col items-center">
+          <div className="flex gap-1.5 px-2 py-1.5">
+            <Avatar className="h-8 w-8">
+              <AvatarImage
+                src={
+                  user?.image ||
+                  "https://res.cloudinary.com/ahcloud/image/upload/v1747277562/images/default-profile_bpnjdl_dzyvud.png"
+                }
+                alt={user.name}
+              />
+              <AvatarFallback>
+                {user.name.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <DropdownMenuLabel className="truncate">
+              {user.name}
+            </DropdownMenuLabel>
+          </div>
+
+          <ThemeSwitcher />
         </div>
+
         <DropdownMenuSeparator />
 
+        {/* <DropdownMenuItem> */}
+        {/*   <ThemeSwitcher */}
+        {/*     defaultValue="system" */}
+        {/*     onChange={setTheme} */}
+        {/*     value={theme} */}
+        {/*   /> */}
+        {/*   <span>Theme</span> */}
+        {/* </DropdownMenuItem> */}
         {/* <DropdownMenuItem asChild> */}
         {/*   <Link */}
         {/*     href="/profile" */}

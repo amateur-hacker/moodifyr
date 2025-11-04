@@ -1,7 +1,7 @@
 import { Virtuoso } from "react-virtuoso";
 import type { SongSchema } from "@/app/(app)/_types";
 
-const VIRTUALIZE_AFTER = 15;
+const VIRTUALIZE_AFTER = 25;
 
 type VirtualizedSongListProps<T extends SongSchema> = {
   songs: T[];

@@ -59,14 +59,16 @@ export function SongPlayerProvider({
   initialMode,
 }: SongPlayerProviderProps) {
   const [currentSong, setCurrentSong] = useState<SongWithUniqueIdSchema | null>(
-    initialSong ?? null,
+    () => initialSong,
   );
   const [youtubeId, setYoutubeId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [mode, setMode] = useState<SongPlayerMode>(initialMode ?? "normal");
+  const [mode, setMode] = useState<SongPlayerMode>(
+    () => initialMode ?? "normal",
+  );
   const [isPlayerFullScreen, setIsPlayerFullScreen] = useState(false);
   const [songs, setSongs] = useState<SongWithUniqueIdSchema[]>([]);
   const [shuffleQueue, setShuffleQueue] = useState<SongWithUniqueIdSchema[]>(

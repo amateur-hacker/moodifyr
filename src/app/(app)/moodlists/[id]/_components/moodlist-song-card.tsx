@@ -46,11 +46,11 @@ const MoodlistSongCard = ({
       song={song}
       {...(moodlistType === "owned"
         ? {
-            moodlistType: "owned" as const,
+            moodlistType: "owned",
             onRemoveSongFromMoodlist: handleRemoveSongFromMoodlist,
             shouldRemoveSongFromMoodlistDisabled: isPending,
           }
-        : { moodlistType: "followed" as const })}
+        : { moodlistType: "followed" })}
     />
   );
 };

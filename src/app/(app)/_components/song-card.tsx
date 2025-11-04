@@ -2,7 +2,10 @@
 
 import { CirclePlus, EllipsisIcon, Heart, Share2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { BaseSongCard } from "@/app/(app)/_components/base-song-card";
+import {
+  BaseSongCard,
+  type Variant,
+} from "@/app/(app)/_components/base-song-card";
 import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { Prettify, SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { Button } from "@/components/ui/button";
@@ -15,13 +18,10 @@ import {
 import { IconButton } from "@/components/ui/shadcn-io/icon-button";
 import { cn } from "@/lib/utils";
 
-type Variant = "search" | "history" | "moodlist" | "favourite";
-
 type BaseProps = {
   song: SongWithUniqueIdSchema;
   onClickExtra?: () => void;
 };
-
 type VariantSpecificProps = {
   search: {
     onToggleFavourite: () => Promise<void>;
@@ -54,6 +54,9 @@ type VariantSpecificProps = {
     shouldHeartButtonAnimate: boolean;
     shouldHeartButtonDisabled: boolean;
   };
+  dashboard: {
+    timesPlayed: number;
+  };
 };
 
 type SongCardProps = Prettify<
@@ -62,8 +65,9 @@ type SongCardProps = Prettify<
   }[Variant]
 >;
 
-export function SongCard(props: SongCardProps) {
+const SongCard = (props: SongCardProps) => {
   const { song, variant, onClickExtra } = props;
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { currentSong, isCurrentSong } = useSongPlayer();
   const [isCurrent, setIsCurrent] = useState(false);
@@ -73,7 +77,7 @@ export function SongCard(props: SongCardProps) {
     setIsCurrent(isCurrentSong(song));
   }, [song, currentSong]);
 
-  const dropdownItems: React.ReactNode = (() => {
+  const dropdownItems = () => {
     switch (variant) {
       case "search":
       case "favourite":
@@ -119,10 +123,23 @@ export function SongCard(props: SongCardProps) {
       default:
         return null;
     }
-  })();
+  };
 
-  if (variant === "moodlist" && props.moodlistType === "followed") {
-    return <BaseSongCard song={song} />;
+  if (
+    (variant === "moodlist" && props.moodlistType === "followed") ||
+    variant === "dashboard"
+  ) {
+    return (
+      <BaseSongCard
+        song={song}
+        {...(variant === "dashboard"
+          ? {
+              variant: "dashboard",
+              timesPlayed: props.timesPlayed,
+            }
+          : { variant: "moodlist" })}
+      />
+    );
   }
 
   const rightContent =
@@ -146,7 +163,7 @@ export function SongCard(props: SongCardProps) {
           </DropdownMenuTrigger>
           {dropdownItems && (
             <DropdownMenuContent align="end">
-              {dropdownItems}
+              {dropdownItems()}
             </DropdownMenuContent>
           )}
         </DropdownMenu>
@@ -192,7 +209,9 @@ export function SongCard(props: SongCardProps) {
           </Button>
         </DropdownMenuTrigger>
         {dropdownItems && (
-          <DropdownMenuContent align="end">{dropdownItems}</DropdownMenuContent>
+          <DropdownMenuContent align="end">
+            {dropdownItems()}
+          </DropdownMenuContent>
         )}
       </DropdownMenu>
     );
@@ -202,6 +221,9 @@ export function SongCard(props: SongCardProps) {
       song={song}
       rightContent={rightContent}
       onClickExtraAction={onClickExtra}
+      variant={variant}
     />
   );
-}
+};
+
+export { SongCard };

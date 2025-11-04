@@ -6,22 +6,33 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
 import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
-import type { SongWithUniqueIdSchema } from "@/app/(app)/_types";
+import type { Prettify, SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { generateShuffleQueue } from "@/app/(app)/utils";
 import { Card } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
-type BaseSongCardProps = {
+type CommonSongCardProps = {
   song: SongWithUniqueIdSchema;
   rightContent?: React.ReactNode;
   onClickExtraAction?: (e: React.MouseEvent) => void;
 };
-export function BaseSongCard({
-  song,
-  rightContent,
-  onClickExtraAction: onClickExtra,
-}: BaseSongCardProps) {
+type Variant = "search" | "history" | "moodlist" | "favourite" | "dashboard";
+type VariantSpecificProps = Prettify<
+  | { variant: Exclude<Variant, "dashboard"> }
+  | { variant: "dashboard"; timesPlayed: number }
+>;
+type BaseSongCardProps = CommonSongCardProps & VariantSpecificProps;
+const BaseSongCard = (props: BaseSongCardProps) => {
+  const {
+    song,
+    rightContent,
+    onClickExtraAction: onClickExtra,
+    variant,
+  } = props;
+
+  const timesPlayed = variant === "dashboard" ? props.timesPlayed : undefined;
   const {
     currentSong,
     isPlaying,
@@ -91,9 +102,8 @@ export function BaseSongCard({
         type="button"
         onClick={handleClick}
         className={cn(
-          "relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer rounded-md",
-          isCurrent &&
-            "[--shadow-2xl:0px_1px_4px_0px_oklch(0.8109_0_0)] shadow-2xl",
+          "relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer rounded-md text-neutral-300",
+          isCurrent && "shadow-2xl",
         )}
         title={!isPlaying ? "Play" : "Pause"}
       >
@@ -120,7 +130,7 @@ export function BaseSongCard({
         >
           {isCurrent ? (
             isLoading ? (
-              <div className="h-6 w-6 animate-spin rounded-full border-white border-b-2" />
+              <Spinner className="size-9" />
             ) : isPlaying ? (
               <Pause size={36} aria-hidden />
             ) : (
@@ -133,11 +143,13 @@ export function BaseSongCard({
       </button>
 
       <div className="flex flex-col justify-center gap-1 overflow-hidden">
-        <Typography variant="body-small" className="line-clamp-1">
+        <Typography variant="body-small" className="line-clamp-1 max-w-xl">
           {song.title.normalize("NFC")}
         </Typography>
         <Typography variant="small" className="text-muted-foreground">
-          {song.duration.timestamp}
+          {variant !== "dashboard"
+            ? song.duration.timestamp
+            : `${timesPlayed} Plays`}
         </Typography>
       </div>
 
@@ -146,4 +158,6 @@ export function BaseSongCard({
       )}
     </Card>
   );
-}
+};
+
+export { BaseSongCard, type Variant };

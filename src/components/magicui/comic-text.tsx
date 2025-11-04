@@ -34,12 +34,12 @@ export function ComicText({
         fontSize: `clamp(2rem, 5vw, ${fontSize}rem)`,
         fontFamily: "'Bangers', 'Comic Sans MS', 'Impact', sans-serif",
         fontWeight: "900",
-        WebkitTextStroke: `${fontSize * 0.35}px #ffffff`, // Thick black outline
+        WebkitTextStroke: `${fontSize * 0.35}px #d4d4d4`,
         transform: "skewX(-10deg)",
         textTransform: "uppercase",
         filter: `
-          drop-shadow(5px 5px 0px var(--destructive))
-          drop-shadow(3px 3px 0px var(--accent)
+          drop-shadow(5px 5px 0px var(--secondary))
+          drop-shadow(3px 3px 0px var(--accent))
         `,
         backgroundColor: backgroundColor,
         // backgroundImage: `radial-gradient(circle at 1px 1px, ${dotColor} 1px, transparent 0)`,
