@@ -1,21 +1,33 @@
 import { Virtuoso } from "react-virtuoso";
-import type { SongSchema } from "@/app/(app)/_types";
+import type { Prettify, SongSchema } from "@/app/(app)/_types";
 import { SongCardLoader } from "./song-card-loader";
+import { Spinner } from "@/components/ui/spinner";
 
-const VIRTUALIZE_AFTER = 15;
+const VIRTUALIZE_AFTER = 25;
 
-type VirtualizedSongListProps<T extends SongSchema> = {
+type VirtualizedSongListBaseProps<T extends SongSchema> = {
   songs: T[];
   renderItem: (song: T, index: number) => React.ReactNode;
   overscan?: number;
   useWindowScroll?: boolean;
 };
+type InfiniteScroll =
+  | {
+      endReached: (index: number) => void;
+      showLoading: boolean;
+    }
+  | { endReached?: never; showLoading?: never };
 
+type VirtualizedSongListProps<T extends SongSchema> = Prettify<
+  VirtualizedSongListBaseProps<T> & InfiniteScroll
+>;
 export function VirtualizedSongList<T extends SongSchema>({
   songs,
   renderItem,
   overscan = 400,
   useWindowScroll = true,
+  endReached,
+  showLoading = false,
 }: VirtualizedSongListProps<T>) {
   if (songs.length <= VIRTUALIZE_AFTER) {
     return (
@@ -38,10 +50,20 @@ export function VirtualizedSongList<T extends SongSchema>({
       overscan={overscan}
       initialItemCount={Math.min(VIRTUALIZE_AFTER, songs.length)}
       defaultItemHeight={88}
-      // components={{
-      //   Footer: () => <div className="pb-[var(--player-height,0px)]" />,
-      // EmptyPlaceholder: () => <SongCardLoader />,
-      // }}
+      endReached={endReached}
+      increaseViewportBy={200}
+      components={{
+        Footer: () => {
+          if (showLoading)
+            return (
+              <div className="flex items-center justify-center py-2 mt-3 text-sm text-muted-foreground gap-2">
+                <Spinner />
+                Loading...
+              </div>
+            );
+          return null;
+        },
+      }}
       itemContent={(i, song) => {
         if (!song) return <SongCardLoader />;
 
