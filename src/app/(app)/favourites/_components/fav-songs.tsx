@@ -8,7 +8,7 @@ import {
 } from "@/app/(app)/queries";
 import { Typography } from "@/components/ui/typography";
 
-const FavResults = async () => {
+const FavSongs = async () => {
   const [favouriteSongs, favouriteSongsStats, moodlists] = await Promise.all([
     getUserFavouriteSongs().then((res) => res ?? null),
     getUserFavouriteSongsStats().then((res) => res ?? null),
@@ -47,4 +47,4 @@ const FavResults = async () => {
   );
 };
 
-export { FavResults };
+export { FavSongs };

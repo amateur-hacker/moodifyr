@@ -5,7 +5,7 @@ import { SearchSongList } from "@/app/(app)/search/_components/search-song-list"
 import { searchSong } from "@/app/(app)/search/api";
 import { WordRotate } from "@/components/ui/word-rotate";
 
-const SearchResults = async ({
+const SearchSongs = async ({
   searchQuery,
   id,
 }: {
@@ -64,4 +64,4 @@ const SearchResults = async ({
   );
 };
 
-export { SearchResults };
+export { SearchSongs };

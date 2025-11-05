@@ -231,16 +231,21 @@ const SongPlayerEngine = () => {
     switch (lastActionRef.current) {
       case "prev": {
         if (modeRef.current === "shuffle") {
-          const shuffleIndex = shuffleQueueRef.current.findIndex(
+          const currentShuffleIndex = shuffleQueueRef.current.findIndex(
             (s) => s.id === currentSongRef.current?.id,
           );
-          const prevShuffleSong = shuffleQueueRef.current[shuffleIndex - 1];
+          const prevShuffleSong =
+            shuffleQueueRef.current[currentShuffleIndex - 1];
+
+          addRecentSong(currentSongRef.current?.id);
+
           if (prevShuffleSong) {
             console.warn(
               `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to prev shuffle song: '${getSlicedSongTitle(prevShuffleSong.title)}'`,
             );
             setSong(prevShuffleSong);
-            setShuffleIndex(shuffleIndex + 1);
+            setShuffleIndex(currentShuffleIndex - 1);
+            addRecentSong(prevShuffleSong.id);
           } else {
             console.warn(
               `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no prev shuffle song available`,
@@ -266,16 +271,21 @@ const SongPlayerEngine = () => {
       case "next":
       case "auto": {
         if (modeRef.current === "shuffle") {
-          const shuffleIndex = shuffleQueueRef.current.findIndex(
+          const currentShuffleIndex = shuffleQueueRef.current.findIndex(
             (s) => s.id === currentSongRef.current?.id,
           );
-          const nextShuffleSong = shuffleQueueRef.current[shuffleIndex + 1];
+          const nextShuffleSong =
+            shuffleQueueRef.current[currentShuffleIndex + 1];
+
+          addRecentSong(currentSongRef.current?.id);
+
           if (nextShuffleSong) {
             console.warn(
               `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, skipping to next shuffle song: '${getSlicedSongTitle(nextShuffleSong.title)}'`,
             );
             setSong(nextShuffleSong);
-            setShuffleIndex(shuffleIndex + 1);
+            setShuffleIndex(currentShuffleIndex + 1);
+            addRecentSong(nextShuffleSong.id);
           } else {
             console.warn(
               `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no next shuffle song available`,

@@ -125,7 +125,6 @@ const SongPlayerBar = ({
     if (mode === "shuffle") {
       let queue = shuffleQueue;
       let index = shuffleIndex;
-
       index++;
 
       if (index >= queue.length) {

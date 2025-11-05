@@ -21,7 +21,7 @@ const MoodlistIdPage = async ({
 
   if (!session?.user) {
     return (
-      <div className="w-full mt-15">
+      <div className="w-full">
         <Typography variant="lead">
           Please sign in to see moodlist songs page.
         </Typography>
@@ -68,7 +68,7 @@ const MoodlistIdPage = async ({
               />
             )}
           </div>
-          <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
+          <div className="size-full mx-auto max-w-3xl pb-[var(--player-height,0px)]">
             {moodlistSongs.songs.length ? (
               <Suspense
                 fallback={

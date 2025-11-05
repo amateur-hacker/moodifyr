@@ -43,8 +43,8 @@ const PlayHeader = ({
   } = useSongPlayer();
 
   const handlePlay = (mode: "shuffle" | "normal") => {
-    setMode(mode);
     setIsLoading(true);
+    setMode(mode);
     setOpen(false);
     setLastAction("auto");
 

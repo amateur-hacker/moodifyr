@@ -107,25 +107,19 @@ const UserMoodlistPage = async ({
               />
             )}
           </div>
-          <div className="size-full space-y-5 mx-auto max-w-3xl pb-[var(--player-height,0px)]">
-            {moodlistSongs.songs.length ? (
-              <Suspense
-                fallback={
-                  <div className="space-y-[1.3125rem]">
-                    {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
-                      <SongCardLoader key={`loader-${id}`} />
-                    ))}
-                  </div>
-                }
-              >
-                <MoodlistSongList songs={moodlistSongs.songs} />
-                <SongsSetter songs={moodlistSongs.songs} />
-              </Suspense>
-            ) : (
-              <Typography variant="lead" className="text-center">
-                No Moodlist Songs
-              </Typography>
-            )}
+          <div className="size-full mx-auto max-w-3xl pb-[var(--player-height,0px)]">
+            <Suspense
+              fallback={
+                <div className="space-y-[1.3125rem]">
+                  {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
+                    <SongCardLoader key={`loader-${id}`} />
+                  ))}
+                </div>
+              }
+            >
+              <MoodlistSongList songs={moodlistSongs.songs} />
+              <SongsSetter songs={moodlistSongs.songs} />
+            </Suspense>
           </div>
         </>
       )}

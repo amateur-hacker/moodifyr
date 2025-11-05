@@ -1,7 +1,8 @@
 import { Virtuoso } from "react-virtuoso";
 import type { SongSchema } from "@/app/(app)/_types";
+import { SongCardLoader } from "./song-card-loader";
 
-const VIRTUALIZE_AFTER = 25;
+const VIRTUALIZE_AFTER = 15;
 
 type VirtualizedSongListProps<T extends SongSchema> = {
   songs: T[];
@@ -35,15 +36,22 @@ export function VirtualizedSongList<T extends SongSchema>({
       useWindowScroll={useWindowScroll}
       data={songs}
       overscan={overscan}
+      initialItemCount={Math.min(VIRTUALIZE_AFTER, songs.length)}
+      defaultItemHeight={88}
       // components={{
       //   Footer: () => <div className="pb-[var(--player-height,0px)]" />,
+      // EmptyPlaceholder: () => <SongCardLoader />,
       // }}
-      itemContent={(i, song) => (
-        <div className="flex flex-col">
-          {renderItem(song, i)}
-          {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
-        </div>
-      )}
+      itemContent={(i, song) => {
+        if (!song) return <SongCardLoader />;
+
+        return (
+          <div className="flex flex-col">
+            {renderItem(song, i)}
+            {i < songs.length - 1 && <div className="my-5 h-px bg-border" />}
+          </div>
+        );
+      }}
     />
   );
 }
