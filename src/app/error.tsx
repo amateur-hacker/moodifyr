@@ -20,7 +20,7 @@ const ErrorPage = ({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="min-h-dvh flex flex-col items-center justify-center p-6">
       <div className="mx-auto max-w-md text-center">
         <Image
           src={
@@ -29,7 +29,7 @@ const ErrorPage = ({
           width={300}
           height={300}
           className="mx-auto"
-          alt="shinchan father sorry gif"
+          alt="shinchan father apologizing gif"
         />
         <Typography variant="h2" className="mt-4">
           Oops, something went wrong!

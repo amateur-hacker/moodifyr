@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { AddToMoodlistDialog } from "@/app/(app)/_components/add-to-moodlist-dialog";
 import { ShareLinkDialog } from "@/app/(app)/_components/share-link-dialog";
 import { SongCard } from "@/app/(app)/_components/song-card";
-import { useFavourites } from "@/app/(app)/_context/favourite-context";
 import { useUser } from "@/app/(app)/_context/user-context";
 import type { SearchSongSchema, SongSchema } from "@/app/(app)/_types";
 import { toggleUserFavouriteSong } from "@/app/(app)/actions";
@@ -22,20 +21,13 @@ const SearchSongCard = ({
   isAlreadyFavourite?: boolean;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 }) => {
+  const [isFavourite, setIsFavourite] = useState(isAlreadyFavourite);
+  const [isPending, setIsPending] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
     useState(false);
   const [baseUrl, setBaseUrl] = useState("");
   const [hasInteracted, setHasInteracted] = useState(false);
-  const {
-    favouriteSongs,
-    setFavourite,
-    isFavouritePending,
-    setFavouritePending,
-  } = useFavourites();
-
-  const isFavourite = favouriteSongs[song.id] ?? isAlreadyFavourite;
-  const isPending = isFavouritePending[song.id] ?? false;
 
   const router = useRouter();
   const pathname = usePathname();
@@ -67,31 +59,36 @@ const SearchSongCard = ({
       return;
     }
 
-    setHasInteracted(true);
-    setFavouritePending(song.id, true);
+    if (isPending) return;
+    const wasFavourite = isFavourite;
+    const shouldBeFavourite = !wasFavourite;
 
-    setFavourite(song.id, !isFavourite);
+    setHasInteracted(true);
+    setIsPending(true);
+    setIsFavourite(shouldBeFavourite);
+
+    const message = shouldBeFavourite
+      ? "Added to favourites"
+      : "Removed from favourites";
+    toast.loading(message, { id: song.id });
 
     try {
       const result = await toggleUserFavouriteSong({ song });
 
       if (result) {
-        const message = !isFavourite
-          ? "Added to favourites successfully!"
-          : "Removed from favourites successfully!";
         toast.success(message, { id: song.id });
       } else {
-        setFavourite(song.id, isFavourite);
+        setIsFavourite(wasFavourite);
         toast.error("Failed to update favourite. Please try again.", {
           id: song.id,
         });
       }
     } catch (error) {
-      setFavourite(song.id, isFavourite);
+      setIsFavourite(wasFavourite);
       console.error("Error toggling favourite:", error);
       toast.error("Something went wrong. Please try again.", { id: song.id });
     } finally {
-      setFavouritePending(song.id, false);
+      setIsPending(false);
     }
   };
 

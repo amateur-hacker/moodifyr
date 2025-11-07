@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+// import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import { generateShuffleQueue } from "@/app/(app)/utils";
 
@@ -14,15 +15,15 @@ const SongShuffleQueueManager = () => {
     setShuffleIndex,
   } = useSongPlayer();
 
-  const isFirstRender = useRef(true);
+  // const isFirstRender = useRef(true);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
-    }
-
+    // if (isFirstRender.current) {
+    //   isFirstRender.current = false;
+    //   return;
+    // }
+    //
     if (mode === "shuffle") {
       const queue = generateShuffleQueue(songs, currentSong, recentSongIds);
       setShuffleQueue(queue);

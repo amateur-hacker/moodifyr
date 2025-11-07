@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import { AppSidebar } from "@/app/(app)/_components/app-sidebar";
 import { GlobalSongPlayer } from "@/app/(app)/_components/global-song-player";
 import { Navbar } from "@/app/(app)/_components/navbar";
-import { FavouriteProvider } from "@/app/(app)/_context/favourite-context";
 import { UserProvider } from "@/app/(app)/_context/user-context";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import type { SelectUserModel } from "@/db/schema/auth";
@@ -26,14 +25,12 @@ export default async function AppLayout({
   return (
     <UserProvider user={user}>
       <SidebarProvider defaultOpen={false}>
-        <FavouriteProvider>
-          <GlobalSongPlayer>
-            {/* <SplashCursor /> */}
-            <Navbar />
-            <AppSidebar />
-            <main className="w-full h-full pt-19 px-6 pb-4">{children}</main>
-          </GlobalSongPlayer>
-        </FavouriteProvider>
+        <GlobalSongPlayer>
+          {/* <SplashCursor /> */}
+          <Navbar />
+          <AppSidebar />
+          <main className="w-full h-full pt-19 px-6 pb-4">{children}</main>
+        </GlobalSongPlayer>
       </SidebarProvider>
     </UserProvider>
   );

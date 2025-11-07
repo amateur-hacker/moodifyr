@@ -2,13 +2,13 @@
 
 import { useInViewport } from "@mantine/hooks";
 import { useEffect, useState } from "react";
+import { GroupedVirtuoso } from "react-virtuoso";
 import type { HistorySongSchema } from "@/app/(app)/_types";
 import { HistorySongCard } from "@/app/(app)/history/_components/history-song-card";
 import { getUserSongPlayHistory } from "@/app/(app)/history/queries";
 import type { getUserMoodlists } from "@/app/(app)/moodlists/queries";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
-import { GroupedVirtuoso } from "react-virtuoso";
 
 type HistorySongListProps = {
   initialHistory: Awaited<ReturnType<typeof getUserSongPlayHistory>>;

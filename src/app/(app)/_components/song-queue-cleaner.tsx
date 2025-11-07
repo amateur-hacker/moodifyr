@@ -1,13 +1,12 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 
 const SongQueueCleaner = () => {
   const { setSongs } = useSongPlayer();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
@@ -22,7 +21,7 @@ const SongQueueCleaner = () => {
     if (!isAllowed) {
       setSongs([]);
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 };

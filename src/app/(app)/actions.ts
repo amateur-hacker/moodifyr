@@ -1,6 +1,7 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import z from "zod";
 import type { SongWithUniqueIdSchema } from "@/app/(app)/_types";
@@ -125,15 +126,20 @@ const saveUserPreference = async ({
 
 const toggleUserFavouriteSong = async ({
   song,
+  shouldRevalidate,
 }: {
   song: SongWithUniqueIdSchema;
+  shouldRevalidate?: boolean;
 }) => {
   const toggleUserFavouriteSongSchema = z.object({
     song: songSchema.omit({ category: true }),
+    shouldRevalidate: z.boolean().default(false),
   });
-  const { song: parsedSong } = toggleUserFavouriteSongSchema.parse({
-    song,
-  });
+  const { song: parsedSong, shouldRevalidate: parsedShouldRevalidate } =
+    toggleUserFavouriteSongSchema.parse({
+      song,
+      shouldRevalidate,
+    });
 
   return executeAction({
     actionFn: async ({ sessionUser }) => {
@@ -181,8 +187,12 @@ const toggleUserFavouriteSong = async ({
           userId,
         });
       }
+      if (parsedShouldRevalidate) {
+        revalidatePath("/favourites");
+      }
     },
     isProtected: true,
+    clientSuccessMessage: "Toggle favourite song successfully",
     serverErrorMessage: "toggleUserFavouriteSong",
   });
 };

@@ -150,10 +150,23 @@ export function SongPlayerProvider({
     return getUniqueSongId(currentSong) === getUniqueSongId(song);
   };
 
+  // const addRecentSong = (id: string) => {
+  //   setRecentSongIds((prev) => {
+  //     const filtered = prev.filter((s) => s !== id);
+  //     return [id, ...filtered].slice(0, 10);
+  //   });
+  // };
   const addRecentSong = (id: string) => {
     setRecentSongIds((prev) => {
       const filtered = prev.filter((s) => s !== id);
-      return [id, ...filtered].slice(0, 10);
+
+      const totalSongs = songs.length;
+      const recentLimit =
+        totalSongs <= 20
+          ? Math.floor(totalSongs / 2)
+          : Math.max(10, Math.min(50, Math.floor(totalSongs * 0.2)));
+
+      return [id, ...filtered].slice(0, recentLimit);
     });
   };
 

@@ -19,7 +19,6 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AddToMoodlistDialog } from "@/app/(app)/_components/add-to-moodlist-dialog";
 import { ShareLinkDialog } from "@/app/(app)/_components/share-link-dialog";
-import { useFavourites } from "@/app/(app)/_context/favourite-context";
 import { useUser } from "@/app/(app)/_context/user-context";
 import type { SongSchema } from "@/app/(app)/_types";
 import { toggleUserFavouriteSong } from "@/app/(app)/actions";
@@ -81,19 +80,12 @@ const SongFullscreenPlayerView = ({
   isAlreadyFavourite,
   moodlists,
 }: SongFullscreenPlayerViewProps) => {
-  const {
-    favouriteSongs,
-    setFavourite,
-    isFavouritePending,
-    setFavouritePending,
-  } = useFavourites();
+  const [isFavourite, setIsFavourite] = useState(isAlreadyFavourite);
+  const [isPending, setIsPending] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isAddToMoodlistDialogOpen, setIsAddToMoodlistDialogOpen] =
     useState(false);
   const [baseUrl, setBaseUrl] = useState("");
-
-  const isFav = favouriteSongs[currentSong.id] ?? isAlreadyFavourite;
-  const isPending = isFavouritePending[currentSong.id] ?? false;
 
   const router = useRouter();
   const pathname = usePathname();
@@ -125,31 +117,39 @@ const SongFullscreenPlayerView = ({
       return;
     }
 
-    setFavouritePending(currentSong.id, true);
-    setFavourite(currentSong.id, !isFav);
+    if (isPending) return;
+    const wasFavourite = isFavourite;
+    const shouldBeFavourite = !wasFavourite;
+    setIsPending(true);
+    setIsFavourite(shouldBeFavourite);
 
-    const message = !isFav ? "Added to favourites" : "Removed from favourites";
-    toast.success(message, { id: currentSong.id });
+    const message = shouldBeFavourite
+      ? "Added to favourites"
+      : "Removed from favourites";
+    toast.loading(message, { id: currentSong.id });
 
     try {
       const result = await toggleUserFavouriteSong({
         song: currentSong,
+        shouldRevalidate: pathname === "/favourites",
       });
 
-      if (!result) {
-        setFavourite(currentSong.id, isFav);
-        toast.error("Failed to update favourite. Try again.", {
+      if (result) {
+        toast.success(message, { id: currentSong.id });
+      } else {
+        setIsFavourite(wasFavourite);
+        toast.error("Failed to update favourite. Please try again.", {
           id: currentSong.id,
         });
       }
     } catch (error) {
-      setFavourite(currentSong.id, isFav);
+      setIsFavourite(wasFavourite);
       console.error("Error toggling favourite:", error);
       toast.error("Failed to update favourite. Try again.", {
         id: currentSong.id,
       });
     } finally {
-      setFavouritePending(currentSong.id, false);
+      setIsPending(false);
     }
   };
 
@@ -230,7 +230,7 @@ const SongFullscreenPlayerView = ({
             disabled={isPending}
           >
             <Heart />
-            {!isFav ? "Add to Favourite" : "Remove from Favourite"}
+            {!isFavourite ? "Add to Favourite" : "Remove from Favourite"}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setIsShareDialogOpen(true)}>
             <Share2 />

@@ -1,15 +1,15 @@
 "use client";
 
+import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
 const NotFoundPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="min-h-dvh flex flex-col items-center justify-center p-6">
       <div className="mx-auto max-w-md text-center">
         <Image
           src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnZuY2VpZXA2Zjk4OTRubG5rN21namt5Mmw5NDZvaThianAyMWtmOCZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9cw/ZcthNRpghDfqieTcsm/giphy.gif"
