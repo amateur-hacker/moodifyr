@@ -287,10 +287,28 @@ const SongPlayerEngine = () => {
             setShuffleIndex(currentShuffleIndex + 1);
             addRecentSong(nextShuffleSong.id);
           } else {
-            console.warn(
-              `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no next shuffle song available`,
-            );
-            resetPlayer();
+            if (songsRef.current.length) {
+              console.warn(
+                `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no next shuffle song available. Generating new shuffle queue...`,
+              );
+              const queue = generateShuffleQueue(
+                songsRef.current,
+                null,
+                recentSongIds,
+              );
+              const index = 0;
+              setShuffleQueue(queue);
+              setShuffleIndex(index);
+              const nextSong = queue[index];
+              if (nextSong) {
+                setSong(nextSong);
+              }
+            } else {
+              console.warn(
+                `'${getSlicedSongTitle(currentSongRef.current.title)}' is unavailable, no next shuffle song available.`,
+              );
+              resetPlayer();
+            }
           }
         } else if (
           currentIndex !== -1 &&
@@ -309,16 +327,21 @@ const SongPlayerEngine = () => {
             resetPlayer();
           }
         } else {
-          document.documentElement.style.setProperty("--player-height", `0px`);
-          setSong(null);
-          setIsPlayerFullScreen(false);
-          saveUserPreference({
-            key: "lastPlayedSong",
-            value: JSON.stringify(""),
-          }).catch((error) =>
-            console.warn("Error saving last played song:", error),
-          );
-          resetPlayer();
+          if (lastActionRef.current === "manual") {
+            document.documentElement.style.setProperty(
+              "--player-height",
+              `0px`,
+            );
+            setSong(null);
+            setIsPlayerFullScreen(false);
+            saveUserPreference({
+              key: "lastPlayedSong",
+              value: JSON.stringify(""),
+            }).catch((error) =>
+              console.warn("Error saving last played song:", error),
+            );
+            resetPlayer();
+          }
         }
         return;
       }
