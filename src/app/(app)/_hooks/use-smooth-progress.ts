@@ -75,7 +75,7 @@ export const useSmoothProgress = () => {
     };
 
     updateCurrentTime();
-  }, [isPlayerFullScreen]);
+  }, [isPlayerFullScreen, progress]);
 
   return visualProgress;
 };
