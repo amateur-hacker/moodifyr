@@ -110,19 +110,19 @@ export function SongPlayerProvider({
       setProgress(0);
       setDuration(0);
 
-      const valueToSave = { ...song };
+      const persistedSong = { ...song };
 
-      if (song.favouriteId) valueToSave.favouriteId = song.favouriteId;
-      else if (song.historyId) valueToSave.historyId = song.historyId;
+      if (song.favouriteId) persistedSong.favouriteId = song.favouriteId;
+      else if (song.historyId) persistedSong.historyId = song.historyId;
       else if (song.moodlistSongId)
-        valueToSave.moodlistSongId = song.moodlistSongId;
+        persistedSong.moodlistSongId = song.moodlistSongId;
       else if (song.dashboardSongId)
-        valueToSave.dashboardSongId = song.dashboardSongId;
-      else valueToSave.searchId = song.searchId;
+        persistedSong.dashboardSongId = song.dashboardSongId;
+      else persistedSong.searchId = song.searchId;
 
       saveUserPreference({
         key: "lastPlayedSong",
-        value: JSON.stringify(valueToSave),
+        value: JSON.stringify(persistedSong),
       }).catch((error) =>
         console.warn("Error saving last played song:", error),
       );
@@ -150,12 +150,6 @@ export function SongPlayerProvider({
     return getUniqueSongId(currentSong) === getUniqueSongId(song);
   };
 
-  // const addRecentSong = (id: string) => {
-  //   setRecentSongIds((prev) => {
-  //     const filtered = prev.filter((s) => s !== id);
-  //     return [id, ...filtered].slice(0, 10);
-  //   });
-  // };
   const addRecentSong = (id: string) => {
     setRecentSongIds((prev) => {
       const filtered = prev.filter((s) => s !== id);

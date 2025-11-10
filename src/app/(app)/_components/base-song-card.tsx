@@ -34,7 +34,6 @@ const BaseSongCard = (props: BaseSongCardProps) => {
 
   const timesPlayed = variant === "dashboard" ? props.timesPlayed : undefined;
   const {
-    currentSong,
     isPlaying,
     setSong,
     togglePlay,
@@ -52,16 +51,12 @@ const BaseSongCard = (props: BaseSongCardProps) => {
   } = useSongPlayer();
 
   const [isClient, setIsClient] = useState(false);
-  const [isCurrent, setIsCurrent] = useState(false);
+
+  const isCurrent = isCurrentSong(song);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  useEffect(() => {
-    setIsCurrent(isCurrentSong(song));
-  }, [song, currentSong]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();

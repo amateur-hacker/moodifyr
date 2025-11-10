@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { useSmoothProgress } from "../_hooks/use-smooth-progress";
 
 type SongMiniPlayerViewProps = {
   currentSong: SongSchema;
@@ -18,7 +19,6 @@ type SongMiniPlayerViewProps = {
   handleNext: (e: React.MouseEvent) => void;
   currentIndex: number;
   songs: SongSchema[];
-  progress: number;
   duration: number;
   toggleFullScreen: (e: React.MouseEvent) => void;
   showProgress: boolean;
@@ -33,14 +33,13 @@ const SongMiniPlayerView = ({
   handleNext,
   currentIndex,
   songs,
-  progress,
   duration,
   toggleFullScreen,
   showProgress,
   mode,
 }: SongMiniPlayerViewProps) => {
-  const progressPercent =
-    duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
+  // const progressPercent =
+  //   duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
 
   return (
     <Card
@@ -48,15 +47,16 @@ const SongMiniPlayerView = ({
       title="Open Fullscreen View"
       onClick={toggleFullScreen}
     >
-      <motion.div
-        className={cn("absolute top-0 left-0 w-full h-1 bg-primary")}
-        animate={{
-          width: showProgress ? `${progressPercent}%` : 0,
-          opacity: showProgress ? 1 : 0,
-        }}
-        initial={{ width: 0, opacity: 0 }}
-        transition={{ type: "tween", ease: "linear", duration: 0.25 }}
-      />
+      {/* <motion.div */}
+      {/*   className={cn("absolute top-0 left-0 w-full h-1 bg-primary")} */}
+      {/*   animate={{ */}
+      {/*     width: showProgress ? `${progressPercent}%` : 0, */}
+      {/*     opacity: showProgress ? 1 : 0, */}
+      {/*   }} */}
+      {/*   initial={{ width: 0, opacity: 0 }} */}
+      {/*   transition={{ type: "tween", ease: "linear", duration: 0.25 }} */}
+      {/* /> */}
+      <ProgressBar showProgress={showProgress} duration={duration} />
 
       <div className="flex items-center flex-1">
         <div className="flex items-center gap-3">
@@ -117,6 +117,30 @@ const SongMiniPlayerView = ({
         </Button>
       </div>
     </Card>
+  );
+};
+
+const ProgressBar = ({
+  showProgress,
+  duration,
+}: {
+  showProgress: boolean;
+  duration: number;
+}) => {
+  const progress = useSmoothProgress();
+  const progressPercent =
+    duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
+
+  return (
+    <motion.div
+      className={cn("absolute top-0 left-0 w-full h-1 bg-primary")}
+      animate={{
+        width: showProgress ? `${progressPercent}%` : 0,
+        opacity: showProgress ? 1 : 0,
+      }}
+      initial={{ width: 0, opacity: 0 }}
+      transition={{ type: "tween", ease: "linear", duration: 0.25 }}
+    />
   );
 };
 

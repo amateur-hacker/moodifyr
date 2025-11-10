@@ -37,58 +37,27 @@ const SongPlayerEngine = () => {
     lastAction,
   } = useSongPlayer();
 
-  const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
   const hostRef = useRef<HTMLDivElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const songsRef = useRef<SongWithUniqueIdSchema[]>(songs);
   const currentSongRef = useRef<SongWithUniqueIdSchema | null>(null);
   const modeRef = useRef(mode);
+  const isPlayingRef = useRef(isPlaying);
   const lastActionRef = useRef(lastAction);
   const shuffleQueueRef = useRef(shuffleQueue);
   const shuffleIndexRef = useRef(shuffleIndex);
-  const isPlayingRef = useRef(isPlaying);
   const lastTimeRef = useRef(0);
   const lastTrackedIdRef = useRef<string | null>(null);
   const lastAnalyticsIdRef = useRef<string | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    songsRef.current = songs;
-  }, [songs]);
-
-  useEffect(() => {
-    currentSongRef.current = currentSong;
-  }, [currentSong]);
-
-  useEffect(() => {
-    modeRef.current = mode;
-  }, [mode]);
-
-  useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
-
-  useEffect(() => {
-    lastActionRef.current = lastAction;
-  }, [lastAction]);
-
-  useEffect(() => {
-    shuffleQueueRef.current = shuffleQueue;
-  }, [shuffleQueue]);
-
-  useEffect(() => {
-    shuffleIndexRef.current = shuffleIndex;
-  }, [shuffleIndex]);
-
-  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  // useEffect(() => {
-  //   if (!playerRef.current) return;
-  //
-  //   if (!playerRef.current.shuffleQueueRef) {
-  //     playerRef.current.shuffleQueueRef = { current: [] };
-  //   }
-  //   if (!playerRef.current.shuffleIndexRef) {
-  //     playerRef.current.shuffleIndexRef = { current: -1 };
-  //   }
-  // }, []);
+  songsRef.current = songs;
+  currentSongRef.current = currentSong;
+  modeRef.current = mode;
+  lastActionRef.current = lastAction;
+  shuffleQueueRef.current = shuffleQueue;
+  shuffleIndexRef.current = shuffleIndex;
+  isPlayingRef.current = isPlaying;
 
   const clearProgressTimer = () => {
     if (intervalRef.current) {
@@ -108,6 +77,11 @@ const SongPlayerEngine = () => {
         setIsLoading(true);
         break;
       case 1: {
+        if (retryTimeoutRef.current) {
+          clearTimeout(retryTimeoutRef.current);
+          retryTimeoutRef.current = null;
+        }
+
         setIsLoading(false);
         setIsPlaying(true);
         const d = await playerRef.current.getDuration();
@@ -152,7 +126,6 @@ const SongPlayerEngine = () => {
           }
 
           addRecentSong(currentSongRef.current.id);
-          // setShuffleQueue([...queue]);
           setShuffleQueue(queue);
           setShuffleIndex(index);
 
@@ -419,7 +392,7 @@ const SongPlayerEngine = () => {
           if (currentTime == null) return;
 
           lastTimeRef.current = currentTime;
-          setProgress(currentTime);
+          // setProgress(currentTime);
 
           if (
             currentSongRef.current &&
@@ -467,77 +440,62 @@ const SongPlayerEngine = () => {
     return clearProgressTimer;
   }, [isPlaying, duration]);
 
+  // useEffect(async () => {
+  //   const currentTime = await playerRef.current?.getCurrentTime();
+  //   setProgress(currentTime);
+  // }, [isPlaying, duration]);
+
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
     if (!playerRef.current || !youtubeId) return;
 
-    setIsLoading(true);
-    setProgress(0);
-    playerRef.current.loadVideoById(youtubeId);
-  }, [youtubeId]);
+    let retryCount = 0;
 
-  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  // useEffect(() => {
-  //   if (!playerRef.current || !youtubeId) return;
-  //
-  //   setIsLoading(true);
-  //   setProgress(0);
-  //   playerRef.current.loadVideoById(youtubeId);
-  //
-  //   let retryCount = 0;
-  //   let stuckTimer: NodeJS.Timeout | null = null;
-  //
-  //   const handleRetryCheck = async () => {
-  //     if (!playerRef.current) return;
-  //     const state = await playerRef.current.getPlayerState();
-  //     console.log(state);
-  //
-  //     if (state === 1) {
-  //       // Playback started
-  //       // setIsLoading(false);
-  //       // setIsPlaying(true);
-  //       console.log("Playback started!");
-  //       if (stuckTimer) clearTimeout(stuckTimer);
-  //     } else if (state === 3 || state === -1) {
-  //       // Still buffering or unstarted
-  //       stuckTimer = setTimeout(() => {
-  //         retryCount += 1;
-  //         if (retryCount <= 3) {
-  //           console.warn(`Retry attempt ${retryCount}...`);
-  //           playerRef.current?.loadVideoById(youtubeId);
-  //           handleRetryCheck(); // check again after retry
-  //         } else {
-  //           setIsLoading(false);
-  //           toast.error("Slow internet detected. Unable to start playback.", {
-  //             action: {
-  //               label: "Retry Now",
-  //               onClick: () => {
-  //                 retryCount = 0;
-  //                 setIsLoading(true);
-  //                 playerRef.current?.loadVideoById(youtubeId);
-  //                 handleRetryCheck();
-  //               },
-  //             },
-  //           });
-  //         }
-  //       }, 5000);
-  //     }
-  //   };
-  //
-  //   // Subscribe to player state changes
-  //   playerRef.current.on("stateChange", handleRetryCheck);
-  //
-  //   // Start initial check
-  //   handleRetryCheck();
-  //
-  //   return () => {
-  //     if (stuckTimer) clearTimeout(stuckTimer);
-  //     try {
-  //       // @ts-expect-error
-  //       playerRef.current?.off("stateChange", handleRetryCheck);
-  //     } catch {}
-  //   };
-  // }, [youtubeId]);
+    const tryLoad = async () => {
+      if (!playerRef.current) return;
+
+      setIsLoading(true);
+      setProgress(0);
+      await playerRef.current.loadVideoById(youtubeId);
+
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+
+      retryTimeoutRef.current = setTimeout(async () => {
+        if (!playerRef.current) return;
+        const state = await playerRef.current.getPlayerState();
+
+        if (state === 1 || state === 3) return;
+
+        if (retryCount <= 3) {
+          retryCount++;
+          console.warn(
+            `! Retry #${retryCount} - video not started (state: ${state})`,
+          );
+          tryLoad();
+        } else {
+          setIsLoading(false);
+          console.warn("❌ Max retries reached.");
+
+          toast.error("Slow internet detected. Unable to start playback.", {
+            duration: Infinity,
+            action: {
+              label: "Retry Now",
+              onClick: () => {
+                retryCount = 0;
+                tryLoad();
+              },
+            },
+          });
+        }
+      }, 5000);
+    };
+
+    tryLoad();
+
+    return () => {
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+    };
+  }, [youtubeId]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {

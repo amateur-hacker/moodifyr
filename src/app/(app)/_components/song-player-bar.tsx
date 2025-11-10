@@ -28,7 +28,7 @@ const SongPlayerBar = ({
     isLoading,
     togglePlay,
     playerRef,
-    progress,
+    // progress,
     duration,
     setProgress,
     setSong,
@@ -269,7 +269,7 @@ const SongPlayerBar = ({
       ref={ref}
       className="fixed bottom-0 left-0 right-0 z-50 will-change-transform will-change-height"
       initial={false}
-      animate={isPlayerFullScreen ? { height: "100%" } : { height: "75px" }}
+      animate={isPlayerFullScreen ? { height: "100%" } : { height: "auto" }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       onAnimationComplete={() => {
         if (!isPlayerFullScreen) {
@@ -287,7 +287,6 @@ const SongPlayerBar = ({
           handleNext={handleNext}
           currentIndex={currentIndex}
           songs={songs}
-          progress={progress}
           duration={duration}
           handleSeek={handleSeek}
           mode={mode}
@@ -311,7 +310,6 @@ const SongPlayerBar = ({
           handleNext={handleNext}
           currentIndex={currentIndex}
           songs={songs}
-          progress={progress}
           duration={duration}
           toggleFullScreen={toggleFullScreen}
           showProgress={showMiniProgress}

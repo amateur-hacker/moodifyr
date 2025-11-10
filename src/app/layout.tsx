@@ -11,6 +11,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { ReactScan } from "@/app/(app)/_components/react-scan";
 import { ThemeProvider } from "@/app/(app)/_context/theme-provider";
 
 const geistSans = Geist({
@@ -88,6 +89,7 @@ export default async function RootLayout({
               position="top-center"
               className="pointer-events-auto"
             />
+            <ReactScan />
             {children}
           </NuqsAdapter>
         </ThemeProvider>

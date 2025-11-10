@@ -39,5 +39,12 @@
       "next": "recommended",
       "react": "recommended"
     }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   }
 }

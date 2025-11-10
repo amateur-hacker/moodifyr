@@ -1,0 +1,49 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
+
+export const useSmoothProgress = () => {
+  const { playerRef, isPlaying, duration, progress } = useSongPlayer();
+  const [visualProgress, setVisualProgress] = useState(0);
+  const frameRef = useRef<number | null>(null);
+  const lastUIUpdateRef = useRef(0); // 🕒 throttle timing
+  const lastTimeRef = useRef(0);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    if (!isPlaying || !playerRef.current) {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      return;
+    }
+
+    const update = async () => {
+      try {
+        const current = await playerRef.current?.getCurrentTime();
+        if (current && duration > 0) {
+          const now = performance.now();
+
+          if (now - lastUIUpdateRef.current > 80) {
+            setVisualProgress(current);
+            lastUIUpdateRef.current = now;
+          }
+          lastTimeRef.current = current;
+        }
+      } catch (err) {
+        console.warn("Error updating visual progress:", err);
+      }
+      frameRef.current = requestAnimationFrame(update);
+    };
+
+    frameRef.current = requestAnimationFrame(update);
+    return () => {
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+    };
+  }, [isPlaying, duration]);
+
+  useEffect(() => {
+    setVisualProgress(progress);
+  }, [progress]);
+
+  return visualProgress;
+};

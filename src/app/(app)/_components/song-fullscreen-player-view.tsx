@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
 import { Spinner } from "@/components/ui/spinner";
+import { useSmoothProgress } from "../_hooks/use-smooth-progress";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
@@ -46,7 +47,6 @@ type SongFullscreenPlayerViewProps = {
   handleNext: (e: React.MouseEvent) => void;
   currentIndex: number;
   songs: SongSchema[];
-  progress: number;
   duration: number;
   toggleFullScreen: (e: React.MouseEvent) => void;
   handleSeek: (val: number[]) => void;
@@ -70,7 +70,6 @@ const SongFullscreenPlayerView = ({
   handleNext,
   currentIndex,
   songs,
-  progress,
   duration,
   handleSeek,
   mode,
@@ -156,22 +155,6 @@ const SongFullscreenPlayerView = ({
   useEffect(() => {
     setBaseUrl(window.location.origin);
   }, []);
-
-  const formatTime = (seconds: number) => {
-    if (!seconds || Number.isNaN(seconds)) return "0:00";
-
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-
-    if (hrs > 0) {
-      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs
-        .toString()
-        .padStart(2, "0")}`;
-    } else {
-      return `${mins}:${secs.toString().padStart(2, "0")}`;
-    }
-  };
 
   const handleRepeatClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -331,19 +314,20 @@ const SongFullscreenPlayerView = ({
           </Button>
         </div>
 
-        <div className="w-full">
-          <Slider
-            value={[progress]}
-            max={duration}
-            step={5}
-            onValueChange={handleSeek}
-            className="cursor-pointer"
-          />
-          <div className="flex justify-between text-sm text-muted-foreground mt-1">
-            <span>{formatTime(progress)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-        </div>
+        <ProgressBar duration={duration} handleSeek={handleSeek} />
+        {/* <div className="w-full"> */}
+        {/*   <Slider */}
+        {/*     value={[progress]} */}
+        {/*     max={duration} */}
+        {/*     step={5} */}
+        {/*     onValueChange={handleSeek} */}
+        {/*     className="cursor-pointer" */}
+        {/*   /> */}
+        {/*   <div className="flex justify-between text-sm text-muted-foreground mt-1"> */}
+        {/*     <span>{formatTime(progress)}</span> */}
+        {/*     <span>{formatTime(duration)}</span> */}
+        {/*   </div> */}
+        {/* </div> */}
       </div>
 
       <ShareLinkDialog
@@ -359,6 +343,46 @@ const SongFullscreenPlayerView = ({
         song={currentSong as SongSchema}
       />
     </Card>
+  );
+};
+
+const ProgressBar = ({
+  duration,
+  handleSeek,
+}: {
+  duration: number;
+  handleSeek: (val: number[]) => void;
+}) => {
+  const progress = useSmoothProgress();
+  const formatTime = (seconds: number) => {
+    if (!seconds || Number.isNaN(seconds)) return "0:00";
+
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hrs > 0) {
+      return `${hrs}:${mins.toString().padStart(2, "0")}:${secs
+        .toString()
+        .padStart(2, "0")}`;
+    } else {
+      return `${mins}:${secs.toString().padStart(2, "0")}`;
+    }
+  };
+  return (
+    <div className="w-full">
+      <Slider
+        value={[progress]}
+        max={duration}
+        step={5}
+        onValueChange={handleSeek}
+        className="cursor-pointer"
+      />
+      <div className="flex justify-between text-sm text-muted-foreground mt-1">
+        <span>{formatTime(progress)}</span>
+        <span>{formatTime(duration)}</span>
+      </div>
+    </div>
   );
 };
 
