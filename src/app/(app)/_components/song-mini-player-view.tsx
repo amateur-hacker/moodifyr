@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import { useSmoothProgress } from "../_hooks/use-smooth-progress";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 type SongMiniPlayerViewProps = {
   currentSong: SongSchema;
@@ -38,24 +38,12 @@ const SongMiniPlayerView = ({
   showProgress,
   mode,
 }: SongMiniPlayerViewProps) => {
-  // const progressPercent =
-  //   duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
-
   return (
     <Card
       className="p-4 bg-background/90 backdrop-blur-md border-0 border-t h-full rounded-none relative flex-row justify-between cursor-pointer"
       title="Open Fullscreen View"
       onClick={toggleFullScreen}
     >
-      {/* <motion.div */}
-      {/*   className={cn("absolute top-0 left-0 w-full h-1 bg-primary")} */}
-      {/*   animate={{ */}
-      {/*     width: showProgress ? `${progressPercent}%` : 0, */}
-      {/*     opacity: showProgress ? 1 : 0, */}
-      {/*   }} */}
-      {/*   initial={{ width: 0, opacity: 0 }} */}
-      {/*   transition={{ type: "tween", ease: "linear", duration: 0.25 }} */}
-      {/* /> */}
       <ProgressBar showProgress={showProgress} duration={duration} />
 
       <div className="flex items-center flex-1">
@@ -127,7 +115,8 @@ const ProgressBar = ({
   showProgress: boolean;
   duration: number;
 }) => {
-  const progress = useSmoothProgress();
+  const progress = useSongPlayerStore((s) => s.progress);
+
   const progressPercent =
     duration > 0 ? Math.min((progress / duration) * 100, 100) : 0;
 

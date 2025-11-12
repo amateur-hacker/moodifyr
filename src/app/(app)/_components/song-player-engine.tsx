@@ -12,30 +12,32 @@ import {
   trackUserSongPlayHistory,
 } from "@/app/(app)/search/actions";
 import { generateShuffleQueue } from "@/app/(app)/utils";
+import { useSongPlayerStore } from "@/store/song-player-store";
+import { useAnimationFrame } from "motion/react";
 
 const SongPlayerEngine = () => {
-  const {
-    youtubeId,
-    playerRef,
-    setIsLoading,
-    duration,
-    setDuration,
-    setProgress,
-    setIsPlaying,
-    currentSong,
-    setSong,
-    isPlaying,
-    mode,
-    songs,
-    addRecentSong,
-    setIsPlayerFullScreen,
-    shuffleQueue,
-    setShuffleQueue,
-    shuffleIndex,
-    setShuffleIndex,
-    recentSongIds,
-    lastAction,
-  } = useSongPlayer();
+  const youtubeId = useSongPlayerStore((s) => s.youtubeId);
+  const playerRef = useSongPlayerStore((s) => s.playerRef);
+  const setIsLoading = useSongPlayerStore((s) => s.setIsLoading);
+  const duration = useSongPlayerStore((s) => s.duration);
+  const setDuration = useSongPlayerStore((s) => s.setDuration);
+  const setProgress = useSongPlayerStore((s) => s.setProgress);
+  const setIsPlaying = useSongPlayerStore((s) => s.setIsPlaying);
+  const currentSong = useSongPlayerStore((s) => s.currentSong);
+  const setSong = useSongPlayerStore((s) => s.setSong);
+  const isPlaying = useSongPlayerStore((s) => s.isPlaying);
+  const mode = useSongPlayerStore((s) => s.mode);
+  const songs = useSongPlayerStore((s) => s.songs);
+  const addRecentSong = useSongPlayerStore((s) => s.addRecentSong);
+  const setIsPlayerFullScreen = useSongPlayerStore(
+    (s) => s.setIsPlayerFullScreen,
+  );
+  const shuffleQueue = useSongPlayerStore((s) => s.shuffleQueue);
+  const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
+  const shuffleIndex = useSongPlayerStore((s) => s.shuffleIndex);
+  const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
+  const recentSongIds = useSongPlayerStore((s) => s.recentSongIds);
+  const lastAction = useSongPlayerStore((s) => s.lastAction);
 
   const hostRef = useRef<HTMLDivElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -50,6 +52,7 @@ const SongPlayerEngine = () => {
   const lastTrackedIdRef = useRef<string | null>(null);
   const lastAnalyticsIdRef = useRef<string | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastPollTimeRef = useRef(0);
 
   songsRef.current = songs;
   currentSongRef.current = currentSong;
@@ -74,6 +77,7 @@ const SongPlayerEngine = () => {
 
     switch (event.data) {
       case -1:
+        if (!isPlayingRef.current) return;
         setIsLoading(true);
         break;
       case 1: {
@@ -381,69 +385,62 @@ const SongPlayerEngine = () => {
     };
   }, []);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  useEffect(() => {
-    clearProgressTimer();
+  useAnimationFrame((t) => {
+    if (!playerRef.current || !isPlaying) return;
 
-    if (playerRef.current && isPlaying) {
-      intervalRef.current = setInterval(async () => {
-        try {
-          const currentTime = await playerRef.current?.getCurrentTime();
-          if (currentTime == null) return;
+    if (t - lastPollTimeRef.current < 1000) return;
+    lastPollTimeRef.current = t;
 
-          lastTimeRef.current = currentTime;
-          // setProgress(currentTime);
+    playerRef.current
+      .getCurrentTime?.()
+      .then((currentTime) => {
+        if (currentTime == null) return;
 
-          if (
-            currentSongRef.current &&
-            currentTime >= Math.min(5, duration * 0.1) &&
-            lastTrackedIdRef.current !== currentSongRef.current.id
-          ) {
-            lastTrackedIdRef.current = currentSongRef.current.id;
-            trackUserSongPlayHistory({
-              song: {
-                id: currentSongRef.current.id,
-                title: currentSongRef.current.title,
-                thumbnail: currentSongRef.current.thumbnail,
-                duration: currentSongRef.current.duration,
-              },
-            }).catch((err) =>
-              console.error(
-                `Error tracking song play history for '${currentSongRef?.current?.title}':`,
-                err,
-              ),
-            );
-          }
+        lastTimeRef.current = currentTime;
+        setProgress(currentTime);
 
-          if (
-            currentSongRef.current &&
-            duration > 0 &&
-            currentTime >= duration * 0.6 &&
-            lastAnalyticsIdRef.current !== currentSongRef.current.id
-          ) {
-            lastAnalyticsIdRef.current = currentSongRef.current.id;
-            trackUserSongAnalyticsPlayHistory({
-              song: currentSongRef.current,
-            }).catch((err) =>
-              console.error(
-                `Error tracking song analytics for '${currentSongRef?.current?.title}':`,
-                err,
-              ),
-            );
-          }
-        } catch (err) {
-          console.error("Error getting current time from playerRef:", err);
+        const song = currentSongRef.current;
+
+        if (
+          song &&
+          currentTime >= Math.min(5, duration * 0.1) &&
+          lastTrackedIdRef.current !== song.id
+        ) {
+          lastTrackedIdRef.current = song.id;
+          trackUserSongPlayHistory({
+            song: {
+              id: song.id,
+              title: song.title,
+              thumbnail: song.thumbnail,
+              duration: song.duration,
+            },
+          }).catch((err) =>
+            console.error(
+              `Error tracking song play history for '${song.title}':`,
+              err,
+            ),
+          );
         }
-      }, 1000);
-    }
 
-    return clearProgressTimer;
-  }, [isPlaying, duration]);
-
-  // useEffect(async () => {
-  //   const currentTime = await playerRef.current?.getCurrentTime();
-  //   setProgress(currentTime);
-  // }, [isPlaying, duration]);
+        if (
+          song &&
+          duration > 0 &&
+          currentTime >= duration * 0.6 &&
+          lastAnalyticsIdRef.current !== song.id
+        ) {
+          lastAnalyticsIdRef.current = song.id;
+          trackUserSongAnalyticsPlayHistory({ song }).catch((err) =>
+            console.error(
+              `Error tracking song analytics for '${song.title}':`,
+              err,
+            ),
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("Error getting current time from playerRef:", err);
+      });
+  });
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {
@@ -453,6 +450,11 @@ const SongPlayerEngine = () => {
 
     const tryLoad = async () => {
       if (!playerRef.current) return;
+
+      if (!isPlayingRef.current) {
+        await playerRef.current.cueVideoById(youtubeId);
+        return;
+      }
 
       setIsLoading(true);
       setProgress(0);
@@ -466,7 +468,7 @@ const SongPlayerEngine = () => {
 
         if (state === 1 || state === 3) return;
 
-        if (retryCount <= 3) {
+        if (retryCount < 3) {
           retryCount++;
           console.warn(
             `! Retry #${retryCount} - video not started (state: ${state})`,

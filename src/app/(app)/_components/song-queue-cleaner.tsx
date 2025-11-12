@@ -2,10 +2,10 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 const SongQueueCleaner = () => {
-  const { setSongs } = useSongPlayer();
+  const setSongs = useSongPlayerStore((s) => s.setSongs);
   const pathname = usePathname();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>

@@ -2,7 +2,6 @@
 
 import { Dot, EllipsisIcon, ListMusic, Shuffle } from "lucide-react";
 import { useState } from "react";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { generateShuffleQueue } from "@/app/(app)/utils";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 type PlayHeaderProps = {
   className?: string;
@@ -31,16 +31,16 @@ const PlayHeader = ({
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
 
-  const {
-    setSongs,
-    setSong,
-    setIsPlayerFullScreen,
-    recentSongIds,
-    setMode,
-    setLastAction,
-    setShuffleQueue,
-    setShuffleIndex,
-  } = useSongPlayer();
+  const setSongs = useSongPlayerStore((s) => s.setSongs);
+  const setSong = useSongPlayerStore((s) => s.setSong);
+  const setIsPlayerFullScreen = useSongPlayerStore(
+    (s) => s.setIsPlayerFullScreen,
+  );
+  const recentSongIds = useSongPlayerStore((s) => s.recentSongIds);
+  const setMode = useSongPlayerStore((s) => s.setMode);
+  const setLastAction = useSongPlayerStore((s) => s.setLastAction);
+  const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
+  const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
 
   const handlePlay = (mode: "shuffle" | "normal") => {
     setIsLoading(true);
@@ -66,7 +66,10 @@ const PlayHeader = ({
   };
 
   return (
-    <div className={cn("flex gap-2 justify-center items-center", className)}>
+    <div
+      className={cn("flex gap-2 justify-center items-center", className)}
+      suppressHydrationWarning
+    >
       <div className="flex items-center gap-0.5 text-muted-foreground">
         <Typography variant="body">{totalSongs} songs</Typography>
         <Dot />

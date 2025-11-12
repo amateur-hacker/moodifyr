@@ -5,13 +5,14 @@ import Image from "next/image";
 import type React from "react";
 import { useEffect, useState } from "react";
 import { isMobile, isTablet } from "react-device-detect";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { Prettify, SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { generateShuffleQueue } from "@/app/(app)/utils";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
+import { useSongPlayerStore } from "@/store/song-player-store";
+import { shallow, useShallow } from "zustand/shallow";
 
 type CommonSongCardProps = {
   song: SongWithUniqueIdSchema;
@@ -33,30 +34,66 @@ const BaseSongCard = (props: BaseSongCardProps) => {
   } = props;
 
   const timesPlayed = variant === "dashboard" ? props.timesPlayed : undefined;
-  const {
-    isPlaying,
-    setSong,
-    togglePlay,
-    isLoading,
-    setIsPlayerFullScreen,
-    isCurrentSong,
-    setLastAction,
-    mode,
-    addRecentSong,
-    setShuffleIndex,
-    setShuffleQueue,
-    recentSongIds,
-    youtubeId,
-    songs,
-  } = useSongPlayer();
+  // const isPlaying = useSongPlayerStore((s) => s.isPlaying);
+  // const isLoading = useSongPlayerStore((s) => s.isLoading);
+  // const globalIsPlaying = useSongPlayerStore((s) => s.isPlaying);
+  // const isLoading = useSongPlayerStore((s) => s.isLoading);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const mode = useSongPlayerStore((s) => s.mode);
+  const songs = useSongPlayerStore((s) => s.songs);
+  const recentSongIds = useSongPlayerStore((s) => s.recentSongIds);
+  const setSong = useSongPlayerStore((s) => s.setSong);
+  const togglePlay = useSongPlayerStore((s) => s.togglePlay);
+  const setIsPlayerFullScreen = useSongPlayerStore(
+    (s) => s.setIsPlayerFullScreen,
+  );
+  const isCurrentSong = useSongPlayerStore((s) => s.isCurrentSong);
+  const setLastAction = useSongPlayerStore((s) => s.setLastAction);
+  const addRecentSong = useSongPlayerStore((s) => s.addRecentSong);
+  const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
+  const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
 
   const [isClient, setIsClient] = useState(false);
 
-  const isCurrent = isCurrentSong(song);
+  // const isCurrent = isCurrentSong(song);
+  const [isCurrent, setIsCurrent] = useState(() => isCurrentSong(song));
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  useEffect(() => {
+    const unsubCurrent = useSongPlayerStore.subscribe(
+      (state) => state.currentSong,
+      (newSong) => {
+        setIsCurrent(newSong ? newSong.id === song.id : false);
+      },
+    );
+
+    const unsubPlaying = useSongPlayerStore.subscribe(
+      (state) => state.isPlaying,
+      (newVal) => {
+        if (useSongPlayerStore.getState().isCurrentSong(song))
+          setIsPlaying(newVal);
+      },
+    );
+
+    const unsubLoading = useSongPlayerStore.subscribe(
+      (state) => state.isLoading,
+      (newVal) => {
+        if (useSongPlayerStore.getState().isCurrentSong(song))
+          setIsLoading(newVal);
+      },
+    );
+
+    return () => {
+      unsubCurrent();
+      unsubPlaying();
+      unsubLoading();
+    };
+  }, [song.id]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,7 +103,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
 
     setLastAction("manual");
 
-    const shouldStartNewSong = !isCurrent || !youtubeId;
+    const shouldStartNewSong = !isCurrent;
     const shouldOpenFullscreen = shouldStartNewSong || !isPlaying;
 
     if (shouldOpenFullscreen) {
@@ -80,6 +117,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
 
     if (shouldStartNewSong) {
       setSong(song, true);
+      setIsPlaying(true);
       if (mode === "shuffle") {
         addRecentSong(song.id);
         const newQueue = generateShuffleQueue(songs, song, recentSongIds);
@@ -87,6 +125,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
         setShuffleIndex(0);
       }
     } else {
+      setIsPlaying(!isPlaying);
       togglePlay(e);
     }
   };

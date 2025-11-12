@@ -6,7 +6,6 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { SongFullscreenPlayerView } from "@/app/(app)/_components/song-fullscreen-player-view";
 import { SongMiniPlayerView } from "@/app/(app)/_components/song-mini-player-view";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type {
   FavouriteSongSchema,
   SongWithUniqueIdSchema,
@@ -14,6 +13,7 @@ import type {
 import type { getUserMoodlists } from "@/app/(app)/moodlists/queries";
 import { generateShuffleQueue, getSongInstanceId } from "@/app/(app)/utils";
 import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 const SongPlayerBar = ({
   favouriteSongs,
@@ -22,31 +22,30 @@ const SongPlayerBar = ({
   favouriteSongs: FavouriteSongSchema[] | null;
   moodlists: Awaited<ReturnType<typeof getUserMoodlists>>;
 }) => {
-  const {
-    currentSong,
-    isPlaying,
-    isLoading,
-    togglePlay,
-    playerRef,
-    // progress,
-    duration,
-    setProgress,
-    setSong,
-    setIsPlaying,
-    mode,
-    setMode,
-    isPlayerFullScreen,
-    setIsPlayerFullScreen,
-    songs,
-    setLastAction,
-    recentSongIds,
-    addRecentSong,
-    shuffleQueue,
-    setShuffleQueue,
-    shuffleIndex,
-    setShuffleIndex,
-    youtubeId,
-  } = useSongPlayer();
+  const currentSong = useSongPlayerStore((s) => s.currentSong);
+  const isPlaying = useSongPlayerStore((s) => s.isPlaying);
+  const isLoading = useSongPlayerStore((s) => s.isLoading);
+  const playerRef = useSongPlayerStore((s) => s.playerRef);
+  const duration = useSongPlayerStore((s) => s.duration);
+  const mode = useSongPlayerStore((s) => s.mode);
+  const isPlayerFullScreen = useSongPlayerStore((s) => s.isPlayerFullScreen);
+  const songs = useSongPlayerStore((s) => s.songs);
+  const recentSongIds = useSongPlayerStore((s) => s.recentSongIds);
+  const shuffleQueue = useSongPlayerStore((s) => s.shuffleQueue);
+  const shuffleIndex = useSongPlayerStore((s) => s.shuffleIndex);
+  const youtubeId = useSongPlayerStore((s) => s.youtubeId);
+  const togglePlay = useSongPlayerStore((s) => s.togglePlay);
+  const setProgress = useSongPlayerStore((s) => s.setProgress);
+  const setSong = useSongPlayerStore((s) => s.setSong);
+  const setIsPlaying = useSongPlayerStore((s) => s.setIsPlaying);
+  const setMode = useSongPlayerStore((s) => s.setMode);
+  const setIsPlayerFullScreen = useSongPlayerStore(
+    (s) => s.setIsPlayerFullScreen,
+  );
+  const setLastAction = useSongPlayerStore((s) => s.setLastAction);
+  const addRecentSong = useSongPlayerStore((s) => s.addRecentSong);
+  const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
+  const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
 
   const { ref, height } = useElementSize();
   const [volume, setVolume] = useState(100);
@@ -144,10 +143,12 @@ const SongPlayerBar = ({
     const currentIndex = songs.findIndex((s) => s.id === currentSong.id);
     if (currentIndex !== -1 && currentIndex < songs.length - 1) {
       setSong(songs[currentIndex + 1]);
-    } else if (mode === "repeat-all" && songs.length > 0) {
-      setSong(songs[0]);
     } else {
-      setIsPlaying(false);
+      if (mode === "repeat-all" && currentIndex === songs.length - 1) {
+        setSong(songs[0]);
+      } else {
+        setIsPlaying(false);
+      }
     }
   };
 
@@ -188,23 +189,52 @@ const SongPlayerBar = ({
 
   const [showMiniProgress, setShowMiniProgress] = useState(!isPlayerFullScreen);
 
+  // const toggleFullScreen = (e: React.MouseEvent) => {
+  //   e.stopPropagation();
+  //
+  //   if (!isPlayerFullScreen) {
+  //     setShowMiniProgress(false);
+  //     setIsPlayerFullScreen(true);
+  //
+  //     const state = window.history.state;
+  //     if (!state?.fullscreen) {
+  //       window.history.pushState({ fullscreen: true }, "");
+  //     }
+  //   } else {
+  //     setIsPlayerFullScreen(false);
+  //
+  //     const state = window.history.state;
+  //     if (state?.fullscreen) {
+  //       window.history.back();
+  //     }
+  //   }
+  // };
+
   const toggleFullScreen = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    const state = window.history.state ?? {};
 
     if (!isPlayerFullScreen) {
       setShowMiniProgress(false);
       setIsPlayerFullScreen(true);
 
-      const state = window.history.state;
-      if (!state?.fullscreen) {
-        window.history.pushState({ fullscreen: true }, "");
+      if (!state.__playerFullscreen) {
+        window.history.pushState(
+          { ...state, __playerFullscreen: true },
+          "",
+          window.location.href,
+        );
       }
     } else {
       setIsPlayerFullScreen(false);
 
-      const state = window.history.state;
-      if (state?.fullscreen) {
-        window.history.back();
+      if (state.__playerFullscreen) {
+        window.history.replaceState(
+          { ...state, __playerFullscreen: false },
+          "",
+          window.location.href,
+        );
       }
     }
   };

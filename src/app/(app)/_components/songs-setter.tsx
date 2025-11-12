@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { getSongInstanceId } from "@/app/(app)/utils";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 type SongsSetterProps = { songs: SongWithUniqueIdSchema[] | null };
 
 const SongsSetter = ({ songs }: SongsSetterProps) => {
-  const { setSongs, currentSong } = useSongPlayer();
+  // const { setSongs, currentSong } = useSongPlayer();
+
+  const setSongs = useSongPlayerStore((s) => s.setSongs);
+  const currentSong = useSongPlayerStore((s) => s.currentSong);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
   useEffect(() => {

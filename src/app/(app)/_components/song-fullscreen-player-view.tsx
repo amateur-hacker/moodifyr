@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Slider } from "@/components/ui/slider";
 import { Spinner } from "@/components/ui/spinner";
-import { useSmoothProgress } from "../_hooks/use-smooth-progress";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 type SongPlayerMode = "normal" | "shuffle" | "repeat-all" | "repeat-one";
 
@@ -280,7 +280,8 @@ const SongFullscreenPlayerView = ({
             size="icon"
             onClick={handleNext}
             disabled={
-              (mode === "normal" && currentIndex >= songs.length - 1) ||
+              ((mode === "normal" || mode === "repeat-one") &&
+                currentIndex >= songs.length - 1) ||
               songs.length <= 1
             }
             className="cursor-pointer size-10"
@@ -353,7 +354,9 @@ const ProgressBar = ({
   duration: number;
   handleSeek: (val: number[]) => void;
 }) => {
-  const progress = useSmoothProgress();
+  // const progress = useSmoothProgress();
+  const progress = useSongPlayerStore((s) => s.progress);
+
   const formatTime = (seconds: number) => {
     if (!seconds || Number.isNaN(seconds)) return "0:00";
 

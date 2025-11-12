@@ -6,7 +6,6 @@ import {
   BaseSongCard,
   type Variant,
 } from "@/app/(app)/_components/base-song-card";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { Prettify, SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconButton } from "@/components/ui/shadcn-io/icon-button";
 import { cn } from "@/lib/utils";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 type BaseProps = {
   song: SongWithUniqueIdSchema;
@@ -69,13 +69,16 @@ const SongCard = (props: SongCardProps) => {
   const { song, variant, onClickExtra } = props;
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { currentSong, isCurrentSong } = useSongPlayer();
-  const [isCurrent, setIsCurrent] = useState(false);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
-  useEffect(() => {
-    setIsCurrent(isCurrentSong(song));
-  }, [song, currentSong]);
+  const isCurrentSong = useSongPlayerStore((s) => s.isCurrentSong);
+  // const [isCurrent, setIsCurrent] = useState(false);
+
+  const isCurrent = isCurrentSong(song);
+
+  // // biome-ignore lint/correctness/useExhaustiveDependencies: <_>
+  // useEffect(() => {
+  //   setIsCurrent(isCurrentSong(song));
+  // }, [song, currentSong]);
 
   const dropdownItems = () => {
     switch (variant) {

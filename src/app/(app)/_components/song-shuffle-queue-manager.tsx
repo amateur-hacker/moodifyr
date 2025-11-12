@@ -2,18 +2,16 @@
 
 // import { useEffect, useRef } from "react";
 import { useEffect } from "react";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import { generateShuffleQueue } from "@/app/(app)/utils";
+import { useSongPlayerStore } from "@/store/song-player-store";
 
 const SongShuffleQueueManager = () => {
-  const {
-    mode,
-    songs,
-    currentSong,
-    recentSongIds,
-    setShuffleQueue,
-    setShuffleIndex,
-  } = useSongPlayer();
+  const mode = useSongPlayerStore((s) => s.mode);
+  const songs = useSongPlayerStore((s) => s.songs);
+  const currentSong = useSongPlayerStore((s) => s.currentSong);
+  const recentSongIds = useSongPlayerStore((s) => s.recentSongIds);
+  const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
+  const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
 
   // const isFirstRender = useRef(true);
 

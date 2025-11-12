@@ -3,18 +3,18 @@ import { SongPlayerBar } from "@/app/(app)/_components/song-player-bar";
 import { SongPlayerEngine } from "@/app/(app)/_components/song-player-engine";
 import { SongQueueCleaner } from "@/app/(app)/_components/song-queue-cleaner";
 import { SongShuffleQueueManager } from "@/app/(app)/_components/song-shuffle-queue-manager";
-import { SongPlayerProvider } from "@/app/(app)/_context/song-player-context";
 import { getUserMoodlists } from "@/app/(app)/moodlists/queries";
 import {
   getUserFavouriteSongs,
   getUserLastPlayedSong,
   getUserSongPlayerMode,
 } from "@/app/(app)/queries";
+import { SongPlayerInitializer } from "./song-player-initializer";
 
 type GlobalPlayerProps = { children: React.ReactNode };
 
 const GlobalSongPlayer = async ({ children }: GlobalPlayerProps) => {
-  const [lastPlayedSong, initialMode, favouriteSongs, moodlists] =
+  const [lastPlayedSong, lastActiveMode, favouriteSongs, moodlists] =
     await Promise.all([
       getUserLastPlayedSong().then((res) => res ?? null),
       getUserSongPlayerMode().then((res) => res ?? null),
@@ -23,13 +23,17 @@ const GlobalSongPlayer = async ({ children }: GlobalPlayerProps) => {
     ]);
 
   return (
-    <SongPlayerProvider initialSong={lastPlayedSong} initialMode={initialMode}>
-      {children}
+    <>
+      <SongPlayerInitializer
+        lastPlayedSong={lastPlayedSong}
+        lastActiveMode={lastActiveMode}
+      />
       <SongPlayerEngine />
       <SongShuffleQueueManager />
       <SongQueueCleaner />
+      {children}
       <SongPlayerBar favouriteSongs={favouriteSongs} moodlists={moodlists} />
-    </SongPlayerProvider>
+    </>
   );
 };
 
