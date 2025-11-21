@@ -53,6 +53,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
   const addRecentSong = useSongPlayerStore((s) => s.addRecentSong);
   const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
   const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
+  const currentSong = useSongPlayerStore((s) => s.currentSong);
 
   const [isClient, setIsClient] = useState(false);
 
@@ -68,23 +69,37 @@ const BaseSongCard = (props: BaseSongCardProps) => {
     const unsubCurrent = useSongPlayerStore.subscribe(
       (state) => state.currentSong,
       (newSong) => {
-        setIsCurrent(newSong ? newSong.id === song.id : false);
+        const isNowCurrent = newSong ? newSong.id === song.id : false;
+        setIsCurrent(isNowCurrent);
+        // When the current song changes, update playing state immediately based on player state
+        if (isNowCurrent) {
+          const playerState = useSongPlayerStore.getState();
+          setIsPlaying(playerState.isPlaying);
+          setIsLoading(playerState.isLoading);
+        } else {
+          // When it's no longer the current song, ensure playing state is false
+          setIsPlaying(false);
+        }
       },
     );
 
     const unsubPlaying = useSongPlayerStore.subscribe(
       (state) => state.isPlaying,
       (newVal) => {
-        if (useSongPlayerStore.getState().isCurrentSong(song))
+        // Only update playing state if this card represents the current song
+        if (useSongPlayerStore.getState().isCurrentSong(song)) {
           setIsPlaying(newVal);
+        }
       },
     );
 
     const unsubLoading = useSongPlayerStore.subscribe(
       (state) => state.isLoading,
       (newVal) => {
-        if (useSongPlayerStore.getState().isCurrentSong(song))
+        // Only update loading state if this card represents the current song
+        if (useSongPlayerStore.getState().isCurrentSong(song)) {
           setIsLoading(newVal);
+        }
       },
     );
 
@@ -93,7 +108,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
       unsubPlaying();
       unsubLoading();
     };
-  }, [song.id]);
+  }, [song.id]); /* Removed lint ignore and updated dependency array */
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
