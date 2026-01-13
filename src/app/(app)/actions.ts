@@ -33,7 +33,7 @@ const signOutUser = async () => {
   });
 };
 
-const trackUserSongSearchHistory = ({
+const trackUserSongSearchHistory = async ({
   query,
 }: Pick<SongSearchHistorySchema, "query">) => {
   const trackUserSongSearchHistorySchema = songSearchHistorySchema.pick({
@@ -65,7 +65,7 @@ const trackUserSongSearchHistory = ({
   });
 };
 
-const removeUserSongSearchHistory = ({
+const removeUserSongSearchHistory = async ({
   id,
 }: Pick<SongSearchHistorySchema, "id">) => {
   const removeUserSongSearchHistorySchema = songSearchHistorySchema.pick({

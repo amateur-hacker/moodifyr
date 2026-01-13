@@ -34,7 +34,7 @@ const getUserSession = async () => {
   });
 };
 
-const getUserSongSearchHistory = ({
+const getUserSongSearchHistory = async ({
   page = 1,
   limit = 10,
 }: {
@@ -190,7 +190,7 @@ const getUserSongPlayerMode = async () => {
   });
 };
 
-const getUserFavouriteSongs = ({
+const getUserFavouriteSongs = async ({
   page,
   limit,
   pagination,
@@ -265,7 +265,7 @@ const getUserFavouriteSongs = ({
   });
 };
 
-const getUserFavouriteSongsStats = () => {
+const getUserFavouriteSongsStats = async () => {
   return executeQuery({
     queryFn: async ({ sessionUser }) => {
       const favourites = await db

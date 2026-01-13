@@ -53,6 +53,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
   const addRecentSong = useSongPlayerStore((s) => s.addRecentSong);
   const setShuffleIndex = useSongPlayerStore((s) => s.setShuffleIndex);
   const setShuffleQueue = useSongPlayerStore((s) => s.setShuffleQueue);
+  const currentSong = useSongPlayerStore((s) => s.currentSong);
 
   const [isClient, setIsClient] = useState(false);
 
@@ -93,7 +94,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
       unsubPlaying();
       unsubLoading();
     };
-  }, [song.id]);
+  }, [song.id, currentSong]);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
