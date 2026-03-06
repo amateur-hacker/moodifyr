@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 
+PATH="./node_modules/.bin:$PATH"
+
 if [ "${NODE_ENV:-development}" = "production" ]; then
-  dotenv -e .env -- "$@"
+  dotenvx run -f .env -- "$@"
 else
-  dotenv -e .env.local -e .env -- "$@"
+  dotenvx run -f .env.local .env -- "$@"
 fi
