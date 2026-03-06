@@ -64,7 +64,7 @@ const getUserSongAnalyticsPlayHistoryByDateRange = async ({
   });
 };
 
-const getUserMostPlayedSongByDateRange = ({
+const getUserMostPlayedSongByDateRange = async ({
   startDate,
   endDate,
   count,

@@ -10,7 +10,7 @@ import {
 } from "@/db/schema/song";
 import { executeAction } from "@/db/utils";
 
-const removeUserSongPlayHistory = ({
+const removeUserSongPlayHistory = async ({
   id,
 }: Pick<SongPlayHistorySchema, "id">) => {
   return executeAction({

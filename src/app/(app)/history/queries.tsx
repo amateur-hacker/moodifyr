@@ -14,7 +14,7 @@ import { songPlayHistory, songs } from "@/db/schema/song";
 import { executeQuery } from "@/db/utils";
 import { convertToLocalTZ } from "@/lib/utils";
 
-const getUserSongPlayHistory = ({
+const getUserSongPlayHistory = async ({
   page,
   limit,
 }: {

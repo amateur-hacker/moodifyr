@@ -1,1 +1,0 @@
-CREATE INDEX "title_search_index" ON "song_search_history" USING gin (to_tsvector('english', "query"));
