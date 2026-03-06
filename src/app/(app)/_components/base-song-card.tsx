@@ -137,7 +137,7 @@ const BaseSongCard = (props: BaseSongCardProps) => {
         type="button"
         onClick={handleClick}
         className={cn(
-          "relative w-[120px] h-[60px] sm:w-[150px] sm:h-[75px] aspect-[2/1.2] cursor-pointer rounded-md text-neutral-300",
+          "relative w-30 h-15 sm:w-37.5 sm:h-18.75 aspect-[2/1.2] cursor-pointer rounded-md text-neutral-300",
           isCurrent && "shadow-2xl",
         )}
         title={!isPlaying ? "Play" : "Pause"}
