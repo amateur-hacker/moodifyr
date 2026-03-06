@@ -271,7 +271,7 @@ const SearchSongForm = () => {
               <DropdownMenuContent
                 ref={setContentEl}
                 align="start"
-                className="w-(--radix-dropdown-menu-trigger-width) p-0 max-h-60 overflow-y-auto"
+                className="w-[var(--radix-dropdown-menu-trigger-width)] p-0 max-h-60 overflow-y-auto"
                 // @ts-expect-error shadcn typing mismatch
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 onCloseAutoFocus={(e) => e.preventDefault()}
