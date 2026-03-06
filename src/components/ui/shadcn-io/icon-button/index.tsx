@@ -1,12 +1,12 @@
 "use client";
 
-import * as React from "react";
 import {
-  motion,
   AnimatePresence,
   type HTMLMotionProps,
+  motion,
   type Transition,
 } from "motion/react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -41,7 +41,7 @@ function IconButton({
     <motion.button
       data-slot="icon-button"
       className={cn(
-        `group/icon-button cursor-pointer relative inline-flex size-10 shrink-0 rounded-full hover:bg-[var(--icon-button-color)]/10 active:bg-[var(--icon-button-color)]/20 text-[var(--icon-button-color)]`,
+        `group/icon-button cursor-pointer relative inline-flex size-10 shrink-0 rounded-full hover:bg-(--icon-button-color)/10 active:bg-(--icon-button-color)/20 text-(--icon-button-color)`,
         sizes[size],
         className,
       )}
@@ -55,27 +55,32 @@ function IconButton({
       {...props}
     >
       <motion.div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 stroke-muted-foreground group-hover/icon-button:stroke-[var(--icon-button-color)]"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 stroke-muted-foreground group-hover/icon-button:stroke-(--icon-button-color)"
         aria-hidden="true"
       >
-        {React.createElement(Icon as React.ComponentType<any>, {
-          className: active
-            ? "fill-[var(--icon-button-color)]"
-            : "fill-transparent",
-        })}
+        {React.createElement(
+          Icon as React.ComponentType<Record<string, unknown>>,
+          {
+            className: active
+              ? "fill-[var(--icon-button-color)]"
+              : "fill-transparent",
+          },
+        )}
       </motion.div>
 
       <AnimatePresence mode="wait">
         {active && (
           <motion.div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[var(--icon-button-color)] fill-[var(--icon-button-color)]"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-(--icon-button-color) fill-(--icon-button-color)"
             aria-hidden="true"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             transition={transition}
           >
-            {React.createElement(Icon as React.ComponentType<any>)}
+            {React.createElement(
+              Icon as React.ComponentType<Record<string, unknown>>,
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -104,7 +109,7 @@ function IconButton({
             {[...Array(6)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 rounded-full bg-[var(--icon-button-color)]"
+                className="absolute w-1 h-1 rounded-full bg-(--icon-button-color)"
                 initial={{ x: "50%", y: "50%", scale: 0, opacity: 0 }}
                 animate={{
                   x: `calc(50% + ${Math.cos((i * Math.PI) / 3) * 30}px)`,

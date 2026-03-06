@@ -70,7 +70,7 @@ export default async function HomePage() {
           href={href}
           className="cursor-pointer w-max flex flex-col gap-2 text-center"
         >
-          <div className="size-32 sm:size-40 bg-gradient-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center">
+          <div className="size-32 sm:size-40 bg-linear-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center">
             <Icon className="size-16 sm:size-20" />
           </div>
           <Typography variant="large">{label}</Typography>

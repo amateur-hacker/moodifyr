@@ -164,7 +164,9 @@ const SongFullscreenPlayerView = ({
         ? "repeat-all"
         : mode === "repeat-all"
           ? "repeat-one"
-          : "normal";
+          : mode === "shuffle"
+            ? "repeat-all"
+            : "normal";
 
     toggleMode(e, nextMode);
   };

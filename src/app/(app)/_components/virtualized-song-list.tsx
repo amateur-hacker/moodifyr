@@ -1,6 +1,6 @@
 import { Virtuoso } from "react-virtuoso";
+import { SongCardLoader } from "@/app/(app)/_components/song-card-loader";
 import type { Prettify, SongSchema } from "@/app/(app)/_types";
-import { SongCardLoader } from "./song-card-loader";
 import { Spinner } from "@/components/ui/spinner";
 
 const VIRTUALIZE_AFTER = 25;

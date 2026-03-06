@@ -1,7 +1,7 @@
 "use client";
 
 import { CirclePlus, EllipsisIcon, Heart, Share2, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   BaseSongCard,
   type Variant,

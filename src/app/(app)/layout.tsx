@@ -7,7 +7,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import type { SelectUserModel } from "@/db/schema/auth";
 import { auth } from "@/lib/auth";
 
-// import { SplashCursor } from "@/components/splash-cursor";
 // import { cookies } from "next/headers";
 
 export default async function AppLayout({
@@ -26,7 +25,6 @@ export default async function AppLayout({
     <UserProvider user={user}>
       <SidebarProvider defaultOpen={false}>
         <GlobalSongPlayer>
-          {/* <SplashCursor /> */}
           <Navbar />
           <AppSidebar />
           <main className="w-full h-full pt-19 px-6 pb-4">{children}</main>

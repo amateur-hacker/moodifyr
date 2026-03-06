@@ -107,10 +107,10 @@ const UserMoodlistPage = async ({
               />
             )}
           </div>
-          <div className="size-full mx-auto max-w-3xl pb-[var(--player-height,0px)]">
+          <div className="size-full mx-auto max-w-3xl pb-(--player-height,0px)">
             <Suspense
               fallback={
-                <div className="space-y-[1.3125rem]">
+                <div className="space-y-5.25">
                   {Array.from({ length: 10 }, (_, idx) => idx).map((id) => (
                     <SongCardLoader key={`loader-${id}`} />
                   ))}

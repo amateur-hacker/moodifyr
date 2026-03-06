@@ -126,10 +126,10 @@ export function AppSidebar() {
                       className={`flex items-center gap-2 ${
                         item.url === "/"
                           ? pathname === "/"
-                            ? "text-primary hover:!text-primary"
+                            ? "text-primary hover:text-primary!"
                             : "text-foreground"
                           : pathname.startsWith(item.url)
-                            ? "text-primary hover:!text-primary"
+                            ? "text-primary hover:text-primary!"
                             : "text-foreground"
                       }`}
                     >

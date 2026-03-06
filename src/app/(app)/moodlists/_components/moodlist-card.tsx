@@ -128,7 +128,7 @@ const MoodlistCard = ({
   };
 
   return (
-    <div className="size-32 sm:size-40 bg-gradient-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center relative overflow-hidden mx-auto">
+    <div className="size-32 sm:size-40 bg-linear-to-b from-primary via-secondary to-accent rounded-md flex justify-center items-center relative overflow-hidden mx-auto">
       <Music className="size-16" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

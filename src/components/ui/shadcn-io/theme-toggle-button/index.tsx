@@ -56,7 +56,7 @@ export const ThemeToggleButton = ({
         start === "center" ? "50" : start.includes("top") ? "0" : "100";
       css = `
         @supports (view-transition-name: root) {
-          ::view-transition-old(root) { 
+          ::view-transition-old(root) {
             animation: none;
           }
           ::view-transition-new(root) {
@@ -80,7 +80,7 @@ export const ThemeToggleButton = ({
         start === "center" ? "50" : start.includes("top") ? "0" : "100";
       css = `
         @supports (view-transition-name: root) {
-          ::view-transition-old(root) { 
+          ::view-transition-old(root) {
             animation: none;
           }
           ::view-transition-new(root) {
@@ -208,7 +208,7 @@ export const ThemeToggleButton = ({
 export const useThemeTransition = () => {
   const startTransition = useCallback((updateFn: () => void) => {
     if ("startViewTransition" in document) {
-      (document as any).startViewTransition(updateFn);
+      (document as Document).startViewTransition(updateFn);
     } else {
       updateFn();
     }

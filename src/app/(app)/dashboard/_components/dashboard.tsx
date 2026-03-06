@@ -52,7 +52,7 @@ const Dashboard = () => {
   }, [startDate, endDate, isPending]);
 
   return (
-    <div className="space-y-6 flex flex-col min-h-[calc(100dvh-3.8rem)] pb-[var(--player-height,0px)]">
+    <div className="space-y-6 flex flex-col min-h-[calc(100dvh-3.8rem)] pb-(--player-height,0px)">
       <div className="flex w-full flex-col justify-between gap-2 px-4 sm:flex-row sm:gap-0">
         <DateRangePicker />
         <DateRangePresetSelect />

@@ -4,7 +4,6 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { isMobile } from "react-device-detect";
 import { toast } from "sonner";
 import youtubePlayer from "youtube-player";
-import { useSongPlayer } from "@/app/(app)/_context/song-player-context";
 import type { SongWithUniqueIdSchema } from "@/app/(app)/_types";
 import { saveUserPreference } from "@/app/(app)/actions";
 import {

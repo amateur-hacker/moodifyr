@@ -12,7 +12,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Typography } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 import { useSongPlayerStore } from "@/store/song-player-store";
-import { shallow, useShallow } from "zustand/shallow";
 
 type CommonSongCardProps = {
   song: SongWithUniqueIdSchema;
@@ -38,8 +37,14 @@ const BaseSongCard = (props: BaseSongCardProps) => {
   // const isLoading = useSongPlayerStore((s) => s.isLoading);
   // const globalIsPlaying = useSongPlayerStore((s) => s.isPlaying);
   // const isLoading = useSongPlayerStore((s) => s.isLoading);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(() => {
+    const state = useSongPlayerStore.getState();
+    return state.isCurrentSong(song) && state.isPlaying;
+  });
+  const [isLoading, setIsLoading] = useState(() => {
+    const state = useSongPlayerStore.getState();
+    return state.isCurrentSong(song) && state.isLoading;
+  });
   const mode = useSongPlayerStore((s) => s.mode);
   const songs = useSongPlayerStore((s) => s.songs);
   const recentSongIds = useSongPlayerStore((s) => s.recentSongIds);

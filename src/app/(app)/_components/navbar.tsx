@@ -10,7 +10,7 @@ const Navbar = () => {
   const user = useUser();
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 border-b bg-background/90 text-foreground gap-5 fixed top-0 inset-x-0 z-[50] backdrop-blur-md">
+    <nav className="flex items-center justify-between px-6 py-3 border-b bg-background/90 text-foreground gap-5 fixed top-0 inset-x-0 z-50 backdrop-blur-md">
       <div className="flex gap-1.5">
         <SidebarTrigger className="cursor-pointer" />
         <Link href="/" className="text-2xl font-bold font-logo">
